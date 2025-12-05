@@ -27,9 +27,6 @@ ALL_STYLES = [
 # ログイン状態のチェックとリダイレクト
 @app.route('/')
 def index():
-    # 開発中は、ログイン状態にかかわらず直接ホーム画面へリダイレクトします。
-    # return redirect(url_for('login')) # 以前のコード
-    
     # 開発用の暫定対応として、直接ホーム画面へリダイレクト
     return redirect(url_for('home'))
 
@@ -93,11 +90,6 @@ def logout():
 # ホーム画面
 @app.route('/home')
 def home():
-    # ★重要★ 開発中はログインチェックをスキップするため、
-    # ログインしていない場合の自動リダイレクトをコメントアウトします。
-    # if not session.get('logged_in'):
-    #     return redirect(url_for('login'))
-    
     # セッションから現在の系統を取得。無ければ空のリスト
     current_styles = session.get('user_styles', [])
     
@@ -106,10 +98,6 @@ def home():
 # 詳細画面 (ダミーの商品情報)
 @app.route('/detail')
 def detail():
-    # ★重要★ 開発中はログインチェックをスキップします。
-    # if not session.get('logged_in'):
-    #     return redirect(url_for('login'))
-    
     # 固定のダミー商品データ
     dummy_item = {
         "name": "ウールブレンド オーバーサイズ コート",
@@ -127,10 +115,6 @@ def detail():
 # 設定画面：系統の選択と保存
 @app.route('/setting', methods=['GET', 'POST'])
 def setting():
-    # ★重要★ 開発中はログインチェックをスキップします。
-    # if not session.get('logged_in'):
-    #     return redirect(url_for('login'))
-
     # POSTリクエスト (設定の保存)
     if request.method == 'POST':
         # フォームから選択されたスタイルをリストで取得

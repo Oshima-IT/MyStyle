@@ -3,65 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyStyle - 詳細</title>
+    <title>MyStyle - 設定</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     
     <header>
         <div class="header-content">
-            <h2>詳細</h2>
-            <a href="/">ホームへ戻る</a>
+            <h2>設定</h2>
         </div>
     </header>
 
     <main>
         <div class="card">
+            <h2>系統設定</h2>
             
-            <!-- 服の写真と商品名のエリア -->
-            <section class="item-info-area">
+            <!-- 検索フォーム (GETリクエスト) -->
+            <form method="GET" action="/setting" class="search-form" style="display: flex;">
+                <input type="text" 
+                       name="search" 
+                       placeholder="系統を検索（例: カジュアル）" 
+                       value="{{ search_query }}" 
+                       style="margin: 0;">
+                <button type="submit" style="width: 100px;">検索</button>
                 
-                <!-- 写真 -->
-                <img src="{{ item.photo_url | default('https://via.placeholder.com/200?text=Item_Photo') }}" 
-                     alt="{{ item.name | default('商品写真') }}" 
-                     class="item-photo">
-                
-                <div class="item-text-details">
-                    <!-- 商品名 -->
-                    <h1>{{ item.name | default('オーバーサイズ ブレザー') }}</h1>
-                    
-                    <!-- 値段 -->
-                    <p class="item-price">
-                        ¥{{ item.price | default('12,900') }}
-                    </p>
-
-                    <hr style="width: 100%; margin-left: 0;">
-
-                    <!-- カテゴリ表示エリア -->
-                    <section class="item-category" style="padding: 0;">
-                        <p style="color: var(--muted); font-weight: 600; margin-bottom: 5px;">カテゴリ</p>
-                        <p><span class="pill" style="background: var(--accent-weak); color: white;">{{ item.category | default('アウター / ジャケット') }}</span></p>
-                    </section>
-                </div>
-            </section>
-
+                {% if search_query %}
+                    <a href="/setting" class="btn-secondary" style="margin: 0; padding: 10px 16px; width: 100px; text-align: center; text-decoration: none;">リセット</a>
+                {% endif %}
+            </form>
+            
             <hr>
 
-            <!-- 購入サイトリンクエリア -->
-            <section class="item-sites">
-                <h3>購入可能サイト</h3>
+            <!-- 設定保存フォーム (POSTリクエスト) -->
+            <form method="POST" action="/setting">
+                <p><strong>好きな服の系統を選択してください（複数選択可）：</strong></p>
                 
-                {% if item.sites %}
-                    {% for site in item.sites %}
-                        <a href="{{ site.url }}" target="_blank" class="site-link">
-                            ▶ {{ site.name | default('サイト名') }}のページへ
-                        </a>
+                <div class="style-tags">
+                    
+                    {% for style in available_styles %}
+                    <div class="tag-item">
+                        <!-- チェックボックスを非表示にし、ラベルをボタンのように見せる -->
+                        <input type="checkbox" id="style-{{ loop.index }}" name="style" value="{{ style }}" >
+                        <label for="style-{{ loop.index }}">{{ style }}</label>
+                    </div>
                     {% endfor %}
-                {% else %}
-                    <p>現在、購入可能なサイト情報はありません。</p>
-                {% endif %}
-            </section>
+                    
+                    {% if not available_styles %}
+                        <p>一致する系統が見つかりませんでした。</p>
+                    {% endif %}
+                    
+                </div>
+                
+                <div class="actions" style="justify-content: flex-end; margin-top: 20px;">
+                    <button type="submit" class="save-button">設定を保存する</button>
+                </div>
+            </form>
         </div>
+        
+        <p style="margin-top: 20px; text-align: center;">
+            <a href="/">ホームに戻る</a>
+        </p>
+
     </main>
     
 </body>
