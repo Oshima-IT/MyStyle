@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="split">
+    <div class="card">
+        <h2>Shops</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Site</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for shop in shops %}
+                <tr>
+                    <td>{{ shop.id }}</td>
+                    <td>{{ shop.name }}</td>
+                    <td>{{ shop.site_url or "-" }}</td>
+                    <td class="actions">
+                        <a class="btn btn-secondary" href="{{ url_for('admin.admin_shop_edit', shop_id=shop.id) }}">Edit</a>
+                        <form action="{{ url_for('admin.admin_shop_delete', shop_id=shop.id) }}" method="post" onsubmit="return confirm('削除しますか？');">
+                            <button class="btn btn-danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4">No shops.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card">
+        <h2>Shopを追加</h2>
+        <form method="post">
+            <div>
+                <label>Name</label>
+                <input type="text" name="name" required>
+            </div>
+            <div>
+                <label>Site URL</label>
+                <input type="text" name="site_url">
+            </div>
+            <div class="actions">
+                <button type="submit">追加</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

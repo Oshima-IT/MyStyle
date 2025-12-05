@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>User編集 #{{ user.id }}</h2>
+    <form method="post">
+        <div>
+            <label>Email</label>
+            <input type="text" name="email" required value="{{ user.email }}">
+        </div>
+        <div>
+            <label>Password Hash</label>
+            <input type="text" name="password_hash" required value="{{ user.password_hash }}">
+        </div>
+        <div>
+            <label>Preferred Styles (カンマ区切り)</label>
+            <input type="text" name="preferred_styles" value="{{ user.preferred_styles or '' }}">
+        </div>
+        <div>
+            <label>Preferred Colors (カンマ区切り)</label>
+            <input type="text" name="preferred_colors" value="{{ user.preferred_colors or '' }}">
+        </div>
+        <div class="actions">
+            <button type="submit">保存</button>
+            <a class="btn btn-secondary" href="{{ url_for('admin.admin_users') }}">戻る</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

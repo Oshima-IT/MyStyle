@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Item編集 #{{ item.id }}</h2>
+    <form method="post" class="form">
+        <div>
+            <label>Name</label>
+            <input type="text" name="name" required value="{{ item.name }}">
+        </div>
+        <div>
+            <label>Image URL</label>
+            <input type="text" name="image_url" value="{{ item.image_url or '' }}">
+        </div>
+        <div>
+            <label>Category</label>
+            <input type="text" name="category" value="{{ item.category or '' }}">
+        </div>
+        <div>
+            <label>Price</label>
+            <input type="number" name="price" min="0" value="{{ item.price if item.price is not none else '' }}">
+        </div>
+        <div class="tag-picker">
+            <label>Styles</label>
+            <div class="tag-display" data-display="styles"></div>
+            <input type="hidden" name="styles" id="styles-input" value="{{ item.styles or '' }}">
+            <div class="actions">
+                <button type="button" class="btn btn-secondary" data-open-modal="styles">選択</button>
+            </div>
+        </div>
+        <div class="tag-picker">
+            <label>Colors</label>
+            <div class="tag-display" data-display="colors"></div>
+            <input type="hidden" name="colors" id="colors-input" value="{{ item.colors or '' }}">
+            <div class="actions">
+                <button type="button" class="btn btn-secondary" data-open-modal="colors">選択</button>
+            </div>
+        </div>
+        <div class="actions">
+            <label><input type="checkbox" name="is_trend" value="1" {% if item.is_trend %}checked{% endif %}> Trend</label>
+        </div>
+        <div class="actions">
+            <button type="submit">保存</button>
+            <a class="btn btn-secondary" href="{{ url_for('admin.admin_items') }}">戻る</a>
+        </div>
+    </form>
+</div>
+<div class="overlay hidden" id="picker-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div id="modal-title">選択</div>
+        </div>
+        <div class="tag-grid" id="tag-grid"></div>
+        <div class="modal-actions">
+            <button type="button" class="btn" id="modal-apply">完了</button>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+const STYLE_OPTIONS = ["ストリート", "カジュアル", "モード", "韓国系", "スポーツ", "ヴィンテージ", "ミニマル"];
+const COLOR_OPTIONS = ["黒", "白", "グレー", "ネイビー", "青", "ベージュ", "ブラウン", "緑", "赤"];
+
+const overlay = document.getElementById("picker-overlay");
+const tagGrid = document.getElementById("tag-grid");
+const modalTitle = document.getElementById("modal-title");
+const modalApply = document.getElementById("modal-apply");
+
+let currentType = null;
+
+function renderSelected(type, values) {
+    const display = document.querySelector(`[data-display="${type}"]`);
+    display.innerHTML = "";
+    if (!values.length) {
+        display.textContent = "なし";
+        return;
+    }
+    values.forEach(v => {
+        const span = document.createElement("span");
+        span.className = "pill";
+        span.textContent = v;
+        display.appendChild(span);
+    });
+}
+
+function openModal(type) {
+    currentType = type;
+    const input = document.getElementById(`${type}-input`);
+    const selected = input.value ? input.value.split(",") : [];
+    tagGrid.innerHTML = "";
+    const options = type === "styles" ? STYLE_OPTIONS : COLOR_OPTIONS;
+    modalTitle.textContent = type === "styles" ? "Styles を選択" : "Colors を選択";
+    options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tag-btn" + (selected.includes(opt) ? " active" : "");
+        btn.textContent = opt;
+        btn.onclick = () => btn.classList.toggle("active");
+        tagGrid.appendChild(btn);
+    });
+    overlay.classList.remove("hidden");
+}
+
+function closeModal() {
+    overlay.classList.add("hidden");
+}
+
+document.querySelectorAll("[data-open-modal]").forEach(btn => {
+    btn.addEventListener("click", () => openModal(btn.dataset.openModal));
+});
+window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+});
+modalApply.addEventListener("click", () => {
+    if (!currentType) return;
+    const input = document.getElementById(`${currentType}-input`);
+    const active = Array.from(tagGrid.querySelectorAll(".tag-btn.active")).map(b => b.textContent);
+    input.value = active.join(",");
+    renderSelected(currentType, active);
+    closeModal();
+});
+
+// 初期表示
+function initDisplay(type) {
+    const input = document.getElementById(`${type}-input`);
+    const values = input.value ? input.value.split(",") : [];
+    renderSelected(type, values);
+}
+initDisplay("styles");
+initDisplay("colors");
+</script>
+{% endblock %}
+{% endblock %}

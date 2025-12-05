@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="split">
+    <div class="card">
+        <h2>Users</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Preferred Styles</th>
+                    <th>Preferred Colors</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.preferred_styles or "-" }}</td>
+                    <td>{{ user.preferred_colors or "-" }}</td>
+                    <td class="actions">
+                        <a class="btn btn-secondary" href="{{ url_for('admin.admin_user_edit', user_id=user.id) }}">Edit</a>
+                        <form action="{{ url_for('admin.admin_user_delete', user_id=user.id) }}" method="post" onsubmit="return confirm('削除しますか？');">
+                            <button class="btn btn-danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">No users.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card">
+        <h2>Userを追加</h2>
+        <form method="post">
+            <div>
+                <label>Email</label>
+                <input type="text" name="email" required>
+            </div>
+            <div>
+                <label>Password Hash</label>
+                <input type="text" name="password_hash" required>
+            </div>
+            <div>
+                <label>Preferred Styles (カンマ区切り)</label>
+                <input type="text" name="preferred_styles" placeholder="street,vintage">
+            </div>
+            <div>
+                <label>Preferred Colors (カンマ区切り)</label>
+                <input type="text" name="preferred_colors" placeholder="black,white">
+            </div>
+            <div class="actions">
+                <button type="submit">追加</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

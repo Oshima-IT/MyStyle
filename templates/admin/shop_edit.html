@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+    <h2>Shop編集 #{{ shop.id }}</h2>
+    <form method="post">
+        <div>
+            <label>Name</label>
+            <input type="text" name="name" required value="{{ shop.name }}">
+        </div>
+        <div>
+            <label>Site URL</label>
+            <input type="text" name="site_url" value="{{ shop.site_url or '' }}">
+        </div>
+        <div class="actions">
+            <button type="submit">保存</button>
+            <a class="btn btn-secondary" href="{{ url_for('admin.admin_shops') }}">戻る</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

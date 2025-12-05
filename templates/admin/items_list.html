@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="split">
+    <div class="card">
+        <h2>Items</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Styles</th>
+                    <th>Colors</th>
+                    <th>Trend</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.id }}</td>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.category or "-" }}</td>
+                    <td>{% if item.price %}¥{{ item.price }}{% else %}-{% endif %}</td>
+                    <td>{{ item.styles or "-" }}</td>
+                    <td>{{ item.colors or "-" }}</td>
+                    <td>{% if item.is_trend %}<span class="pill">trend</span>{% else %}-{% endif %}</td>
+                    <td class="actions">
+                        <a class="btn btn-secondary" href="{{ url_for('admin.admin_item_edit', item_id=item.id) }}">Edit</a>
+                        <form action="{{ url_for('admin.admin_item_delete', item_id=item.id) }}" method="post" onsubmit="return confirm('削除しますか？');">
+                            <button class="btn btn-danger" type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8">No items.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card">
+        <h2>Itemを追加</h2>
+        <form method="post">
+            <div>
+                <label>Name</label>
+                <input type="text" name="name" required>
+            </div>
+            <div>
+                <label>Image URL</label>
+                <input type="text" name="image_url">
+            </div>
+            <div>
+                <label>Category</label>
+                <input type="text" name="category">
+            </div>
+            <div>
+                <label>Price</label>
+                <input type="number" name="price" min="0">
+            </div>
+            <div class="tag-picker">
+                <label>Styles</label>
+                <div class="tag-display" data-display="styles"></div>
+                <input type="hidden" name="styles" id="styles-input">
+                <div class="actions">
+                    <button type="button" class="btn btn-secondary" data-open-modal="styles">選択</button>
+                </div>
+            </div>
+            <div class="tag-picker">
+                <label>Colors</label>
+                <div class="tag-display" data-display="colors"></div>
+                <input type="hidden" name="colors" id="colors-input">
+                <div class="actions">
+                    <button type="button" class="btn btn-secondary" data-open-modal="colors">選択</button>
+                </div>
+            </div>
+            <div class="actions">
+                <label><input type="checkbox" name="is_trend" value="1"> Trend</label>
+            </div>
+            <div class="actions">
+                <button type="submit">追加</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="overlay hidden" id="picker-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div id="modal-title">選択</div>
+        </div>
+        <div class="tag-grid" id="tag-grid"></div>
+        <div class="modal-actions">
+            <button type="button" class="btn" id="modal-apply">完了</button>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+const STYLE_OPTIONS = ["ストリート", "カジュアル", "モード", "韓国系", "スポーツ", "ヴィンテージ", "ミニマル"];
+const COLOR_OPTIONS = ["黒", "白", "グレー", "ネイビー", "青", "ベージュ", "ブラウン", "緑", "赤"];
+
+const overlay = document.getElementById("picker-overlay");
+const tagGrid = document.getElementById("tag-grid");
+const modalTitle = document.getElementById("modal-title");
+const modalApply = document.getElementById("modal-apply");
+
+let currentType = null;
+
+function renderSelected(type, values) {
+    const display = document.querySelector(`[data-display="${type}"]`);
+    display.innerHTML = "";
+    if (!values.length) {
+        display.textContent = "なし";
+        return;
+    }
+    values.forEach(v => {
+        const span = document.createElement("span");
+        span.className = "pill";
+        span.textContent = v;
+        display.appendChild(span);
+    });
+}
+
+function openModal(type) {
+    currentType = type;
+    const input = document.getElementById(`${type}-input`);
+    const selected = input.value ? input.value.split(",") : [];
+    tagGrid.innerHTML = "";
+    const options = type === "styles" ? STYLE_OPTIONS : COLOR_OPTIONS;
+    modalTitle.textContent = type === "styles" ? "Styles を選択" : "Colors を選択";
+    options.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "tag-btn" + (selected.includes(opt) ? " active" : "");
+        btn.textContent = opt;
+        btn.onclick = () => btn.classList.toggle("active");
+        tagGrid.appendChild(btn);
+    });
+    overlay.classList.remove("hidden");
+}
+
+function closeModal() {
+    overlay.classList.add("hidden");
+}
+
+document.querySelectorAll("[data-open-modal]").forEach(btn => {
+    btn.addEventListener("click", () => openModal(btn.dataset.openModal));
+});
+
+window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+});
+modalApply.addEventListener("click", () => {
+    if (!currentType) return;
+    const input = document.getElementById(`${currentType}-input`);
+    const active = Array.from(tagGrid.querySelectorAll(".tag-btn.active")).map(b => b.textContent);
+    input.value = active.join(",");
+    renderSelected(currentType, active);
+    closeModal();
+});
+
+// 初期表示
+renderSelected("styles", []);
+renderSelected("colors", []);
+</script>
+{% endblock %}
+{% endblock %}
