@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アカウント登録 - MyStyle</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    
+    <header>
+        <div class="header-content">
+            <h2>MyStyle</h2>
+        </div>
+    </header>
+
+    <main>
+        <h2>新規アカウント登録</h2>
+        
+        <form method="POST" action="/acount">
+            
+            <div>
+                <label for="username">ユーザー名:</label><br>
+                <input type="text" id="username" name="username" required minlength="4">
+                <small>（4文字以上）</small>
+            </div>
+            
+            <div>
+                <label for="email">メールアドレス:</label><br>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div>
+                <label for="password">パスワード:</label><br>
+                <input type="password" id="password" name="password" required minlength="8">
+                <small>（8文字以上）</small>
+            </div>
+
+            <div>
+                <label for="confirm_password">パスワード（確認用）:</label><br>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            
+            <div>
+                <button type="submit">アカウントを登録する</button>
+            </div>
+        </form>
+        
+        <hr>
+        
+        <p>
+            すでにアカウントをお持ちですか？ 
+            <a href="/login">ログインはこちら</a>
+        </p>
+    </main>
+    
+</body>
+</html>

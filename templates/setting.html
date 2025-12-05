@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyStyle - 設定</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    
+    <header>
+        <div class="header-content">
+            <h2>MyStyle - 設定</h2>
+        </div>
+    </header>
+
+    <main>
+        <h2>系統設定</h2>
+        
+        <form method="GET" action="/setting" class="search-form">
+            <p><strong>系統を検索:</strong></p>
+            <input type="text" 
+                   name="search" 
+                   placeholder="例: フォーマル" 
+                   value="{{ search_query }}" 
+                   style="width: 200px;">
+            <button type="submit">検索</button>
+            
+            {% if search_query %}
+                <a href="/setting" style="margin-left: 10px;">検索リセット</a>
+            {% endif %}
+        </form>
+        
+        <hr>
+
+        <form method="POST" action="/setting">
+            <p>好きな服の系統を選択してください（複数選択可）：</p>
+            
+            <div class="style-tags">
+                
+                {% for style in available_styles %}
+                <div class="tag-item">
+                    <input type="checkbox" id="style-{{ loop.index }}" name="style" value="{{ style }}">
+                    <label for="style-{{ loop.index }}"># {{ style }}</label>
+                </div>
+                {% endfor %}
+                
+                {% if not available_styles %}
+                    <p>一致する系統が見つかりませんでした。</p>
+                {% endif %}
+                
+            </div>
+            
+            <hr>
+            
+            <div>
+                <button type="submit">設定を保存</button>
+            </div>
+        </form>
+        
+        <p style="margin-top: 20px;">
+            <a href="/">ホームに戻る</a>
+        </p>
+
+    </main>
+    
+</body>
+</html>

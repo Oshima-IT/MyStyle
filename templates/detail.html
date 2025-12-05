@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyStyle - 詳細</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* 詳細画面固有のスタイル */
+        .item-info-area {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            align-items: flex-start;
+        }
+        .item-photo {
+            width: 150px;
+            height: 150px;
+            border: 1px solid #ccc;
+            object-fit: cover;
+        }
+        .item-text-details {
+            display: flex;
+            flex-direction: column;
+        }
+        .item-category, .item-sites {
+            padding: 0 20px;
+            margin-top: 15px;
+        }
+        .site-link {
+            display: block;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #007bff;
+            border-radius: 4px;
+            background-color: #f0f8ff;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    
+    <header>
+        <div class="header-content">
+            <h2>詳細</h2>
+            <a href="/">ホームへ戻る</a>
+        </div>
+    </header>
+
+    <main>
+        
+        <section class="item-info-area">
+            
+            <img src="{{ item.photo_url | default('https://via.placeholder.com/150?text=Item_Photo') }}" 
+                 alt="{{ item.name | default('商品写真') }}" 
+                 class="item-photo">
+            
+            <div class="item-text-details">
+                <h1>{{ item.name | default('テスト商品名') }}</h1>
+                
+                <p style="font-size: 1.2em; color: #cc0000; font-weight: bold;">
+                    {{ item.price | default('9,999') }}円
+                </p>
+            </div>
+        </section>
+
+        <hr>
+
+        <section class="item-category">
+            <h3>カテゴリ</h3>
+            <p>{{ item.category | default('アウター / ジャケット') }}</p>
+        </section>
+
+        <section class="item-sites">
+            <h3>購入可能サイト</h3>
+            
+            {% if item.sites %}
+                {% for site in item.sites %}
+                    <a href="{{ site.url }}" target="_blank" class="site-link">
+                        ▶ {{ site.name | default('サイト名') }}へ
+                    </a>
+                {% endfor %}
+            {% else %}
+                <p>現在、購入可能なサイト情報はありません。</p>
+            {% endif %}
+        </section>
+
+    </main>
+    
+</body>
+</html>

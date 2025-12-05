@@ -1,0 +1,8 @@
+# 仮想環境フォルダ
+venv/
+# Pythonのバイトコードファイル
+__pycache__/
+*.pyc
+# Flaskセッションファイル (SECRET_KEYを設定した場合、通常は追跡不要)
+instance/
+.flaskenv
