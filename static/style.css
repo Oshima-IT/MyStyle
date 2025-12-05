@@ -124,6 +124,23 @@ button:not(.tag-btn):hover, .btn:hover, .save-button:hover {
     box-shadow: 0 8px 16px rgba(0,0,0,0.12);
     background-color: var(--primary-hover);
 }
+/* 検索フォーム内のリセットボタン/リンク用に新しいスタイルを追加 */
+.btn-reset { 
+    background: transparent; 
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.btn-reset:hover {
+    background: var(--pill);
+    color: var(--text);
+    text-decoration: none;
+}
 .btn-secondary { 
     background: var(--muted); 
     color: white;
@@ -206,7 +223,7 @@ hr {
 .style-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 20px; /* タグの重なり解消のため、20pxに設定 */
     padding: 10px 0;
     margin-bottom: 20px;
 }
