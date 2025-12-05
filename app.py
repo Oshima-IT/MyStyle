@@ -24,8 +24,8 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form["email"]
-        password = request.form["password"]
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
 
         conn = get_db()
         user = conn.execute(
@@ -54,9 +54,9 @@ def login():
 @app.route('/acount', methods=['GET', 'POST'])
 def account_registration():
     if request.method == 'POST':
-        email = request.form["email"]
-        password = request.form["password"]
-        confirm = request.form["confirm_password"]
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm_password", "")
 
         if password != confirm:
             return render_template("account.html", error="確認用パスワードが一致していません")
@@ -102,7 +102,7 @@ def home():
 
     conn = get_db()
 
-    # 系統が設定されていれば推薦（styles カラムで LIKE）
+    # 系統が設定されていれば推薦で styles カラムを絞り込み
     if styles:
         like_query = " OR ".join(["styles LIKE ?" for _ in styles])
         params = [f"%{s}%" for s in styles]
@@ -164,7 +164,7 @@ def setting():
     ALL_STYLES = [
         "カジュアル", "きれいめ", "ストリート", "モード",
         "フェミニン", "韓国風", "アメカジ", "トラッド",
-        "古着", "スポーティ", "コンサバ", "ナチュラル"
+        "古着", "スポーティー", "コンサバ", "ナチュラル"
     ]
 
     return render_template("setting.html", available_styles=ALL_STYLES)
