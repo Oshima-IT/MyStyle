@@ -27,9 +27,11 @@ ALL_STYLES = [
 # ログイン状態のチェックとリダイレクト
 @app.route('/')
 def index():
-    if 'logged_in' in session and session['logged_in']:
-        return redirect(url_for('home'))
-    return redirect(url_for('login'))
+    # 開発中は、ログイン状態にかかわらず直接ホーム画面へリダイレクトします。
+    # return redirect(url_for('login')) # 以前のコード
+    
+    # 開発用の暫定対応として、直接ホーム画面へリダイレクト
+    return redirect(url_for('home'))
 
 # ログイン処理
 @app.route('/login', methods=['GET', 'POST'])
@@ -91,8 +93,10 @@ def logout():
 # ホーム画面
 @app.route('/home')
 def home():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
+    # ★重要★ 開発中はログインチェックをスキップするため、
+    # ログインしていない場合の自動リダイレクトをコメントアウトします。
+    # if not session.get('logged_in'):
+    #     return redirect(url_for('login'))
     
     # セッションから現在の系統を取得。無ければ空のリスト
     current_styles = session.get('user_styles', [])
@@ -102,8 +106,9 @@ def home():
 # 詳細画面 (ダミーの商品情報)
 @app.route('/detail')
 def detail():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
+    # ★重要★ 開発中はログインチェックをスキップします。
+    # if not session.get('logged_in'):
+    #     return redirect(url_for('login'))
     
     # 固定のダミー商品データ
     dummy_item = {
@@ -122,8 +127,9 @@ def detail():
 # 設定画面：系統の選択と保存
 @app.route('/setting', methods=['GET', 'POST'])
 def setting():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
+    # ★重要★ 開発中はログインチェックをスキップします。
+    # if not session.get('logged_in'):
+    #     return redirect(url_for('login'))
 
     # POSTリクエスト (設定の保存)
     if request.method == 'POST':
