@@ -14,35 +14,37 @@
         </div>
     </header>
 
-    <main>
-        <h2>ログイン</h2>
-        
-        <form method="POST" action="/login">
+    <main style="max-width: 400px; padding-top: 40px;">
+        <div class="card">
+            <h2>ログイン</h2>
             
-            <div>
-                <label for="username">ユーザー名 または メールアドレス:</label><br>
-                <input type="text" id="username" name="username" required>
-            </div>
+            <form method="POST" action="/login">
+                
+                <div>
+                    <label for="username">ユーザー名 / メールアドレス</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div>
+                    <label for="password">パスワード</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <div class="actions" style="margin-top: 15px;">
+                    <button type="submit">ログイン</button>
+                </div>
+            </form>
             
-            <div>
-                <label for="password">パスワード:</label><br>
-                <input type="password" id="password" name="password" required>
-            </div>
+            <hr>
             
-            <div>
-                <button type="submit">ログイン</button>
-            </div>
-        </form>
-        
-        <hr>
-        
-        <p>
-            アカウントをお持ちでないですか？ 
-            <a href="/acount">アカウント登録</a>
-        </p>
-        <p>
-            <a href="#">パスワードを忘れた場合</a>
-        </p>
+            <p style="text-align: center;">
+                アカウントをお持ちでないですか？ 
+                <a href="/acount">アカウント登録</a>
+            </p>
+            <p style="text-align: center;">
+                <a href="#">パスワードを忘れた場合</a>
+            </p>
+        </div>
     </main>
     
 </body>

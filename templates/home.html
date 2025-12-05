@@ -8,37 +8,41 @@
 </head>
 <body>
     
-    <header class="header">
+    <header>
         <div class="header-content">
-            <h2>ホーム</h2>
+            <h2>MyStyle</h2>
             <a href="/setting" class="gear-button" title="設定">⚙️</a>
         </div>
     </header>
 
     <main>
         
-        <section class="system-area">
+        <!-- 系統表示エリア (card クラスを追加) -->
+        <section class="card system-area">
             <h3>あなたの系統</h3>
             
             <div class="preferred-style">
                 {% if current_styles %}
                     <p>現在設定されている系統:
                     {% for style in current_styles %}
-                        <span class="style-tag"># {{ style }}</span>
+                        <span class="style-tag">{{ style }}</span>
                     {% endfor %}
                     </p>
                 {% else %}
-                    <p>現在設定されている系統: <strong>未設定</strong></p>
-                    <p><a href="/setting">設定画面で系統を選択してください。</a></p>
+                    <p>現在設定されている系統: <strong class="pill">未設定</strong></p>
+                    <p style="margin-top: 10px;"><a href="/setting" class="btn-secondary">系統を設定する</a></p>
                 {% endif %}
             </div>
         </section>
 
+        <!-- 服の写真表示エリア -->
         <section class="photo-display-area">
             <h3>おすすめアイテム</h3>
             
+            <!-- 写真スクロールエリア (cardクラスは使わず、スクロールを強調) -->
             <div class="photo-scroll">
                 
+                <!-- アイテムカード 1 -->
                 <div class="item-card">
                     <a href="/detail"> 
                         <img src="https://gemini.google.com/share/1ba56fd16e51" alt="カジュアルなシャツ">
@@ -46,6 +50,7 @@
                     <p class="price">9,800円</p>
                 </div>
                 
+                <!-- アイテムカード 2 -->
                 <div class="item-card">
                     <a href="/detail"> 
                         <img src="https://gemini.google.com/share/1b86c0cecbf8" alt="フォーマルなジャケット">
@@ -53,6 +58,7 @@
                     <p class="price">15,000円</p>
                 </div>
                 
+                <!-- アイテムカード 3 以降（ダミー） -->
                 <div class="item-card">
                     <a href="/detail"> 
                         <img src="https://gemini.google.com/share/125624462697" alt="スポーティーなスニーカー">
