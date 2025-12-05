@@ -1,34 +1,77 @@
-/* static/style.css */
+:root {
+    --bg: #f8f8fb;
+    --card: #ffffff;
+    --accent: #111827; /* 黒ベースでZARA/ZOZOのシックさを意識 */
+    --accent-weak: #303644;
+    --text: #161922;
+    --muted: #606575;
+    --danger: #d22f2f;
+    --border: #e4e6ed;
+    --pill: #f0f1f5;
+}
 
-/* --- 1. 基本設定とフォント --- */
+* { box-sizing: border-box; }
+
+/* --- 基本設定とタイポ --- */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f7f6; /* 柔らかい背景色 */
-    color: #333;
     margin: 0;
-    padding: 0;
+    font-family: "Noto Sans JP", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, #f2f2f7 0%, #fbfbfd 60%);
+    color: var(--text);
 }
 
 h1, h2, h3 {
-    color: #1a4f78; /* 濃い青系のメインカラー */
+    margin: 0 0 12px;
+    letter-spacing: 0.01em;
+    color: #1a4f78; /* 前CSSの見出し色を採用 */
 }
 
-/* --- 2. レイアウトのコンテナ --- */
+/* --- レイアウト --- */
 main {
-    max-width: 900px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 1100px;
+    margin: 28px auto 48px;
+    padding: 0 16px;
 }
 
-/* --- 3. ヘッダーとナビゲーション --- */
-header {
-    background-color: #1a4f78;
-    color: white;
-    padding: 10px 0;
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 18px 32px rgba(0,0,0,0.06);
+    margin-bottom: 20px;
 }
+
+.split {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 720px) {
+    .split { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; gap: 8px; }
+}
+
+/* --- ヘッダー --- */
+header {
+    padding: 16px 24px;
+    background: var(--accent);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    letter-spacing: 0.02em;
+}
+header a {
+    color: #fff;
+    text-decoration: none;
+    margin-right: 14px;
+    font-weight: 600;
+}
+header nav a:last-child { margin-right: 0; }
+
+/* 前CSSの header-content も保持 */
 .header-content {
     max-width: 900px;
     margin: 0 auto;
@@ -43,33 +86,69 @@ header {
     margin: 0;
 }
 
-/* --- 4. フォーム要素とボタン --- */
-input[type="text"], input[type="password"], input[type="email"] {
+/* --- テーブル --- */
+table {
     width: 100%;
-    padding: 10px;
-    margin: 8px 0 16px 0;
-    display: inline-block;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-sizing: border-box; /* paddingを含めた幅にする */
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+th, td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    font-size: 14px;
+}
+th {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 12px;
 }
 
-button[type="submit"], .save-button {
-    background-color: #007bff; /* ボタンのメインカラー */
-    color: white;
-    padding: 12px 20px;
+/* --- フォーム --- */
+form {
+    display: grid;
+    gap: 10px;
+}
+label { font-size: 13px; color: var(--muted); }
+input[type="text"], input[type="number"], input[type="password"], input[type="email"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin: 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fafbff;
+    font-size: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
+}
+
+/* --- ボタン --- */
+.actions { display: flex; gap: 10px; align-items: center; }
+button:not(.tag-btn), .btn, .save-button {
+    padding: 9px 14px;
     border: none;
     border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.3s ease;
 }
-
-button[type="submit"]:hover, .save-button:hover {
-    background-color: #0056b3;
+button:not(.tag-btn):hover, .btn:hover, .save-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+    background-color: #0056b3; /* 前CSSのホバー色を反映 */
 }
+.btn-secondary { background: #7a7f90; }
+.btn-danger { background: var(--danger); }
 
-/* --- 5. リンク --- */
+/* --- リンク --- */
 a {
     color: #007bff;
     text-decoration: none;
@@ -80,10 +159,107 @@ a:hover {
     text-decoration: underline;
 }
 
-/* --- 6. 区切り線 --- */
+/* --- 区切り線 --- */
 hr {
     border: 0;
     height: 1px;
     background-color: #e0e0e0;
     margin: 20px 0;
+}
+
+/* --- フラッシュメッセージ --- */
+.flash {
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+.flash.success { background: #e9f3ff; color: #0b4ea3; border: 1px solid #c9ddff; }
+.flash.error { background: #ffe9e9; color: #9a1b1b; border: 1px solid #f5c1c1; }
+
+/* --- ピル表示 --- */
+.pill {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: var(--pill);
+    color: #1f2a44;
+    font-size: 12px;
+    margin-right: 4px;
+}
+
+/* --- モーダル & タグピッカー --- */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    width: min(540px, 94vw);
+    box-shadow: 0 28px 40px rgba(0,0,0,0.2);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+.tag-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+.tag-btn {
+    padding: 9px 13px;
+    border-radius: 999px;
+    border: 1px solid #cdd1db;
+    background: #eef0f5;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 14px;
+    color: #161922;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.tag-btn:hover:not(.active) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #f6f7fb;
+}
+.tag-btn.active {
+    background: #111827;
+    color: #fff;
+    border-color: #111827;
+    box-shadow: 0 6px 14px rgba(17,24,39,0.25);
+    transform: scale(1.02);
+}
+.tag-display {
+    min-height: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+.hidden { display: none !important; }
+
+.tag-picker {
+    display: grid;
+    gap: 6px;
+}
+.tag-picker .actions {
+    justify-content: flex-start;
 }
