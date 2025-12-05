@@ -18,7 +18,6 @@
         <div class="card">
             <h2>系統設定</h2>
             
-            <!-- 検索フォーム (GETリクエスト) -->
             <form method="GET" action="/setting" class="search-form" style="display: flex;">
                 <input type="text" 
                        name="search" 
@@ -28,14 +27,12 @@
                 <button type="submit" style="width: 100px;">検索</button>
                 
                 {% if search_query %}
-                    <!-- リセットボタン/リンク -->
                     <a href="/setting" class="btn-reset" style="margin: 0; padding: 10px 16px; width: 100px; text-align: center; text-decoration: none;">リセット</a>
                 {% endif %}
             </form>
             
             <hr>
 
-            <!-- 設定保存フォーム (POSTリクエスト) -->
             <form method="POST" action="/setting">
                 <p><strong>好きな服の系統を選択してください（複数選択可）：</strong></p>
                 
@@ -43,7 +40,6 @@
                     
                     {% for style in available_styles %}
                     <div class="tag-item">
-                        <!-- チェックボックスの初期状態は、Jinjaが直接 'checked' 属性を付与することで設定します。 -->
                         <input type="checkbox" id="style-{{ loop.index }}" name="style" value="{{ style }}" 
                                {% if style in session.get('user_styles', []) %}checked{% endif %}>
                         <label for="style-{{ loop.index }}">{{ style }}</label>
@@ -67,7 +63,6 @@
         </p>
 
     </main>
-    
-    <!-- JavaScriptブロックは削除済みです -->
+
 </body>
 </html>
