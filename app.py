@@ -1,17 +1,16 @@
-import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session
+from werkzeug.security import generate_password_hash, check_password_hash
+from db import get_db, close_db
+
+from admin import admin_bp
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-DB_PATH = "fassion.db"
+# アプリ終了時にDB接続を閉じる
+app.teardown_appcontext(close_db)
 
-# DB 接続関数
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
+app.register_blueprint(admin_bp, url_prefix="/admin")
 
 @app.route('/')
 def index():
@@ -32,9 +31,7 @@ def login():
             "SELECT * FROM users WHERE email = ?", (email,)
         ).fetchone()
 
-        conn.close()
-
-        if user and user["password_hash"] == password:
+        if user and check_password_hash(user["password_hash"], password):
             session["logged_in"] = True
             session["user_id"] = user["id"]
 
@@ -49,9 +46,9 @@ def login():
 
 
 # ------------------------
-# 新規登録
+# 新規登録 (スペル修正: /acount -> /account)
 # ------------------------
-@app.route('/acount', methods=['GET', 'POST'])
+@app.route('/account', methods=['GET', 'POST'])
 def account_registration():
     if request.method == 'POST':
         email = request.form.get("email", "").strip()
@@ -65,16 +62,17 @@ def account_registration():
         exists = conn.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone()
 
         if exists:
-            conn.close()
             return render_template("account.html", error="このメールアドレスはすでに登録されています")
+
+        # パスワードをハッシュ化して保存
+        password_hash = generate_password_hash(password)
 
         conn.execute(
             "INSERT INTO users (email, password_hash, preferred_styles, preferred_colors, created_at, updated_at) "
             "VALUES (?, ?, '', '', datetime('now'), datetime('now'))",
-            (email, password)
+            (email, password_hash)
         )
         conn.commit()
-        conn.close()
 
         return redirect(url_for("login"))
 
@@ -113,8 +111,6 @@ def home():
     else:
         items = conn.execute("SELECT * FROM items").fetchall()
 
-    conn.close()
-
     return render_template("home.html", current_styles=styles, items=items)
 
 
@@ -130,9 +126,7 @@ def detail(item_id):
         "SELECT s.name, s.site_url FROM shops s "
         "JOIN item_shops is2 ON s.id = is2.shop_id WHERE is2.item_id=?",
         (item_id,)
-    ).fetchall()
-
-    conn.close()
+    ) .fetchall()
 
     return render_template("detail.html", item=item, shops=shops)
 
@@ -155,7 +149,6 @@ def setting():
             (styles_str, session["user_id"])
         )
         conn.commit()
-        conn.close()
 
         session["user_styles"] = selected_styles
 

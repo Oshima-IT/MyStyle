@@ -1,30 +1,37 @@
 from datetime import datetime
 import sqlite3
 from pathlib import Path
-from flask import Blueprint, current_app, g, redirect, render_template, request, url_for, flash
+from flask import Blueprint, current_app, g, redirect, render_template, request, url_for, flash, session, abort
+from db import get_db
 
 admin_bp = Blueprint("admin", __name__)
 
-def get_db():
-    if "db" not in g:
-        db_path = current_app.config.get("DB_PATH", Path("fassion.db"))
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row  # 行をdict風で扱う
-        g.db = conn
-    return g.db
+@admin_bp.before_request
+def restrict_admin_access():
+    # ログインしていない場合はログイン画面へ
+    user_id = session.get("user_id")
+    if not user_id:
+        print("[DEBUG] admin_access: No session. Redirecting to login.")
+        return redirect(url_for("login"))
+    
+    db = get_db()
+    user = db.execute("SELECT email FROM users WHERE id = ?", (user_id,)).fetchone()
+    
+    if not user:
+        print(f"[DEBUG] admin_access: User ID {user_id} not found.")
+        abort(403)
 
-@admin_bp.teardown_app_request
-def close_db(exception):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
+    # 大文字小文字を区別せずに比較
+    if user["email"].lower() != "admin@example.com":
+        print(f"[DEBUG] admin_access: {user['email']} is not admin.")
+        abort(403)
 
 @admin_bp.route("/")
 def index():
     return redirect(url_for("admin.admin_items"))
 
 # --- Items ---
-@admin_bp.route("/admin/items", methods=["GET", "POST"])
+@admin_bp.route("/items", methods=["GET", "POST"])
 def admin_items():
     db = get_db()
     if request.method == "POST":
@@ -66,7 +73,7 @@ def admin_items():
     return render_template("admin/items_list.html", items=items)
 
 
-@admin_bp.route("/admin/items/<int:item_id>/edit", methods=["GET", "POST"])
+@admin_bp.route("/items/<int:item_id>/edit", methods=["GET", "POST"])
 def admin_item_edit(item_id: int):
     db = get_db()
     item = db.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
@@ -109,7 +116,7 @@ def admin_item_edit(item_id: int):
 
     return render_template("admin/item_edit.html", item=item)
 
-@admin_bp.route("/admin/items/<int:item_id>/delete", methods=["POST"])
+@admin_bp.route("/items/<int:item_id>/delete", methods=["POST"])
 def admin_item_delete(item_id: int):
     db = get_db()
     db.execute("DELETE FROM items WHERE id = ?", (item_id,))
@@ -118,7 +125,7 @@ def admin_item_delete(item_id: int):
     return redirect(url_for("admin.admin_items"))
 
 # --- Shops ---
-@admin_bp.route("/admin/shops", methods=["GET", "POST"])
+@admin_bp.route("/shops", methods=["GET", "POST"])
 def admin_shops():
     db = get_db()
     if request.method == "POST":
@@ -139,7 +146,7 @@ def admin_shops():
     return render_template("admin/shops_list.html", shops=shops)
 
 
-@admin_bp.route("/admin/shops/<int:shop_id>/edit", methods=["GET", "POST"])
+@admin_bp.route("/shops/<int:shop_id>/edit", methods=["GET", "POST"])
 def admin_shop_edit(shop_id: int):
     db = get_db()
     shop = db.execute("SELECT * FROM shops WHERE id = ?", (shop_id,)).fetchone()
@@ -164,7 +171,7 @@ def admin_shop_edit(shop_id: int):
     return render_template("admin/shop_edit.html", shop=shop)
 
 
-@admin_bp.route("/admin/shops/<int:shop_id>/delete", methods=["POST"])
+@admin_bp.route("/shops/<int:shop_id>/delete", methods=["POST"])
 def admin_shop_delete(shop_id: int):
     db = get_db()
     db.execute("DELETE FROM shops WHERE id = ?", (shop_id,))
@@ -173,7 +180,7 @@ def admin_shop_delete(shop_id: int):
     return redirect(url_for("admin.admin_shops"))
 
 # --- Users ---
-@admin_bp.route("/admin/users", methods=["GET", "POST"])
+@admin_bp.route("/users", methods=["GET", "POST"])
 def admin_users():
     db = get_db()
     if request.method == "POST":
@@ -209,7 +216,7 @@ def admin_users():
     ).fetchall()
     return render_template("admin/users_list.html", users=users)
 
-@admin_bp.route("/admin/users/<int:user_id>/edit", methods=["GET", "POST"])
+@admin_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
 def admin_user_edit(user_id: int):
     db = get_db()
     user = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
@@ -248,8 +255,9 @@ def admin_user_edit(user_id: int):
 
     return render_template("admin/user_edit.html", user=user)
 
-@admin_bp.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
 def admin_user_delete(user_id: int):
+    require_admin()
     db = get_db()
     db.execute("DELETE FROM users WHERE id = ?", (user_id,))
     db.commit()
