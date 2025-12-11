@@ -1,56 +1,41 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>アカウント登録 - MyStyle</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
 
-<header>
-    <div class="header-content">
-        <h2>MyStyle</h2>
-    </div>
-</header>
+{% block title %}アカウント登録 - MyStyle{% endblock %}
 
-<main style="max-width: 450px; padding-top: 40px;">
-    <div class="card">
-        <h2>新規アカウント登録</h2>
+{% block content %}
+<div class="card" style="max-width: 450px; margin: 40px auto;">
+    <h2>新規アカウント登録</h2>
 
-        {% if error %}
-            <p style="color: red;">{{ error }}</p>
-        {% endif %}
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
 
-        <form method="POST" action="/acount">
-            <div>
-                <label for="email">メールアドレス</label>
-                <input type="email" id="email" name="email" required>
-            </div>
+    <form method="POST" action="{{ url_for('account_registration') }}">
+        <div>
+            <label for="email">メールアドレス</label>
+            <input type="email" id="email" name="email" required>
+        </div>
 
-            <div>
-                <label for="password">パスワード</label>
-                <input type="password" id="password" name="password" required minlength="8">
-            </div>
+        <div>
+            <label for="password">パスワード</label>
+            <input type="password" id="password" name="password" required minlength="8">
+        </div>
 
-            <div>
-                <label for="confirm_password">パスワード（確認用）</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
-            </div>
+        <div>
+            <label for="confirm_password">パスワード（確認用）</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+        </div>
 
-            <div class="actions" style="margin-top: 15px;">
-                <button type="submit">アカウントを登録する</button>
-            </div>
-        </form>
+        <div class="actions" style="margin-top: 15px;">
+            <button type="submit">アカウントを登録する</button>
+        </div>
+    </form>
 
-        <hr>
+    <hr>
 
-        <p style="text-align: center;">
-            すでにアカウントをお持ちですか？
-            <a href="/login">ログインはこちら</a>
-        </p>
-    </div>
-</main>
-
-</body>
-</html>
+    <p style="text-align: center;">
+        すでにアカウントをお持ちですか？
+        <a href="{{ url_for('login') }}">ログインはこちら</a>
+    </p>
+</div>
+{% endblock %}

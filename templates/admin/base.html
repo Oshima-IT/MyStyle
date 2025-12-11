@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}管理画面 - MyStyle{% endblock %}
+
+{% block content %}
+<style>
+    .admin-layout {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    .admin-sidebar {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 15px;
+        position: sticky;
+        top: 20px;
+    }
+
+    .admin-sidebar h3 {
+        font-size: 1.1em;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .admin-sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .admin-sidebar li {
+        margin-bottom: 5px;
+    }
+
+    .admin-sidebar a {
+        display: block;
+        padding: 8px 12px;
+        color: var(--text);
+        border-radius: 6px;
+        transition: background 0.2s;
+        text-decoration: none;
+    }
+
+    .admin-sidebar a:hover,
+    .admin-sidebar a.active {
+        background: var(--pill);
+        color: var(--primary);
+    }
+
+    @media (max-width: 768px) {
+        .admin-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-sidebar {
+            position: static;
+        }
+    }
+</style>
+
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <h3>管理メニュー</h3>
+        <ul>
+            <li>
+                <a href="{{ url_for('admin.admin_items') }}" class="{% if 'items' in request.path %}active{% endif %}">
+                    アイテム管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.admin_shops') }}" class="{% if 'shops' in request.path %}active{% endif %}">
+                    ショップ管理
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin.admin_users') }}" class="{% if 'users' in request.path %}active{% endif %}">
+                    ユーザー管理
+                </a>
+            </li>
+        </ul>
+        <hr>
+        <ul>
+            <li><a href="{{ url_for('home') }}">サイトを表示</a></li>
+        </ul>
+    </aside>
+
+    <section class="admin-main">
+        {% block admin_content %}{% endblock %}
+    </section>
+</div>
+{% endblock %}

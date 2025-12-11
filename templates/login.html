@@ -1,51 +1,40 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログイン - MyStyle</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    
-    <header>
-        <div class="header-content">
-            <h2>MyStyle</h2>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <main style="max-width: 400px; padding-top: 40px;">
-        <div class="card">
-            <h2>ログイン</h2>
-            
-            <form method="POST" action="/login">
-                
-                <div>
-                    <label for="email">メールアドレス</label>
-                    <input type="text" id="email" name="email" required>
-                </div>
-                
-                <div>
-                    <label for="password">パスワード</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <div class="actions" style="margin-top: 15px;">
-                    <button type="submit">ログイン</button>
-                </div>
-            </form>
-            
-            <hr>
-            
-            <p style="text-align: center;">
-                アカウントをお持ちでないですか？
-                <a href="/acount">アカウント登録</a>
-            </p>
-            <p style="text-align: center;">
-                <a href="#">パスワードを忘れた場合</a>
-            </p>
+{% block title %}ログイン - MyStyle{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 400px; margin: 40px auto;">
+    <h2>ログイン</h2>
+
+    <form method="POST" action="/login">
+
+        {% if error %}
+        <div style="color: red; margin-bottom: 15px;">{{ error }}</div>
+        {% endif %}
+
+        <div>
+            <label for="email">メールアドレス</label>
+            <input type="text" id="email" name="email" required>
         </div>
-    </main>
-    
-</body>
-</html>
+
+        <div>
+            <label for="password">パスワード</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+
+        <div class="actions" style="margin-top: 15px;">
+            <button type="submit">ログイン</button>
+        </div>
+    </form>
+
+    <hr>
+
+    <p style="text-align: center;">
+        アカウントをお持ちでないですか？
+        <a href="{{ url_for('account_registration') }}">アカウント登録</a>
+    </p>
+    <p style="text-align: center;">
+        <a href="#">パスワードを忘れた場合</a>
+    </p>
+</div>
+{% endblock %}

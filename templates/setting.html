@@ -1,68 +1,53 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyStyle - 設定</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    
-    <header>
-        <div class="header-content">
-            <h2>設定</h2>
+{% extends "base.html" %}
+
+{% block title %}MyStyle - 設定{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>系統設定</h2>
+
+    <form method="GET" action="/setting" class="search-form" style="display: flex;">
+        <input type="text" name="search" placeholder="系統を検索（例: カジュアル）" value="{{ search_query or '' }}"
+            style="margin: 0;">
+        <button type="submit" style="width: 100px;">検索</button>
+
+        {% if search_query %}
+        <a href="/setting" class="btn-reset"
+            style="margin: 0; padding: 10px 16px; width: 100px; text-align: center; text-decoration: none;">リセット</a>
+        {% endif %}
+    </form>
+
+    <hr>
+
+    <form method="POST" action="/setting">
+        <p><strong>好きな服の系統を選択してください（複数選択可）：</strong></p>
+
+        <div class="style-tags">
+
+            {% for style in available_styles %}
+            <div class="tag-item">
+                <input type="checkbox" id="style-{{ loop.index }}" name="style" value="{{ style }}" {% if style in
+                    session.get('user_styles', []) %}checked{% endif %}>
+                <label for="style-{{ loop.index }}">{{ style }}</label>
+            </div>
+            {% endfor %}
+
+            {% if not available_styles %}
+            <p>一致する系統が見つかりませんでした。</p>
+            {% endif %}
+
         </div>
-    </header>
 
-    <main>
-        <div class="card">
-            <h2>系統設定</h2>
-            
-            <form method="GET" action="/setting" class="search-form" style="display: flex;">
-                <input type="text" 
-                       name="search" 
-                       placeholder="系統を検索（例: カジュアル）" 
-                       value="{{ search_query }}" 
-                       style="margin: 0;">
-                <button type="submit" style="width: 100px;">検索</button>
-                
-                {% if search_query %}
-                    <a href="/setting" class="btn-reset" style="margin: 0; padding: 10px 16px; width: 100px; text-align: center; text-decoration: none;">リセット</a>
-                {% endif %}
-            </form>
-            
-            <hr>
-
-            <form method="POST" action="/setting">
-                <p><strong>好きな服の系統を選択してください（複数選択可）：</strong></p>
-                
-                <div class="style-tags">
-                    
-                    {% for style in available_styles %}
-                    <div class="tag-item">
-                        <input type="checkbox" id="style-{{ loop.index }}" name="style" value="{{ style }}" 
-                               {% if style in session.get('user_styles', []) %}checked{% endif %}>
-                        <label for="style-{{ loop.index }}">{{ style }}</label>
-                    </div>
-                    {% endfor %}
-                    
-                    {% if not available_styles %}
-                        <p>一致する系統が見つかりませんでした。</p>
-                    {% endif %}
-                    
-                </div>
-                
-                <div class="actions" style="justify-content: flex-end; margin-top: 20px;">
-                    <button type="submit" class="save-button">設定を保存する</button>
-                </div>
-            </form>
+        <div class="actions" style="justify-content: flex-end; margin-top: 20px;">
+            <button type="submit" class="save-button">設定を保存する</button>
         </div>
-        
-        <p style="margin-top: 20px; text-align: center;">
-            <a href="/">ホームに戻る</a>
-        </p>
+    </form>
+</div>
 
-    </main>
-
-</body>
-</html>
+<p
+    style="margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 30px; align-items: center;">
+    <a href="{{ url_for('home') }}">ホームに戻る</a>
+    <span style="color: #ddd;">|</span>
+    <a href="{{ url_for('logout') }}" style="color: var(--danger);">ログアウト</a>
+</p>
+{% endblock %}

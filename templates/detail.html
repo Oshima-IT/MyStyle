@@ -1,56 +1,40 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ item.name }} - 詳細</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
 
-<header>
-    <div class="header-content">
-        <h2>詳細</h2>
-        <a href="/home">ホームへ戻る</a>
-    </div>
-</header>
+{% block title %}{{ item.name }} - 詳細{% endblock %}
 
-<main>
-    <div class="card">
+{% block content %}
+<div class="card">
 
-        <section class="item-info-area">
-            <img src="{{ item.image_url }}" alt="{{ item.name }}" class="item-photo">
+    <section class="item-info-area">
+        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="item-photo">
 
-            <div class="item-text-details">
-                <h1>{{ item.name }}</h1>
+        <div class="item-text-details">
+            <h1>{{ item.name }}</h1>
 
-                <p class="item-price">
-                    ¥{{ item.price }}
-                </p>
+            <p class="item-price">
+                ¥{{ item.price }}
+            </p>
 
-                <hr>
+            <hr>
 
-                <section class="item-category">
-                    <p style="color: var(--muted); font-weight: 600; margin-bottom: 5px;">カテゴリ</p>
-                    <p><span class="pill">{{ item.category }}</span></p>
-                </section>
-            </div>
-        </section>
+            <section class="item-category">
+                <p style="color: var(--muted); font-weight: 600; margin-bottom: 5px;">カテゴリ</p>
+                <p><span class="pill">{{ item.category }}</span></p>
+            </section>
+        </div>
+    </section>
 
-        <hr>
+    <hr>
 
-        <section class="item-sites">
-            <h3>購入可能サイト</h3>
+    <section class="item-sites">
+        <h3>購入可能サイト</h3>
 
-            {% for s in shops %}
-                <a href="{{ s.site_url }}" target="_blank" class="site-link">
-                    ▶ {{ s.name }} のページへ
-                </a>
-            {% endfor %}
-        </section>
+        {% for s in shops %}
+        <a href="{{ s.site_url }}" target="_blank" class="site-link">
+            ▶ {{ s.name }} のページへ
+        </a>
+        {% endfor %}
+    </section>
 
-    </div>
-</main>
-
-</body>
-</html>
+</div>
+{% endblock %}

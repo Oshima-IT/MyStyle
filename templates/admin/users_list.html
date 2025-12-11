@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "admin/base.html" %}
+{% block admin_content %}
 <div class="split">
     <div class="card">
         <h2>Users</h2>
@@ -21,14 +21,18 @@
                     <td>{{ user.preferred_styles or "-" }}</td>
                     <td>{{ user.preferred_colors or "-" }}</td>
                     <td class="actions">
-                        <a class="btn btn-secondary" href="{{ url_for('admin.admin_user_edit', user_id=user.id) }}">Edit</a>
-                        <form action="{{ url_for('admin.admin_user_delete', user_id=user.id) }}" method="post" onsubmit="return confirm('削除しますか？');">
+                        <a class="btn btn-secondary"
+                            href="{{ url_for('admin.admin_user_edit', user_id=user.id) }}">Edit</a>
+                        <form action="{{ url_for('admin.admin_user_delete', user_id=user.id) }}" method="post"
+                            onsubmit="return confirm('削除しますか？');">
                             <button class="btn btn-danger" type="submit">Delete</button>
                         </form>
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="5">No users.</td></tr>
+                <tr>
+                    <td colspan="5">No users.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
