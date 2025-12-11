@@ -6,3 +6,5 @@ __pycache__/
 # Flaskセッションファイル (SECRET_KEYを設定した場合、通常は追跡不要)
 instance/
 .flaskenv
+# データベースファイル
+*.db
