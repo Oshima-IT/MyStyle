@@ -59,8 +59,14 @@ def login():
         if user and check_password_hash(user["password_hash"], password):
             session["logged_in"] = True
             session["user_id"] = user["id"]
+            # Admin check
+            if user["email"].lower() == "admin@example.com":
+                 session["is_admin"] = True
+            else:
+                 session["is_admin"] = False
 
             styles = user["preferred_styles"].split(",") if user["preferred_styles"] else []
+
             session["user_styles"] = styles
 
             # 匿名で見ていた履歴がクッキーにあればDBへ移行してクッキーを消す

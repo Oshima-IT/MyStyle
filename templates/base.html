@@ -20,6 +20,11 @@
             <nav class="header-nav">
                 {% if session.get('logged_in') %}
                 {% if request.endpoint == 'home' %}
+                {% if session.get('is_admin') %}
+                <a href="{{ url_for('admin.index') }}" title="管理画面">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">manage_accounts</span>
+                </a>
+                {% endif %}
                 <a href="{{ url_for('logout') }}" title="ログアウト">
                     <span class="material-symbols-outlined" style="vertical-align: middle;">logout</span>
                 </a>

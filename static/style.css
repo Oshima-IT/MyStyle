@@ -1,18 +1,22 @@
 :root {
     --bg: #f8f8fb;
     --card: #ffffff;
-    --accent: #111827; /* 黒ベースでシックさを意識 */
+    --accent: #111827;
+    /* 黒ベースでシックさを意識 */
     --accent-weak: #303644;
     --text: #161922;
     --muted: #606575;
     --danger: #d22f2f;
     --border: #e4e6ed;
     --pill: #f0f1f5;
-    --primary: #007bff; /* ボタンやリンクの標準色 */
+    --primary: #007bff;
+    /* ボタンやリンクの標準色 */
     --primary-hover: #0056b3;
 }
 
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
 /* --- 基本設定とタイポ --- */
 body {
@@ -22,10 +26,13 @@ body {
     color: var(--text);
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     margin: 0 0 16px;
     letter-spacing: 0.01em;
-    color: var(--accent); /* 見出し色をシックな黒に変更 */
+    color: var(--accent);
+    /* 見出し色をシックな黒に変更 */
 }
 
 /* --- レイアウト --- */
@@ -40,7 +47,7 @@ main {
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px 20px;
-    box-shadow: 0 18px 32px rgba(0,0,0,0.06);
+    box-shadow: 0 18px 32px rgba(0, 0, 0, 0.06);
     margin-bottom: 20px;
 }
 
@@ -51,7 +58,10 @@ main {
 }
 
 @media (max-width: 720px) {
-    .split { grid-template-columns: 1fr; }
+    .split {
+        grid-template-columns: 1fr;
+    }
+
     /* ヘッダーの調整は後述の .header-content で行います */
 }
 
@@ -59,33 +69,77 @@ main {
 header {
     /* header-contentをラップするため、ベースはシンプルに */
     background: var(--accent);
-    padding: 10px 0;
+    padding: 16px 0;
 }
+
 .header-content {
-    max-width: 1100px; /* mainの幅に合わせる */
+    max-width: 1100px;
+    /* mainの幅に合わせる */
     margin: 0 auto;
-    padding: 0 16px; /* mainのpaddingに合わせる */
+    padding: 0 16px;
+    /* mainのpaddingに合わせる */
     display: flex;
     justify-content: space-between;
     align-items: center;
     color: white;
 }
+
 .header-content h2 {
-    color: white; /* 継承されないため再指定 */
+    color: white;
+    /* 継承されないため再指定 */
     margin: 0;
 }
+
 .header-content a {
     color: white;
     text-decoration: none;
     font-weight: 600;
-    transition: opacity 0.2s;
+    transition: background-color 0.2s ease;
+    padding: 8px 16px;
+    border-radius: 8px;
+    /* 丸みを持たせる */
 }
+
 .header-content a:hover {
-    opacity: 0.8;
+    background-color: rgba(255, 255, 255, 0.15);
+    opacity: 1;
     text-decoration: none;
+    color: white;
 }
+
 .gear-button {
     font-size: 24px;
+}
+
+.header-nav {
+    display: flex;
+    gap: 16px;
+    /* gapを少し調整（パディング分を考慮） */
+    align-items: center;
+}
+
+.header-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.header-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    /* 白と黒の中間色演出 */
+    opacity: 1;
+    color: white;
+    /* 色の変化をなしに */
+    text-decoration: none;
+}
+
+.header-nav .material-symbols-outlined {
+    font-size: 32px;
+    /* アイコンを大きく */
 }
 
 
@@ -94,8 +148,15 @@ form {
     display: grid;
     gap: 10px;
 }
-label { font-size: 13px; color: var(--muted); }
-input[type="text"], input[type="password"], input[type="email"] {
+
+label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
     width: 100%;
     padding: 10px 12px;
     margin: 0;
@@ -107,26 +168,39 @@ input[type="text"], input[type="password"], input[type="email"] {
 }
 
 /* --- ボタン --- */
-.actions { display: flex; gap: 10px; align-items: center; }
-button[type="submit"], .btn, .save-button {
-    padding: 10px 16px; /* サイズ調整 */
+.actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+button[type="submit"],
+.btn,
+.save-button {
+    padding: 10px 16px;
+    /* サイズ調整 */
     border: none;
     border-radius: 8px;
-    background: var(--primary); /* プライマリカラーを使用 */
+    background: var(--primary);
+    /* プライマリカラーを使用 */
     color: #fff;
     cursor: pointer;
     font-weight: 600;
     letter-spacing: 0.01em;
     transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.3s ease;
 }
-button:not(.tag-btn):hover, .btn:hover, .save-button:hover {
+
+button:not(.tag-btn):hover,
+.btn:hover,
+.save-button:hover {
     transform: translateY(-1px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
     background-color: var(--primary-hover);
 }
+
 /* 検索フォーム内のリセットボタン/リンク用に新しいスタイルを追加 */
-.btn-reset { 
-    background: transparent; 
+.btn-reset {
+    background: transparent;
     border: 1px solid var(--muted);
     color: var(--muted);
     padding: 10px 16px;
@@ -136,19 +210,25 @@ button:not(.tag-btn):hover, .btn:hover, .save-button:hover {
     text-decoration: none;
     transition: background-color 0.2s;
 }
+
 .btn-reset:hover {
     background: var(--pill);
     color: var(--text);
     text-decoration: none;
 }
-.btn-secondary { 
-    background: var(--muted); 
+
+.btn-secondary {
+    background: var(--muted);
     color: white;
 }
+
 .btn-secondary:hover {
     background: #4d5160;
 }
-.btn-danger { background: var(--danger); }
+
+.btn-danger {
+    background: var(--danger);
+}
 
 /* --- リンク --- */
 a {
@@ -156,6 +236,7 @@ a {
     text-decoration: none;
     transition: color 0.3s;
 }
+
 a:hover {
     color: var(--primary-hover);
     text-decoration: underline;
@@ -172,13 +253,16 @@ hr {
 /* --- ホーム画面固有スタイル --- */
 .preferred-style {
     padding: 15px;
-    background-color: var(--pill); 
+    background-color: var(--pill);
     border-radius: 8px;
     margin-bottom: 25px;
-    border-left: 5px solid var(--accent-weak); /* アクセントライン */
+    border-left: 5px solid var(--accent-weak);
+    /* アクセントライン */
 }
+
 .style-tag {
-    background-color: var(--accent-weak); /* シックな色 */
+    background-color: var(--accent-weak);
+    /* シックな色 */
     color: white;
     padding: 4px 10px;
     border-radius: 5px;
@@ -192,16 +276,18 @@ hr {
     padding: 15px 0;
     gap: 20px;
 }
+
 .item-card {
     flex-shrink: 0;
     width: 200px;
     text-align: center;
     background-color: var(--card);
     border-radius: 10px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05); 
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
     overflow: hidden;
     padding-bottom: 10px;
 }
+
 .item-card img {
     width: 100%;
     height: 220px;
@@ -209,12 +295,15 @@ hr {
     display: block;
     transition: transform 0.3s ease;
 }
+
 .item-card img:hover {
     transform: scale(1.03);
 }
+
 .item-card .price {
     font-weight: bold;
-    color: var(--danger); /* 価格は目立つ赤 */
+    color: var(--danger);
+    /* 価格は目立つ赤 */
     margin-top: 5px;
     font-size: 1.1em;
 }
@@ -223,10 +312,12 @@ hr {
 .style-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px; /* タグの重なり解消のため、20pxに設定 */
+    gap: 20px;
+    /* タグの重なり解消のため、20pxに設定 */
     padding: 10px 0;
     margin-bottom: 20px;
 }
+
 .tag-item label {
     cursor: pointer;
     padding: 10px 20px;
@@ -235,27 +326,33 @@ hr {
     background-color: #fff;
     transition: all 0.3s ease;
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
+
 .tag-item input[type="checkbox"] {
-    display: none; /* チェックボックスを非表示 */
+    display: none;
+    /* チェックボックスを非表示 */
 }
-.tag-item input[type="checkbox"]:checked + label {
-    background-color: var(--accent); /* メインカラーのシックな黒 */
+
+.tag-item input[type="checkbox"]:checked+label {
+    background-color: var(--accent);
+    /* メインカラーのシックな黒 */
     color: white;
     border-color: var(--accent);
-    box-shadow: 0 4px 10px rgba(17, 24, 39, 0.3); 
+    box-shadow: 0 4px 10px rgba(17, 24, 39, 0.3);
     transform: scale(1.02);
 }
+
 .search-form {
     display: flex;
     gap: 10px;
     align-items: center;
     padding: 15px;
-    background-color: var(--pill); 
+    background-color: var(--pill);
     border-radius: 8px;
     margin-bottom: 20px;
 }
+
 .search-form input[type="text"] {
     flex-grow: 1;
     margin: 0;
@@ -268,6 +365,7 @@ hr {
     padding: 20px;
     align-items: flex-start;
 }
+
 .item-photo {
     width: 200px;
     height: 200px;
@@ -275,19 +373,23 @@ hr {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     object-fit: cover;
 }
+
 .item-text-details h1 {
     font-size: 2em;
     margin-bottom: 8px;
 }
+
 .item-text-details p {
     margin: 0;
 }
+
 .item-price {
     font-size: 1.4em;
-    color: var(--danger); 
+    color: var(--danger);
     font-weight: 700;
     margin-top: 5px;
 }
+
 .item-sites a {
     display: block;
     padding: 10px;
@@ -299,11 +401,13 @@ hr {
     font-weight: 600;
     transition: all 0.2s;
 }
+
 .item-sites a:hover {
     background-color: #e6f2ff;
     text-decoration: none;
     transform: translateY(-1px);
 }
+
 @media (max-width: 600px) {
     .item-info-area {
         flex-direction: column;
@@ -320,30 +424,133 @@ hr {
     padding: 10px 4px;
     align-items: stretch;
 }
+
 .history-card {
     flex: 0 0 140px;
     background: var(--card);
     border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
     overflow: hidden;
     text-align: left;
 }
-.history-card img { width:100%; height:100px; object-fit:cover; display:block; }
-.history-card .placeholder { width:100%; height:100px; display:flex; align-items:center; justify-content:center; color:var(--muted); background:linear-gradient(180deg,#fafafa,#f4f4f6); }
-.history-meta { padding:8px 10px; }
-.history-meta .name { font-size:0.95em; font-weight:600; color:var(--accent-weak); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.history-meta .price { font-size:0.9em; color:var(--danger); margin-top:6px; }
+
+.history-card img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+}
+
+.history-card .placeholder {
+    width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    background: linear-gradient(180deg, #fafafa, #f4f4f6);
+}
+
+.history-meta {
+    padding: 8px 10px;
+}
+
+.history-meta .name {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--accent-weak);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.history-meta .price {
+    font-size: 0.9em;
+    color: var(--danger);
+    margin-top: 6px;
+}
 
 /* --- Admin-like overlay & tag picker (for home modal) --- */
-.overlay { position: fixed; top: 0; left: 0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:2000; display:flex; align-items:center; justify-content:center; }
-.overlay.hidden { display:none; }
-.overlay .modal { background: var(--card); border-radius: 8px; width: min(560px, 90%); max-width:560px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display:flex; flex-direction:column; height: fit-content; max-height: calc(100vh - 40px); padding: 1rem; overflow:auto; margin:0 8px; box-sizing:border-box; align-self:center; justify-self:center; }
-.modal-header { padding: 10px 14px; border-bottom: 1px solid var(--border); font-weight:700; }
-.tag-grid { padding: 6px 8px 4px 8px; display:flex; flex-wrap:wrap; gap:6px; overflow-y:auto; }
-.tag-btn { padding: 6px 10px; border:1px solid #e6e9ef; background:#fff; border-radius:16px; cursor:pointer; transition:all 0.12s; margin:0; font-size:0.95em; line-height:1; }
-.tag-btn.active { background: var(--accent-weak); color:#fff; border-color: var(--accent-weak); }
-.modal-actions { padding:6px 8px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:center; align-items:center; }
-.modal-actions .btn { margin:0; }
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.overlay .modal {
+    background: var(--card);
+    border-radius: 8px;
+    width: min(560px, 90%);
+    max-width: 560px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    max-height: calc(100vh - 40px);
+    padding: 1rem;
+    overflow: auto;
+    margin: 0 8px;
+    box-sizing: border-box;
+    align-self: center;
+    justify-self: center;
+}
+
+.modal-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+}
+
+.tag-grid {
+    padding: 6px 8px 4px 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    overflow-y: auto;
+}
+
+.tag-btn {
+    padding: 6px 10px;
+    border: 1px solid #e6e9ef;
+    background: #fff;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.12s;
+    margin: 0;
+    font-size: 0.95em;
+    line-height: 1;
+}
+
+.tag-btn.active {
+    background: var(--accent-weak);
+    color: #fff;
+    border-color: var(--accent-weak);
+}
+
+.modal-actions {
+    padding: 6px 8px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-actions .btn {
+    margin: 0;
+}
+
 /* ▼ ヘッダー下のタブ UI */
 .page-tabs {
     display: flex;
