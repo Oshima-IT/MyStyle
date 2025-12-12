@@ -12,17 +12,27 @@
 
 <h1>日本の最新ファッション・トレンド</h1>
 
-{% for t in trends %}
-<div class="card">
-    <h3>{{ t.title }}</h3>
-
-    {% if t.image_url %}
-    <img src="{{ t.image_url }}" alt="{{ t.title }}" style="width:100%; max-width:400px; border-radius:8px; margin-bottom:12px;">
-    {% endif %}
-
-    <p>{{ t.description }}</p>
+{# Googleトレンド表示 #}
+{% if google_trend %}
+<div class="card" style="background:#f3f8ff;">
+    <h3>Googleトレンド: 「ファッション」</h3>
+    <p>最新データ: {{ google_trend.date }} の人気度 = <b>{{ google_trend.value }}</b></p>
 </div>
-{% endfor %}
+{% endif %}
+
+{# Googleトレンド関連キーワード表示 #}
+{% if related_keywords and related_keywords|length > 0 %}
+<div class="card" style="background:#f8fafd;">
+    <h3>関連キーワード</h3>
+    <ol>
+        {% for kw in related_keywords %}
+        <li>{{ kw.keyword }} <span style="color:#888; font-size:13px;">({{ kw.value }})</span></li>
+        {% endfor %}
+    </ol>
+</div>
+{% endif %}
+
+
 
 {% if trends|length == 0 %}
 <p>現在表示できるトレンド情報がありません。</p>

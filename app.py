@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_db, close_db
+from google import get_trends, get_related_queries
 
 from admin import admin_bp
 
@@ -178,12 +179,37 @@ def trends():
         return redirect(url_for("login"))
 
     conn = get_db()
-
     trend_list = conn.execute(
         "SELECT * FROM trends ORDER BY created_at DESC"
     ).fetchall()
 
-    return render_template("trends.html", trends=trend_list)
+    # Googleトレンド情報を取得
+    try:
+        google_trend_df = get_trends("ファッション")
+        google_trend = None
+        if not google_trend_df.empty:
+            last_row = google_trend_df.tail(1)
+            date = last_row.index[0].strftime('%Y-%m-%d')
+            value = int(last_row.iloc[0][0])
+            google_trend = {"date": date, "value": value}
+        else:
+            google_trend = None
+        # 関連キーワードも取得
+        related_df = get_related_queries("ファッション")
+        related_keywords = []
+        if related_df is not None:
+            for _, row in related_df.iterrows():
+                related_keywords.append({
+                    "keyword": row["query"],
+                    "value": row["value"]
+                })
+        else:
+            related_keywords = []
+    except Exception as e:
+        google_trend = None
+        related_keywords = []
+
+    return render_template("trends.html", trends=trend_list, google_trend=google_trend, related_keywords=related_keywords)
 
 
 # ------------------------
