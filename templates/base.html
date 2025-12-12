@@ -16,7 +16,11 @@
 
     <header>
         <div class="header-content">
+            {% if request.endpoint == 'login' %}
+            <h2><a href="{{ url_for('home') }}" title="MyStyle"><span class="material-symbols-outlined" style="vertical-align: middle;">lock</span></a></h2>
+            {% else %}
             <h2><a href="{{ url_for('home') }}">MyStyle</a></h2>
+            {% endif %}
             <nav class="header-nav">
                 {% if session.get('logged_in') %}
                 {% if request.endpoint == 'home' %}
