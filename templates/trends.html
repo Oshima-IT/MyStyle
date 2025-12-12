@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}MyStyle - トレンド{% endblock %}
+
+{% block content %}
+
+<!-- ▼ タブ（ホーム / トレンド） -->
+<div class="page-tabs">
+    <a href="{{ url_for('home') }}" class="tab">ホーム</a>
+    <a href="{{ url_for('trends') }}" class="tab active">トレンド</a>
+</div>
+
+<h1>日本の最新ファッション・トレンド</h1>
+
+{# Googleトレンド表示 #}
+{% if google_trend %}
+<div class="card" style="background:#f3f8ff;">
+    <h3>Googleトレンド: 「ファッション」</h3>
+    <p>最新データ: {{ google_trend.date }} の人気度 = <b>{{ google_trend.value }}</b></p>
+</div>
+{% endif %}
+
+{# Googleトレンド関連キーワード表示 #}
+{% if related_keywords and related_keywords|length > 0 %}
+<div class="card" style="background:#f8fafd;">
+    <h3>関連キーワード</h3>
+    <ol>
+        {% for kw in related_keywords %}
+        <li>{{ kw.keyword }} <span style="color:#888; font-size:13px;">({{ kw.value }})</span></li>
+        {% endfor %}
+    </ol>
+</div>
+{% endif %}
+
+
+
+{% if trends|length == 0 %}
+<p>現在表示できるトレンド情報がありません。</p>
+{% endif %}
+
+{% endblock %}
+

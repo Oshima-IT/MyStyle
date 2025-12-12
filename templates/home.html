@@ -4,15 +4,21 @@
 
 {% block content %}
 
+<!-- ▼ タブ（ホーム / トレンド）をヘッダーの下に統一表示 -->
+<div class="page-tabs">
+    <a href="{{ url_for('home') }}" class="tab active">ホーム</a>
+    <a href="{{ url_for('trends') }}" class="tab">トレンド</a>
+</div>
+
 <section class="card system-area">
     <h3>あなたの系統</h3>
 
     {% if current_styles %}
-    {% for s in current_styles %}
-    <span class="style-tag">{{ s }}</span>
-    {% endfor %}
+        {% for s in current_styles %}
+            <span class="style-tag">{{ s }}</span>
+        {% endfor %}
     {% else %}
-    <p><strong>未設定</strong></p>
+        <p><strong>未設定</strong></p>
     {% endif %}
     <div style="margin-top:12px; text-align: left;">
         <button class="btn open-style-modal">系統を変更</button>

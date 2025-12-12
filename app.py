@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import json
 from db import get_db, close_db
 from datetime import datetime
-
+from google import get_trends, get_related_queries
 from admin import admin_bp
 
 app = Flask(__name__)
@@ -20,6 +20,7 @@ ALL_STYLES = [
 app.teardown_appcontext(close_db)
 
 app.register_blueprint(admin_bp, url_prefix="/admin")
+
 
 @app.route('/')
 def index():
@@ -77,7 +78,7 @@ def login():
 
 
 # ------------------------
-# 新規登録 (スペル修正: /acount -> /account)
+# 新規登録 (/account)
 # ------------------------
 @app.route('/account', methods=['GET', 'POST'])
 def account_registration():
@@ -95,7 +96,6 @@ def account_registration():
         if exists:
             return render_template("account.html", error="このメールアドレスはすでに登録されています")
 
-        # パスワードをハッシュ化して保存
         password_hash = generate_password_hash(password)
 
         conn.execute(
@@ -131,7 +131,6 @@ def home():
 
     conn = get_db()
 
-    # 系統が設定されていれば推薦で styles カラムを絞り込み
     if styles:
         like_query = " OR ".join(["styles LIKE ?" for _ in styles])
         params = [f"%{s}%" for s in styles]
@@ -174,7 +173,7 @@ def detail(item_id):
         "SELECT s.name, s.site_url FROM shops s "
         "JOIN item_shops is2 ON s.id = is2.shop_id WHERE is2.item_id=?",
         (item_id,)
-    ) .fetchall()
+    ).fetchall()
 
     # ログイン中のユーザーがいれば閲覧履歴を記録する
     if session.get("logged_in") and session.get("user_id"):
@@ -249,8 +248,15 @@ def setting():
         return redirect(url_for("home"))
 
     # 管理者判定
+    ALL_STYLES = [
+        "カジュアル", "きれいめ", "ストリート", "モード",
+        "フェミニン", "韓国風", "アメカジ", "トラッド",
+        "古着", "スポーティー", "コンサバ", "ナチュラル"
+    ]
+
     conn = get_db()
     user = conn.execute("SELECT email FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
     is_admin = False
     if user and user["email"].lower() == "admin@example.com":
         is_admin = True
@@ -258,6 +264,49 @@ def setting():
     return render_template("setting.html", available_styles=ALL_STYLES, is_admin=is_admin)
 
 
+# ------------------------
+# ★ 新規追加：トレンド情報画面（DBから取得）
+# ------------------------
+@app.route('/trends')
+def trends():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    trend_list = conn.execute(
+        "SELECT * FROM trends ORDER BY created_at DESC"
+    ).fetchall()
+
+    # Googleトレンド情報を取得
+    try:
+        google_trend_df = get_trends("ファッション")
+        google_trend = None
+        if not google_trend_df.empty:
+            last_row = google_trend_df.tail(1)
+            date = last_row.index[0].strftime('%Y-%m-%d')
+            value = int(last_row.iloc[0][0])
+            google_trend = {"date": date, "value": value}
+        else:
+            google_trend = None
+        # 関連キーワードも取得
+        related_df = get_related_queries("ファッション")
+        related_keywords = []
+        if related_df is not None:
+            for _, row in related_df.iterrows():
+                related_keywords.append({
+                    "keyword": row["query"],
+                    "value": row["value"]
+                })
+        else:
+            related_keywords = []
+    except Exception as e:
+        google_trend = None
+        related_keywords = []
+
+    return render_template("trends.html", trends=trend_list, google_trend=google_trend, related_keywords=related_keywords)
+
+
+# ------------------------
 if __name__ == '__main__':
     # 起動時に history テーブルがなければ作成しておく
     try:
@@ -277,4 +326,5 @@ if __name__ == '__main__':
     except Exception:
         pass
 
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+

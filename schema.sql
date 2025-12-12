@@ -25,6 +25,7 @@ CREATE TABLE items (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT NOT NULL,
     image_url  TEXT,
+    shop_url   TEXT,
     category   TEXT,
     price      INTEGER, /* price_min/max was in suggestion but app uses price currently. kept 'price' for compatibility */
     styles     TEXT,
@@ -40,3 +41,14 @@ CREATE TABLE item_shops (
     FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
 );
+
+CREATE TABLE trends (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,            -- トレンド名
+    description TEXT NOT NULL,      -- 詳細説明
+    image_url TEXT,                 -- トレンド画像
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+

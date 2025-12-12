@@ -1,10 +1,41 @@
 from datetime import datetime
 import sqlite3
 from pathlib import Path
-from flask import Blueprint, current_app, g, redirect, render_template, request, url_for, flash, session, abort
+from flask import Blueprint, current_app, g, redirect, render_template, request, url_for, flash, session, abort, jsonify
 from db import get_db
+import requests
+import re
 
 admin_bp = Blueprint("admin", __name__)
+
+from duckduckgo_search import DDGS
+
+def duckduckgo_image_search(query: str, max_results=8):
+    try:
+        with DDGS() as ddgs:
+            # images() returns an iterator of dicts
+            results = ddgs.images(
+                query,
+                region="jp-jp",
+                safesearch="off",
+                max_results=max_results
+            )
+            return [r["image"] for r in results]
+    except Exception as e:
+        print(f"[DDG] Error: {e}")
+        return []
+
+@admin_bp.route("/items/suggest_images", methods=["POST"])
+def suggest_images():
+    data = request.get_json() or {}
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"images": []})
+    
+    # Try searching for "item_name" + " fashion" or similar to improve results if needed
+    # For now, just raw query
+    images = duckduckgo_image_search(name)
+    return jsonify({"images": images})
 
 @admin_bp.before_request
 def restrict_admin_access():
@@ -49,12 +80,13 @@ def admin_items():
         else:
             db.execute(
                 """
-                INSERT INTO items (name, image_url, category, price, styles, colors, is_trend, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO items (name, image_url, shop_url, category, price, styles, colors, is_trend, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     name,
                     image_url or None,
+                    request.form.get("shop_url", "").strip() or None,
                     category or None,
                     int(price) if price else None,
                     styles or None,
@@ -68,7 +100,7 @@ def admin_items():
             return redirect(url_for("admin.admin_items"))
 
     items = db.execute(
-        "SELECT id, name, category, price, styles, colors, is_trend, created_at FROM items ORDER BY id DESC"
+        "SELECT id, name, image_url, category, price, styles, colors, is_trend, created_at FROM items ORDER BY id DESC"
     ).fetchall()
     return render_template("admin/items_list.html", items=items)
 
@@ -84,6 +116,7 @@ def admin_item_edit(item_id: int):
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         image_url = request.form.get("image_url", "").strip()
+        shop_url = request.form.get("shop_url", "").strip()
         category = request.form.get("category", "").strip()
         styles = request.form.get("styles", "").strip()
         colors = request.form.get("colors", "").strip()
@@ -96,12 +129,13 @@ def admin_item_edit(item_id: int):
             db.execute(
                 """
                 UPDATE items
-                SET name=?, image_url=?, category=?, price=?, styles=?, colors=?, is_trend=?
+                SET name=?, image_url=?, shop_url=?, category=?, price=?, styles=?, colors=?, is_trend=?
                 WHERE id=?
                 """,
                 (
                     name,
                     image_url or None,
+                    shop_url or None,
                     category or None,
                     int(price) if price else None,
                     styles or None,
