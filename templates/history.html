@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}MyStyle - 閲覧履歴{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>閲覧履歴</h2>
+
+    {% if history %}
+    <div class="history-list">
+        {% for h in history %}
+        <div class="history-row">
+            <a href="/detail/{{ h.item_id }}">
+                <img src="{{ h.image_url }}" alt="{{ h.name }}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;">
+            </a>
+            <div style="margin-left:12px;">
+                <a href="/detail/{{ h.item_id }}">{{ h.name }}</a>
+                <div class="history-meta">{{ h.viewed_at }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>まだ閲覧履歴がありません。</p>
+    {% endif %}
+
+    <p style="margin-top:18px; text-align:right;"><a href="{{ url_for('home') }}">ホームに戻る</a></p>
+</div>
+{% endblock %}

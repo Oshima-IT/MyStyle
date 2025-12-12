@@ -20,6 +20,9 @@
     {% else %}
         <p><strong>未設定</strong></p>
     {% endif %}
+    <div style="margin-top:12px; text-align: left;">
+        <button class="btn open-style-modal">系統を変更</button>
+    </div>
 </section>
 
 <section class="photo-display-area">
@@ -38,5 +41,76 @@
 
     </div>
 </section>
+
+{% if recent_history %}
+<section class="card">
+    <h3>最近見たアイテム</h3>
+    <div class="history-strip">
+        {% for h in recent_history %}
+        <div class="history-card">
+            {% if h.image_url %}
+            <a href="/detail/{{ h.item_id }}"><img src="{{ h.image_url }}"></a>
+            {% else %}
+            <div class="placeholder">No Image</div>
+            {% endif %}
+            <div class="history-meta">
+                <div class="name">{{ h.name }}</div>
+                <div class="price">{{ h.price or '' }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Home modal trigger -->
+<!-- 固定ボタンは削除（カード内のボタンを使用） -->
+
+<!-- Overlay modal -->
+<div class="overlay hidden" id="styleOverlay">
+    <div class="modal" role="dialog" aria-hidden="true">
+        <div class="modal-header">系統を選択</div>
+        <div class="tag-grid">
+            {% for s in available_styles %}
+            <button class="tag-btn {% if s in current_styles %}active{% endif %}" data-style="{{ s }}">{{ s }}</button>
+            {% endfor %}
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="cancel-style">キャンセル</button>
+            <button class="btn" id="save-style">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// open modal from any trigger with the .open-style-modal class
+document.querySelectorAll('.open-style-modal').forEach(el=>{
+    el.addEventListener('click', function(){
+        const ov = document.getElementById('styleOverlay');
+        ov.classList.remove('hidden');
+        ov.querySelector('.modal').setAttribute('aria-hidden','false');
+    });
+});
+document.getElementById('cancel-style').addEventListener('click', function(){
+    const ov = document.getElementById('styleOverlay');
+    ov.classList.add('hidden');
+    ov.querySelector('.modal').setAttribute('aria-hidden','true');
+});
+
+// toggle active
+document.querySelectorAll('.tag-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+        btn.classList.toggle('active');
+    });
+});
+
+document.getElementById('save-style').addEventListener('click', async ()=>{
+    const active = [...document.querySelectorAll('.tag-btn.active')].map(b=>b.getAttribute('data-style'));
+    const form = new FormData();
+    active.forEach(s=> form.append('style', s));
+    await fetch("{{ url_for('setting') }}", { method: 'POST', body: form });
+    window.location.reload();
+});
+</script>
 
 {% endblock %}
