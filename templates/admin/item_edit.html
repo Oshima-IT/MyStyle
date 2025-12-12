@@ -25,7 +25,15 @@
 
                 <div class="form-field">
                     <label for="image_url">Image URL</label>
-                    <input id="image_url" name="image_url" type="url" value="{{ item.image_url or '' }}">
+                    <div style="display: flex; gap: 8px; align-items: flex-start;">
+                        <img id="edit_item_preview" class="img-preview" src="{{ item.image_url or '' }}" alt="Preview">
+                        <div style="flex: 1; display: flex; gap: 8px;">
+                            <input id="image_url" name="image_url" type="url" value="{{ item.image_url or '' }}"
+                                style="flex: 1;">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="openImageSearch('image_url', document.getElementById('name').value, 'edit_item_preview')">画像検索</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-field">
