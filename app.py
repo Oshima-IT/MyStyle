@@ -1,3 +1,6 @@
+import os
+import pickle
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_db, close_db
@@ -13,6 +16,18 @@ app.teardown_appcontext(close_db)
 
 app.register_blueprint(admin_bp, url_prefix="/admin")
 
+CACHE_FILE = "google_trend_cache.pkl"
+CACHE_EXPIRE_MINUTES = 60  # 1時間キャッシュ
+
+def load_trend_cache():
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, "rb") as f:
+            return pickle.load(f)
+    return None
+
+def save_trend_cache(data):
+    with open(CACHE_FILE, "wb") as f:
+        pickle.dump(data, f)
 
 @app.route('/')
 def index():
@@ -183,33 +198,58 @@ def trends():
         "SELECT * FROM trends ORDER BY created_at DESC"
     ).fetchall()
 
-    # Googleトレンド情報を取得
-    try:
-        google_trend_df = get_trends("ファッション")
-        google_trend = None
-        if not google_trend_df.empty:
-            last_row = google_trend_df.tail(1)
-            date = last_row.index[0].strftime('%Y-%m-%d')
-            value = int(last_row.iloc[0][0])
-            google_trend = {"date": date, "value": value}
-        else:
-            google_trend = None
-        # 関連キーワードも取得
-        related_df = get_related_queries("ファッション")
-        related_keywords = []
-        if related_df is not None:
-            for _, row in related_df.iterrows():
-                related_keywords.append({
-                    "keyword": row["query"],
-                    "value": row["value"]
-                })
-        else:
+    # Googleトレンド情報をキャッシュで取得
+    google_trend = None
+    google_trend_error = None
+    related_keywords = []
+    now = datetime.now()
+    cache = load_trend_cache()
+    use_cache = False
+    if cache:
+        cache_time = cache.get("time")
+        if cache_time and now - cache_time < timedelta(minutes=CACHE_EXPIRE_MINUTES):
+            google_trend = cache.get("google_trend")
+            related_keywords = cache.get("related_keywords", [])
+            google_trend_error = cache.get("google_trend_error")
+            use_cache = True
+    if not use_cache:
+        try:
+            google_trend_df = get_trends("ファッション")
+            if not google_trend_df.empty:
+                last_row = google_trend_df.tail(1)
+                date = last_row.index[0].strftime('%Y-%m-%d')
+                value = int(last_row.iloc[0][0])
+                google_trend = {"date": date, "value": value}
+                google_trend_error = None
+            else:
+                google_trend_error = "Googleトレンドデータが取得できませんでした。"
+                google_trend = None
+            related_df = get_related_queries("ファッション")
             related_keywords = []
-    except Exception as e:
-        google_trend = None
-        related_keywords = []
+            if related_df is not None:
+                for _, row in related_df.iterrows():
+                    related_keywords.append({
+                        "keyword": row["query"],
+                        "value": row["value"]
+                    })
+            save_trend_cache({
+                "time": now,
+                "google_trend": google_trend,
+                "related_keywords": related_keywords,
+                "google_trend_error": google_trend_error
+            })
+        except Exception as e:
+            google_trend = None
+            related_keywords = []
+            google_trend_error = str(e)
+            save_trend_cache({
+                "time": now,
+                "google_trend": google_trend,
+                "related_keywords": related_keywords,
+                "google_trend_error": google_trend_error
+            })
 
-    return render_template("trends.html", trends=trend_list, google_trend=google_trend, related_keywords=related_keywords)
+    return render_template("trends.html", trends=trend_list, google_trend=google_trend, related_keywords=related_keywords, google_trend_error=google_trend_error)
 
 
 # ------------------------

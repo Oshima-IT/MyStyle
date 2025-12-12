@@ -18,6 +18,11 @@
     <h3>Googleトレンド: 「ファッション」</h3>
     <p>最新データ: {{ google_trend.date }} の人気度 = <b>{{ google_trend.value }}</b></p>
 </div>
+{% elif google_trend_error %}
+<div class="card" style="background:#fff0f0; color:#b00;">
+    <h3>Googleトレンド取得エラー</h3>
+    <p>{{ google_trend_error }}</p>
+</div>
 {% endif %}
 
 {# Googleトレンド関連キーワード表示 #}
@@ -32,10 +37,19 @@
 </div>
 {% endif %}
 
-
-
-{% if trends|length == 0 %}
-<p>現在表示できるトレンド情報がありません。</p>
+{# DBのトレンド情報を必ず表示 #}
+{% if trends and trends|length > 0 %}
+    {% for t in trends %}
+    <div class="card">
+        <h3>{{ t.title }}</h3>
+        {% if t.image_url %}
+        <img src="{{ t.image_url }}" alt="{{ t.title }}" style="width:100%; max-width:400px; border-radius:8px; margin-bottom:12px;">
+        {% endif %}
+        <p>{{ t.description }}</p>
+    </div>
+    {% endfor %}
+{% else %}
+    <p>現在表示できるトレンド情報がありません。</p>
 {% endif %}
 
 {% endblock %}
