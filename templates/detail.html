@@ -29,6 +29,12 @@
     <section class="item-sites">
         <h3>購入可能サイト</h3>
 
+        {% if item.shop_url %}
+        <a href="{{ item.shop_url }}" target="_blank" class="site-link">
+            ▶ 販売ページへ
+        </a>
+        {% endif %}
+
         {% for s in shops %}
         <a href="{{ s.site_url }}" target="_blank" class="site-link">
             ▶ {{ s.name }} のページへ
