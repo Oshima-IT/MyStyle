@@ -46,7 +46,12 @@
 
 <p
     style="margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 30px; align-items: center;">
+    {% if is_admin %}
+    <a href="{{ url_for('admin.index') }}" class="save-button"
+        style="background-color: #333; height: auto; padding: 10px 20px;">Admin</a>
+    {% else %}
     <a href="{{ url_for('home') }}">ホームに戻る</a>
+    {% endif %}
     <span style="color: #ddd;">|</span>
     <a href="{{ url_for('logout') }}" style="color: var(--danger);">ログアウト</a>
 </p>

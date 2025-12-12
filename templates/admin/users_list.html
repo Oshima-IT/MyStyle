@@ -3,39 +3,52 @@
 <div class="split">
     <div class="card">
         <h2>Users</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Email</th>
-                    <th>Preferred Styles</th>
-                    <th>Preferred Colors</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.preferred_styles or "-" }}</td>
-                    <td>{{ user.preferred_colors or "-" }}</td>
-                    <td class="actions">
-                        <a class="btn btn-secondary"
-                            href="{{ url_for('admin.admin_user_edit', user_id=user.id) }}">Edit</a>
-                        <form action="{{ url_for('admin.admin_user_delete', user_id=user.id) }}" method="post"
-                            onsubmit="return confirm('削除しますか？');">
-                            <button class="btn btn-danger" type="submit">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5">No users.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="admin-list">
+            {% for user in users %}
+            <div class="admin-card-row">
+                <div class="admin-card-main">
+                    <div class="admin-card-title">
+                        <span class="admin-card-id">#{{ user.id }}</span>
+                        <span class="admin-card-name">{{ user.email }}</span>
+                    </div>
+
+                    <div class="admin-card-tags">
+                        {% if user.preferred_styles %}
+                        <span class="tag-label">Styles:</span>
+                        {% for s in user.preferred_styles.split(',') %}
+                        <span class="tag tag-style">{{ s }}</span>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if user.preferred_colors %}
+                        <span class="tag-label">Colors:</span>
+                        {% for c in user.preferred_colors.split(',') %}
+                        <span class="tag tag-color">
+                            <span class="color-dot" data-color="{{ c }}"></span>
+                            <span>{{ c }}</span>
+                        </span>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="admin-card-actions">
+                    <a class="btn btn-secondary btn-icon"
+                        href="{{ url_for('admin.admin_user_edit', user_id=user.id) }}">
+                        <span class="material-symbols-outlined">edit</span>
+                    </a>
+                    <form action="{{ url_for('admin.admin_user_delete', user_id=user.id) }}" method="post"
+                        onsubmit="return confirm('削除しますか？');">
+                        <button class="btn btn-danger btn-icon" type="submit">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p class="admin-empty">No users.</p>
+            {% endfor %}
+        </div>
     </div>
     <div class="card">
         <h2>Userを追加</h2>

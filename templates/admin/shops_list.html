@@ -3,37 +3,40 @@
 <div class="split">
     <div class="card">
         <h2>Shops</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Site</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for shop in shops %}
-                <tr>
-                    <td>{{ shop.id }}</td>
-                    <td>{{ shop.name }}</td>
-                    <td>{{ shop.site_url or "-" }}</td>
-                    <td class="actions">
-                        <a class="btn btn-secondary"
-                            href="{{ url_for('admin.admin_shop_edit', shop_id=shop.id) }}">Edit</a>
-                        <form action="{{ url_for('admin.admin_shop_delete', shop_id=shop.id) }}" method="post"
-                            onsubmit="return confirm('削除しますか？');">
-                            <button class="btn btn-danger" type="submit">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4">No shops.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="admin-list">
+            {% for shop in shops %}
+            <div class="admin-card-row">
+                <div class="admin-card-main">
+                    <div class="admin-card-title">
+                        <span class="admin-card-id">#{{ shop.id }}</span>
+                        <span class="admin-card-name">{{ shop.name }}</span>
+                    </div>
+                    <div class="admin-card-meta">
+                        {% if shop.site_url %}
+                        <span class="tag tag-meta">{{ shop.site_url }}</span>
+                        {% else %}
+                        <span class="tag tag-meta">-</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="admin-card-actions">
+                    <a class="btn btn-secondary btn-icon"
+                        href="{{ url_for('admin.admin_shop_edit', shop_id=shop.id) }}">
+                        <span class="material-symbols-outlined">edit</span>
+                    </a>
+                    <form action="{{ url_for('admin.admin_shop_delete', shop_id=shop.id) }}" method="post"
+                        onsubmit="return confirm('削除しますか？');">
+                        <button class="btn btn-danger btn-icon" type="submit">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p class="admin-empty">No shops.</p>
+            {% endfor %}
+        </div>
     </div>
     <div class="card">
         <h2>Shopを追加</h2>

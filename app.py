@@ -160,7 +160,14 @@ def setting():
         "古着", "スポーティー", "コンサバ", "ナチュラル"
     ]
 
-    return render_template("setting.html", available_styles=ALL_STYLES)
+    # 管理者判定
+    conn = get_db()
+    user = conn.execute("SELECT email FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+    is_admin = False
+    if user and user["email"].lower() == "admin@example.com":
+        is_admin = True
+
+    return render_template("setting.html", available_styles=ALL_STYLES, is_admin=is_admin)
 
 
 if __name__ == '__main__':
