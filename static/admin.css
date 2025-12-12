@@ -1,0 +1,778 @@
+/* Reset & Base */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    /* 全体スクロール抑制 */
+}
+
+/* Header */
+.admin-header {
+    height: 60px;
+    background-color: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.admin-header h1 {
+    font-size: 1.2rem;
+    margin: 0;
+    font-weight: 700;
+}
+
+.admin-header h1 a {
+    text-decoration: none;
+    color: #333;
+}
+
+.admin-header-user {
+    font-size: 0.9rem;
+    color: #666;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.admin-header-user a {
+    color: #666;
+    text-decoration: none;
+}
+
+.admin-header-user a:hover {
+    color: #333;
+}
+
+/* Layout Container (Sidebar + Main) */
+.admin-container {
+    display: flex;
+    flex: 1;
+    /* ヘッダー以外の高さを占有 */
+    overflow: hidden;
+    /* 内部スクロールのため */
+}
+
+/* Sidebar */
+.admin-sidebar {
+    width: 240px;
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    /* 幅固定 */
+}
+
+.admin-sidebar-nav {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-sidebar-nav li a {
+    display: block;
+    padding: 12px 20px;
+    color: #ccc;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    font-size: 0.95rem;
+}
+
+.admin-sidebar-nav li a:hover,
+.admin-sidebar-nav li a.active {
+    background-color: #444;
+    color: #fff;
+    border-left: 4px solid #fff;
+    /* アクセント */
+}
+
+.admin-sidebar-nav hr {
+    border: 0;
+    border-top: 1px solid #444;
+    margin: 15px 20px;
+}
+
+/* Main Content */
+.admin-main {
+    flex: 1;
+    background-color: #f4f6f8;
+    padding: 30px;
+    overflow-y: auto;
+    /* コンテンツのみ縦スクロール */
+}
+
+/* --- Form Components (Ported from style.css) --- */
+form {
+    display: grid;
+    gap: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: #fafbff;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    /* ensure padding acts correctly */
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* --- Buttons --- */
+/* ベース */
+.btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 90px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-weight: 600;
+    transition: background 0.2s, transform 0.1s;
+    background-color: #e5e7eb;
+    /* Default gray for submitting buttons without class */
+    color: #111827;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    background-color: #d1d5db;
+    /* Default hover */
+}
+
+/* 主ボタン（追加・保存など） */
+.btn-primary {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+/* 編集用（グレー） */
+.btn-secondary {
+    background-color: #e5e7eb;
+    color: #111827;
+    border-color: #e5e7eb;
+}
+
+.btn-secondary:hover {
+    background-color: #d1d5db;
+}
+
+/* 危険操作：Delete */
+.btn-danger {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border-color: #fecaca;
+}
+
+.btn-danger:hover {
+    background-color: #fee2e2;
+}
+
+/* --- Utilities --- */
+.pill {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #eef0f5;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    color: #444;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* --- Modal & Tag Picker (New styles for admin) --- */
+.tag-picker {
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.tag-display {
+    min-height: 24px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+/* Overlay & Modal */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    display: flex;
+    /* flex center */
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh;
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.tag-grid {
+    padding: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    overflow-y: auto;
+}
+
+.tag-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tag-btn.active {
+    background: #333;
+    color: #fff;
+    border-color: #333;
+}
+
+.modal-actions {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    text-align: right;
+}
+
+/* Standard classes */
+.card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid #eee;
+    color: #666;
+    font-weight: 600;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.split {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 1000px) {
+    .split {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- List Card Layout (Requested by User) --- */
+/* 一覧全体（縦方向にカードを並べる） */
+.admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 13px;
+    /* ← 全体少し小さめ */
+}
+
+/* 1レコード＝1カード */
+.admin-card-row {
+    display: flex;
+    gap: 16px;
+    padding: 12px 16px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+    border: 1px solid #e5e7eb;
+    /* 境界線を少し足してキリッとさせる */
+}
+
+/* 左側（情報） */
+.admin-card-main {
+    flex: 1;
+    min-width: 0;
+}
+
+/* タイトル行（ID + 名前） */
+.admin-card-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.admin-card-id {
+    font-size: 11px;
+    color: #9ca3af;
+    font-family: monospace;
+}
+
+.admin-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* カテゴリ・価格・trend など */
+.admin-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+}
+
+.badge-trend {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+/* Styles / Colors 行 */
+.admin-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    margin-top: 4px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.tag-label {
+    font-weight: 600;
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.tag-values {
+    font-size: 12px;
+}
+
+/* 右側（Edit / Delete ボタンの縦並び） */
+.admin-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    /* 幅をストレッチ */
+    justify-content: center;
+}
+
+/* ボタン共通（最小幅を指定して揃える） */
+.admin-card-actions .btn {
+    min-width: 90px;
+    padding: 8px 12px;
+    font-size: 13px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* モバイル/狭い幅のときは縦積み */
+@media (max-width: 768px) {
+    .admin-card-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-card-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+}
+
+/* --- Tag System (Refined) --- */
+/* タグのベース */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/* Category / Price など：かなり控えめ */
+.tag-meta {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+
+/* Trend: 唯一の強いアクセント */
+.tag-trend {
+    margin-left: 8px;
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+/* Styles：ほぼ枠線だけで、色は目立たせない */
+.tag-style {
+    background-color: transparent;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+}
+
+/* Colors：背景は透明、ドットが主役 */
+.tag-color {
+    background-color: transparent;
+    color: #4b5563;
+    gap: 4px;
+    padding-left: 4px;
+    padding-right: 6px;
+    border: 1px solid transparent;
+    /* 配置バランス用 */
+}
+
+/* ラベル部分（Styles: / Colors:） */
+.tag-label {
+    font-weight: 600;
+    font-size: 11px;
+    color: #6b7280;
+    margin-right: 4px;
+}
+
+/* Color Dots */
+.color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #9ca3af;
+    /* Default */
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    /* 薄い枠線で白などの視認性確保 */
+}
+
+/* Specific colors for dots */
+.color-dot[data-color="黒"] {
+    background-color: #111827;
+}
+
+.color-dot[data-color="白"] {
+    background-color: #ffffff;
+    border-color: #d1d5db;
+}
+
+.color-dot[data-color="グレー"] {
+    background-color: #9ca3af;
+}
+
+.color-dot[data-color="ネイビー"] {
+    background-color: #1e3a8a;
+}
+
+.color-dot[data-color="青"] {
+    background-color: #3b82f6;
+}
+
+.color-dot[data-color="ベージュ"] {
+    background-color: #f5f5dc;
+}
+
+.color-dot[data-color="ブラウン"] {
+    background-color: #92400e;
+}
+
+.color-dot[data-color="茶"] {
+    background-color: #92400e;
+}
+
+.color-dot[data-color="緑"] {
+    background-color: #10b981;
+}
+
+.color-dot[data-color="赤"] {
+    background-color: #ef4444;
+}
+
+/* タグ全体の並び (上書き) */
+.admin-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.admin-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+    margin-top: 2px;
+    align-items: center;
+}
+
+/* 空のときメッセージ */
+/* --- Form Layout (Refined) --- */
+
+.form-section {
+    margin-top: 16px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    /* Light gray background for distinct sections */
+    border: 1px solid #f3f4f6;
+}
+
+.form-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    /* Darker gray for better contrast */
+    margin-bottom: 4px;
+}
+
+.form-section-desc {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 16px;
+}
+
+/* 2列グリッド（左広め） */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 12px 16px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-field--full {
+    grid-column: 1 / -1;
+}
+
+.form-field label {
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.form-field input[type="text"],
+.form-field input[type="url"],
+.form-field input[type="number"] {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    width: 100%;
+    /* Ensure inputs fill the grid cell */
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+/* ¥付き入力 */
+.input-prefix {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.input-prefix>span {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* Inline Fields (Styles/Colors) */
+.inline-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 38px;
+    /* 背景色などは form-section に任せるため削除、あるいは入力欄っぽく残すか... ユーザー提案はセクション分け重視なので、ここはシンプルに */
+}
+
+.inline-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    flex: 1;
+    /* タグエリアが伸びるように */
+}
+
+/* Trend Field Right Aligned */
+.trend-field {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+/* トレンドチェック */
+.checkbox-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #4b5563;
+    cursor: pointer;
+}
+
+/* メモ */
+.help-text {
+    font-size: 12px;
+    color: #9ca3af;
+    margin: 0;
+}
+
+/* Card Header adjustments */
+.card-header {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.card-id {
+    font-size: 12px;
+    color: #9ca3af;
+    font-family: monospace;
+}
+
+.card-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+/* Edit Layout (Splitting Form and Preview) */
+.edit-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+    gap: 24px;
+}
+
+.edit-layout-right {
+    align-self: flex-start;
+    padding-left: 24px;
+    border-left: 1px solid #e5e7eb;
+}
+
+@media (max-width: 1024px) {
+    .edit-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-layout-right {
+        border-left: none;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 24px;
+        padding-top: 24px;
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .inline-field {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}

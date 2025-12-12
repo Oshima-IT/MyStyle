@@ -3,45 +3,65 @@
 <div class="split">
     <div class="card">
         <h2>Items</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Price</th>
-                    <th>Styles</th>
-                    <th>Colors</th>
-                    <th>Trend</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr>
-                    <td>{{ item.id }}</td>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.category or "-" }}</td>
-                    <td>{% if item.price %}¥{{ item.price }}{% else %}-{% endif %}</td>
-                    <td>{{ item.styles or "-" }}</td>
-                    <td>{{ item.colors or "-" }}</td>
-                    <td>{% if item.is_trend %}<span class="pill">trend</span>{% else %}-{% endif %}</td>
-                    <td class="actions">
-                        <a class="btn btn-secondary"
-                            href="{{ url_for('admin.admin_item_edit', item_id=item.id) }}">Edit</a>
-                        <form action="{{ url_for('admin.admin_item_delete', item_id=item.id) }}" method="post"
-                            onsubmit="return confirm('削除しますか？');">
-                            <button class="btn btn-danger" type="submit">Delete</button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="8">No items.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="admin-list">
+            {% for item in items %}
+            <div class="admin-card-row">
+                <div class="admin-card-main">
+                    <div class="admin-card-title">
+                        <span class="admin-card-id">#{{ item.id }}</span>
+                        <span class="admin-card-name">{{ item.name }}</span>
+                        {% if item.is_trend %}
+                        <span class="tag tag-trend">trend</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="admin-card-meta">
+                        {% if item.category %}
+                        <span class="tag tag-meta">{{ item.category }}</span>
+                        {% endif %}
+                        {% if item.price_min %}
+                        <span class="tag tag-meta">¥{{ item.price_min }}</span>
+                        {% endif %}
+                        {# Priceがitem.priceの場合はこちら #}
+                        {% if item.price %}
+                        <span class="tag tag-meta">¥{{ item.price }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="admin-card-tags">
+                        {% if item.styles %}
+                        <span class="tag-label">Styles:</span>
+                        {% for s in item.styles.split(',') %}
+                        <span class="tag tag-style">{{ s }}</span>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if item.colors %}
+                        <span class="tag-label">Colors:</span>
+                        {% for c in item.colors.split(',') %}
+                        <span class="tag tag-color">
+                            <span class="color-dot" data-color="{{ c }}"></span>
+                            <span>{{ c }}</span>
+                        </span>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="admin-card-actions">
+                    <a class="btn btn-secondary" href="{{ url_for('admin.admin_item_edit', item_id=item.id) }}">
+                        Edit
+                    </a>
+                    <form action="{{ url_for('admin.admin_item_delete', item_id=item.id) }}" method="post"
+                        onsubmit="return confirm('削除しますか？');">
+                        <button class="btn btn-danger" type="submit">Delete</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p class="admin-empty">No items.</p>
+            {% endfor %}
+        </div>
     </div>
     <div class="card">
         <h2>Itemを追加</h2>
@@ -82,7 +102,7 @@
                 <label><input type="checkbox" name="is_trend" value="1"> Trend</label>
             </div>
             <div class="actions">
-                <button type="submit">追加</button>
+                <button type="submit" class="btn btn-primary">追加</button>
             </div>
         </form>
     </div>
