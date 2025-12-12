@@ -20,8 +20,8 @@
             <nav class="header-nav">
                 {% if session.get('logged_in') %}
                 {% if request.endpoint == 'home' %}
-                <a href="{{ url_for('setting') }}" title="設定">
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">settings</span>
+                <a href="{{ url_for('logout') }}" title="ログアウト">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">logout</span>
                 </a>
                 {% else %}
                 <a href="{{ url_for('home') }}" title="ホーム">

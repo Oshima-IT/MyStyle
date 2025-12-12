@@ -1,7 +1,7 @@
 import os
 import pickle
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, session, make_response
+from flask import Flask, render_template, request, redirect, url_for, session, make_response, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 from db import get_db, close_db
@@ -242,41 +242,27 @@ def history():
     ).fetchall()
 
     return render_template("history.html", history=rows)
-@app.route('/setting', methods=['GET', 'POST'])
-def setting():
+
+@app.route('/update_styles', methods=['POST'])
+def update_styles():
     if not session.get("logged_in"):
-        return redirect(url_for("login"))
+        return jsonify({"parsed": False, "error": "Login required"}), 401
+    
+    selected_styles = request.form.getlist("style")
+    styles_str = ",".join(selected_styles)
 
-    if request.method == "POST":
-        selected_styles = request.form.getlist("style")
-        styles_str = ",".join(selected_styles)
-
+    try:
         conn = get_db()
         conn.execute(
             "UPDATE users SET preferred_styles=?, updated_at=datetime('now') WHERE id=?",
             (styles_str, session["user_id"])
         )
         conn.commit()
-
+        
         session["user_styles"] = selected_styles
-
-        return redirect(url_for("home"))
-
-    # 管理者判定
-    ALL_STYLES = [
-        "カジュアル", "きれいめ", "ストリート", "モード",
-        "フェミニン", "韓国風", "アメカジ", "トラッド",
-        "古着", "スポーティー", "コンサバ", "ナチュラル"
-    ]
-
-    conn = get_db()
-    user = conn.execute("SELECT email FROM users WHERE id = ?", (session["user_id"],)).fetchone()
-
-    is_admin = False
-    if user and user["email"].lower() == "admin@example.com":
-        is_admin = True
-
-    return render_template("setting.html", available_styles=ALL_STYLES, is_admin=is_admin)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 # ------------------------

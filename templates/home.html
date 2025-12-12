@@ -14,11 +14,11 @@
     <h3>あなたの系統</h3>
 
     {% if current_styles %}
-        {% for s in current_styles %}
-            <span class="style-tag">{{ s }}</span>
-        {% endfor %}
+    {% for s in current_styles %}
+    <span class="style-tag">{{ s }}</span>
+    {% endfor %}
     {% else %}
-        <p><strong>未設定</strong></p>
+    <p><strong>未設定</strong></p>
     {% endif %}
     <div style="margin-top:12px; text-align: left;">
         <button class="btn open-style-modal">系統を変更</button>
@@ -83,34 +83,34 @@
 </div>
 
 <script>
-// open modal from any trigger with the .open-style-modal class
-document.querySelectorAll('.open-style-modal').forEach(el=>{
-    el.addEventListener('click', function(){
+    // open modal from any trigger with the .open-style-modal class
+    document.querySelectorAll('.open-style-modal').forEach(el => {
+        el.addEventListener('click', function () {
+            const ov = document.getElementById('styleOverlay');
+            ov.classList.remove('hidden');
+            ov.querySelector('.modal').setAttribute('aria-hidden', 'false');
+        });
+    });
+    document.getElementById('cancel-style').addEventListener('click', function () {
         const ov = document.getElementById('styleOverlay');
-        ov.classList.remove('hidden');
-        ov.querySelector('.modal').setAttribute('aria-hidden','false');
+        ov.classList.add('hidden');
+        ov.querySelector('.modal').setAttribute('aria-hidden', 'true');
     });
-});
-document.getElementById('cancel-style').addEventListener('click', function(){
-    const ov = document.getElementById('styleOverlay');
-    ov.classList.add('hidden');
-    ov.querySelector('.modal').setAttribute('aria-hidden','true');
-});
 
-// toggle active
-document.querySelectorAll('.tag-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-        btn.classList.toggle('active');
+    // toggle active
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('active');
+        });
     });
-});
 
-document.getElementById('save-style').addEventListener('click', async ()=>{
-    const active = [...document.querySelectorAll('.tag-btn.active')].map(b=>b.getAttribute('data-style'));
-    const form = new FormData();
-    active.forEach(s=> form.append('style', s));
-    await fetch("{{ url_for('setting') }}", { method: 'POST', body: form });
-    window.location.reload();
-});
+    document.getElementById('save-style').addEventListener('click', async () => {
+        const active = [...document.querySelectorAll('.tag-btn.active')].map(b => b.getAttribute('data-style'));
+        const form = new FormData();
+        active.forEach(s => form.append('style', s));
+        await fetch("{{ url_for('update_styles') }}", { method: 'POST', body: form });
+        window.location.reload();
+    });
 </script>
 
 {% endblock %}
