@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import json
 from db import get_db, close_db
 from datetime import datetime
-from google import get_trends, get_related_queries
+from google_trends import get_trends, get_related_queries
 from admin import admin_bp
 
 app = Flask(__name__)
