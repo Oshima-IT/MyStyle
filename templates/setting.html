@@ -4,51 +4,14 @@
 
 {% block content %}
 <div class="card">
-    <h2>系統設定</h2>
+    <h2>設定</h2>
 
-    <form method="GET" action="/setting" class="search-form" style="display: flex;">
-        <input type="text" name="search" placeholder="系統を検索（例: カジュアル）" value="{{ search_query or '' }}"
-            style="margin: 0;">
-        <button type="submit" style="width: 100px;">検索</button>
-
-        {% if search_query %}
-        <a href="/setting" class="btn-reset"
-            style="margin: 0; padding: 10px 16px; width: 100px; text-align: center; text-decoration: none;">リセット</a>
-        {% endif %}
-    </form>
-
-    <hr>
-
-    <form method="POST" action="/setting">
-        <p><strong>好きな服の系統を選択してください（複数選択可）：</strong></p>
-
-        <div class="style-tags">
-
-            {% for style in available_styles %}
-            <div class="tag-item">
-                <input type="checkbox" id="style-{{ loop.index }}" name="style" value="{{ style }}" {% if style in
-                    session.get('user_styles', []) %}checked{% endif %}>
-                <label for="style-{{ loop.index }}">{{ style }}</label>
-            </div>
-            {% endfor %}
-
-            {% if not available_styles %}
-            <p>一致する系統が見つかりませんでした。</p>
-            {% endif %}
-
-        </div>
-
-        <div class="actions" style="justify-content: flex-end; margin-top: 20px;">
-            <button type="submit" class="save-button">設定を保存する</button>
-        </div>
-    </form>
+    <p>系統（スタイル）の設定はホーム画面の系統変更モーダルから行ってください。ホームに戻っていただくと、画面右上などから系統を変更できます。</p>
 </div>
 
-<p
-    style="margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 30px; align-items: center;">
+<p style="margin-top: 20px; text-align: center; display: flex; justify-content: center; gap: 30px; align-items: center;">
     {% if is_admin %}
-    <a href="{{ url_for('admin.index') }}" class="save-button"
-        style="background-color: #333; height: auto; padding: 10px 20px;">Admin</a>
+    <a href="{{ url_for('admin.index') }}" class="save-button" style="background-color: #333; height: auto; padding: 10px 20px;">Admin</a>
     {% else %}
     <a href="{{ url_for('home') }}">ホームに戻る</a>
     {% endif %}

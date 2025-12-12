@@ -311,3 +311,36 @@ hr {
         text-align: center;
     }
 }
+
+/* --- 履歴ストリップ --- */
+.history-strip {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    padding: 10px 4px;
+    align-items: stretch;
+}
+.history-card {
+    flex: 0 0 140px;
+    background: var(--card);
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+    text-align: left;
+}
+.history-card img { width:100%; height:100px; object-fit:cover; display:block; }
+.history-card .placeholder { width:100%; height:100px; display:flex; align-items:center; justify-content:center; color:var(--muted); background:linear-gradient(180deg,#fafafa,#f4f4f6); }
+.history-meta { padding:8px 10px; }
+.history-meta .name { font-size:0.95em; font-weight:600; color:var(--accent-weak); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.history-meta .price { font-size:0.9em; color:var(--danger); margin-top:6px; }
+
+/* --- Admin-like overlay & tag picker (for home modal) --- */
+.overlay { position: fixed; top: 0; left: 0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index:2000; display:flex; align-items:center; justify-content:center; }
+.overlay.hidden { display:none; }
+.overlay .modal { background: var(--card); border-radius: 8px; width: min(560px, 90%); max-width:560px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display:flex; flex-direction:column; height: fit-content; max-height: calc(100vh - 40px); padding: 1rem; overflow:auto; margin:0 8px; box-sizing:border-box; align-self:center; justify-self:center; }
+.modal-header { padding: 10px 14px; border-bottom: 1px solid var(--border); font-weight:700; }
+.tag-grid { padding: 6px 8px 4px 8px; display:flex; flex-wrap:wrap; gap:6px; overflow-y:auto; }
+.tag-btn { padding: 6px 10px; border:1px solid #e6e9ef; background:#fff; border-radius:16px; cursor:pointer; transition:all 0.12s; margin:0; font-size:0.95em; line-height:1; }
+.tag-btn.active { background: var(--accent-weak); color:#fff; border-color: var(--accent-weak); }
+.modal-actions { padding:6px 8px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:center; align-items:center; }
+.modal-actions .btn { margin:0; }
