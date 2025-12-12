@@ -49,12 +49,13 @@ def admin_items():
         else:
             db.execute(
                 """
-                INSERT INTO items (name, image_url, category, price, styles, colors, is_trend, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO items (name, image_url, shop_url, category, price, styles, colors, is_trend, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     name,
                     image_url or None,
+                    request.form.get("shop_url", "").strip() or None,
                     category or None,
                     int(price) if price else None,
                     styles or None,
@@ -84,6 +85,7 @@ def admin_item_edit(item_id: int):
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         image_url = request.form.get("image_url", "").strip()
+        shop_url = request.form.get("shop_url", "").strip()
         category = request.form.get("category", "").strip()
         styles = request.form.get("styles", "").strip()
         colors = request.form.get("colors", "").strip()
@@ -96,12 +98,13 @@ def admin_item_edit(item_id: int):
             db.execute(
                 """
                 UPDATE items
-                SET name=?, image_url=?, category=?, price=?, styles=?, colors=?, is_trend=?
+                SET name=?, image_url=?, shop_url=?, category=?, price=?, styles=?, colors=?, is_trend=?
                 WHERE id=?
                 """,
                 (
                     name,
                     image_url or None,
+                    shop_url or None,
                     category or None,
                     int(price) if price else None,
                     styles or None,

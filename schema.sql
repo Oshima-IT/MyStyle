@@ -25,6 +25,7 @@ CREATE TABLE items (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     name       TEXT NOT NULL,
     image_url  TEXT,
+    shop_url   TEXT,
     category   TEXT,
     price      INTEGER, /* price_min/max was in suggestion but app uses price currently. kept 'price' for compatibility */
     styles     TEXT,

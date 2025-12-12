@@ -23,9 +23,14 @@
                     <input id="category" name="category" type="text" value="{{ item.category or '' }}">
                 </div>
 
-                <div class="form-field form-field--full">
+                <div class="form-field">
                     <label for="image_url">Image URL</label>
                     <input id="image_url" name="image_url" type="url" value="{{ item.image_url or '' }}">
+                </div>
+
+                <div class="form-field">
+                    <label for="shop_url">Shop URL</label>
+                    <input id="shop_url" name="shop_url" type="url" value="{{ item.shop_url or '' }}">
                 </div>
 
                 <div class="form-field">
