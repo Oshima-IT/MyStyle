@@ -12,6 +12,7 @@ app.teardown_appcontext(close_db)
 
 app.register_blueprint(admin_bp, url_prefix="/admin")
 
+
 @app.route('/')
 def index():
     return redirect(url_for('home'))
@@ -46,7 +47,7 @@ def login():
 
 
 # ------------------------
-# 新規登録 (スペル修正: /acount -> /account)
+# 新規登録 (/account)
 # ------------------------
 @app.route('/account', methods=['GET', 'POST'])
 def account_registration():
@@ -64,7 +65,6 @@ def account_registration():
         if exists:
             return render_template("account.html", error="このメールアドレスはすでに登録されています")
 
-        # パスワードをハッシュ化して保存
         password_hash = generate_password_hash(password)
 
         conn.execute(
@@ -100,7 +100,6 @@ def home():
 
     conn = get_db()
 
-    # 系統が設定されていれば推薦で styles カラムを絞り込み
     if styles:
         like_query = " OR ".join(["styles LIKE ?" for _ in styles])
         params = [f"%{s}%" for s in styles]
@@ -126,7 +125,7 @@ def detail(item_id):
         "SELECT s.name, s.site_url FROM shops s "
         "JOIN item_shops is2 ON s.id = is2.shop_id WHERE is2.item_id=?",
         (item_id,)
-    ) .fetchall()
+    ).fetchall()
 
     return render_template("detail.html", item=item, shops=shops)
 
@@ -160,9 +159,9 @@ def setting():
         "古着", "スポーティー", "コンサバ", "ナチュラル"
     ]
 
-    # 管理者判定
     conn = get_db()
     user = conn.execute("SELECT email FROM users WHERE id = ?", (session["user_id"],)).fetchone()
+
     is_admin = False
     if user and user["email"].lower() == "admin@example.com":
         is_admin = True
@@ -170,5 +169,23 @@ def setting():
     return render_template("setting.html", available_styles=ALL_STYLES, is_admin=is_admin)
 
 
+# ------------------------
+# ★ 新規追加：トレンド情報画面（DBから取得）
+# ------------------------
+@app.route('/trends')
+def trends():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    conn = get_db()
+
+    trend_list = conn.execute(
+        "SELECT * FROM trends ORDER BY created_at DESC"
+    ).fetchall()
+
+    return render_template("trends.html", trends=trend_list)
+
+
+# ------------------------
 if __name__ == '__main__':
     app.run(debug=True)

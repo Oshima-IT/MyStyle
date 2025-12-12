@@ -311,3 +311,30 @@ hr {
         text-align: center;
     }
 }
+
+/* ▼ ヘッダー下のタブ UI */
+.page-tabs {
+    display: flex;
+    gap: 20px;
+    padding: 14px 0 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.page-tabs .tab {
+    padding: 6px 2px;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.page-tabs .tab:hover {
+    color: var(--accent);
+}
+
+.page-tabs .tab.active {
+    color: var(--accent);
+    border-bottom: 3px solid var(--accent);
+}

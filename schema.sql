@@ -40,3 +40,14 @@ CREATE TABLE item_shops (
     FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
     FOREIGN KEY (shop_id) REFERENCES shops(id) ON DELETE CASCADE
 );
+
+CREATE TABLE trends (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,            -- トレンド名
+    description TEXT NOT NULL,      -- 詳細説明
+    image_url TEXT,                 -- トレンド画像
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+
