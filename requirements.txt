@@ -1,0 +1,4 @@
+flask
+pytrends
+requests
+duckduckgo-search
