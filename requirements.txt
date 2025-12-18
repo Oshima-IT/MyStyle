@@ -2,3 +2,4 @@ flask
 pytrends
 requests
 duckduckgo-search
+firebase-admin
