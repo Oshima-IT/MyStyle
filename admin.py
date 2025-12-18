@@ -1,19 +1,16 @@
 from datetime import datetime
-import sqlite3
-from pathlib import Path
+import json
 from flask import Blueprint, current_app, g, redirect, render_template, request, url_for, flash, session, abort, jsonify
 from db import get_db
 import requests
-import re
+from duckduckgo_search import DDGS
+from firebase_admin import firestore
 
 admin_bp = Blueprint("admin", __name__)
-
-from duckduckgo_search import DDGS
 
 def duckduckgo_image_search(query: str, max_results=8):
     try:
         with DDGS() as ddgs:
-            # images() returns an iterator of dicts
             results = ddgs.images(
                 query,
                 region="jp-jp",
@@ -32,29 +29,25 @@ def suggest_images():
     if not name:
         return jsonify({"images": []})
     
-    # Try searching for "item_name" + " fashion" or similar to improve results if needed
-    # For now, just raw query
     images = duckduckgo_image_search(name)
     return jsonify({"images": images})
 
 @admin_bp.before_request
 def restrict_admin_access():
-    # ログインしていない場合はログイン画面へ
     user_id = session.get("user_id")
     if not user_id:
-        print("[DEBUG] admin_access: No session. Redirecting to login.")
         return redirect(url_for("login"))
     
     db = get_db()
-    user = db.execute("SELECT email FROM users WHERE id = ?", (user_id,)).fetchone()
+    # In Firestore, we get document by ID
+    user_ref = db.collection('users').document(user_id)
+    doc = user_ref.get()
     
-    if not user:
-        print(f"[DEBUG] admin_access: User ID {user_id} not found.")
+    if not doc.exists:
         abort(403)
-
-    # 大文字小文字を区別せずに比較
-    if user["email"].lower() != "admin@example.com":
-        print(f"[DEBUG] admin_access: {user['email']} is not admin.")
+    
+    user_data = doc.to_dict()
+    if user_data.get("email", "").lower() != "admin@example.com":
         abort(403)
 
 @admin_bp.route("/")
@@ -65,96 +58,80 @@ def index():
 @admin_bp.route("/items", methods=["GET", "POST"])
 def admin_items():
     db = get_db()
+    items_ref = db.collection('items')
+
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        image_url = request.form.get("image_url", "").strip()
-        category = request.form.get("category", "").strip()
-        styles = request.form.get("styles", "").strip()
-        colors = request.form.get("colors", "").strip()
-        is_trend = 1 if request.form.get("is_trend") else 0
         price = request.form.get("price")
-        created_at = datetime.now().date().isoformat()
-
+        
         if not name:
             flash("name は必須です", "error")
         else:
-            db.execute(
-                """
-                INSERT INTO items (name, image_url, shop_url, category, price, styles, colors, is_trend, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    name,
-                    image_url or None,
-                    request.form.get("shop_url", "").strip() or None,
-                    category or None,
-                    int(price) if price else None,
-                    styles or None,
-                    colors or None,
-                    is_trend,
-                    created_at,
-                ),
-            )
-            db.commit()
+            new_item = {
+                "name": name,
+                "image_url": request.form.get("image_url", "").strip() or None,
+                "shop_url": request.form.get("shop_url", "").strip() or None,
+                "category": request.form.get("category", "").strip() or None,
+                "price": int(price) if price else None,
+                "styles": request.form.get("styles", "").strip() or None,
+                "colors": request.form.get("colors", "").strip() or None,
+                "is_trend": 1 if request.form.get("is_trend") else 0,
+                "created_at": datetime.now().date().isoformat()
+            }
+            items_ref.add(new_item)
             flash("item を追加しました", "success")
             return redirect(url_for("admin.admin_items"))
 
-    items = db.execute(
-        "SELECT id, name, image_url, category, price, styles, colors, is_trend, created_at FROM items ORDER BY id DESC"
-    ).fetchall()
+    # List items
+    docs = items_ref.order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    items = []
+    for d in docs:
+        i = d.to_dict()
+        i['id'] = d.id
+        items.append(i)
+        
     return render_template("admin/items_list.html", items=items)
 
 
-@admin_bp.route("/items/<int:item_id>/edit", methods=["GET", "POST"])
-def admin_item_edit(item_id: int):
+@admin_bp.route("/items/<item_id>/edit", methods=["GET", "POST"]) # String ID
+def admin_item_edit(item_id):
     db = get_db()
-    item = db.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
-    if item is None:
+    item_ref = db.collection('items').document(str(item_id))
+    doc = item_ref.get()
+    
+    if not doc.exists:
         flash("item が存在しません", "error")
         return redirect(url_for("admin.admin_items"))
+        
+    item = doc.to_dict()
+    item['id'] = doc.id
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        image_url = request.form.get("image_url", "").strip()
-        shop_url = request.form.get("shop_url", "").strip()
-        category = request.form.get("category", "").strip()
-        styles = request.form.get("styles", "").strip()
-        colors = request.form.get("colors", "").strip()
-        is_trend = 1 if request.form.get("is_trend") else 0
         price = request.form.get("price")
 
         if not name:
             flash("name は必須です", "error")
         else:
-            db.execute(
-                """
-                UPDATE items
-                SET name=?, image_url=?, shop_url=?, category=?, price=?, styles=?, colors=?, is_trend=?
-                WHERE id=?
-                """,
-                (
-                    name,
-                    image_url or None,
-                    shop_url or None,
-                    category or None,
-                    int(price) if price else None,
-                    styles or None,
-                    colors or None,
-                    is_trend,
-                    item_id,
-                ),
-            )
-            db.commit()
+            item_ref.update({
+                "name": name,
+                "image_url": request.form.get("image_url", "").strip() or None,
+                "shop_url": request.form.get("shop_url", "").strip() or None,
+                "category": request.form.get("category", "").strip() or None,
+                "price": int(price) if price else None,
+                "styles": request.form.get("styles", "").strip() or None,
+                "colors": request.form.get("colors", "").strip() or None,
+                "is_trend": 1 if request.form.get("is_trend") else 0
+            })
             flash("item を更新しました", "success")
             return redirect(url_for("admin.admin_items"))
 
     return render_template("admin/item_edit.html", item=item)
 
-@admin_bp.route("/items/<int:item_id>/delete", methods=["POST"])
-def admin_item_delete(item_id: int):
+@admin_bp.route("/items/<item_id>/delete", methods=["POST"])
+def admin_item_delete(item_id):
     db = get_db()
-    db.execute("DELETE FROM items WHERE id = ?", (item_id,))
-    db.commit()
+    db.collection('items').document(str(item_id)).delete()
     flash("item を削除しました", "success")
     return redirect(url_for("admin.admin_items"))
 
@@ -162,31 +139,43 @@ def admin_item_delete(item_id: int):
 @admin_bp.route("/shops", methods=["GET", "POST"])
 def admin_shops():
     db = get_db()
+    shops_ref = db.collection('shops')
+    
     if request.method == "POST":
         name = request.form.get("name", "").strip()
         site_url = request.form.get("site_url", "").strip()
         if not name:
             flash("name は必須です", "error")
         else:
-            db.execute(
-                "INSERT INTO shops (name, site_url) VALUES (?, ?)",
-                (name, site_url or None),
-            )
-            db.commit()
+            shops_ref.add({
+                "name": name, 
+                "site_url": site_url or None
+            })
             flash("shop を追加しました", "success")
             return redirect(url_for("admin.admin_shops"))
 
-    shops = db.execute("SELECT id, name, site_url FROM shops ORDER BY id DESC").fetchall()
+    docs = shops_ref.stream()
+    shops = []
+    for d in docs:
+        s = d.to_dict()
+        s['id'] = d.id
+        shops.append(s)
+        
     return render_template("admin/shops_list.html", shops=shops)
 
 
-@admin_bp.route("/shops/<int:shop_id>/edit", methods=["GET", "POST"])
-def admin_shop_edit(shop_id: int):
+@admin_bp.route("/shops/<shop_id>/edit", methods=["GET", "POST"])
+def admin_shop_edit(shop_id):
     db = get_db()
-    shop = db.execute("SELECT * FROM shops WHERE id = ?", (shop_id,)).fetchone()
-    if shop is None:
+    shop_ref = db.collection('shops').document(str(shop_id))
+    doc = shop_ref.get()
+    
+    if not doc.exists:
         flash("shop が存在しません", "error")
         return redirect(url_for("admin.admin_shops"))
+        
+    shop = doc.to_dict()
+    shop['id'] = doc.id
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
@@ -194,22 +183,20 @@ def admin_shop_edit(shop_id: int):
         if not name:
             flash("name は必須です", "error")
         else:
-            db.execute(
-                "UPDATE shops SET name=?, site_url=? WHERE id=?",
-                (name, site_url or None, shop_id),
-            )
-            db.commit()
+            shop_ref.update({
+                "name": name,
+                "site_url": site_url or None
+            })
             flash("shop を更新しました", "success")
             return redirect(url_for("admin.admin_shops"))
 
     return render_template("admin/shop_edit.html", shop=shop)
 
 
-@admin_bp.route("/shops/<int:shop_id>/delete", methods=["POST"])
-def admin_shop_delete(shop_id: int):
+@admin_bp.route("/shops/<shop_id>/delete", methods=["POST"])
+def admin_shop_delete(shop_id):
     db = get_db()
-    db.execute("DELETE FROM shops WHERE id = ?", (shop_id,))
-    db.commit()
+    db.collection('shops').document(str(shop_id)).delete()
     flash("shop を削除しました", "success")
     return redirect(url_for("admin.admin_shops"))
 
@@ -217,83 +204,72 @@ def admin_shop_delete(shop_id: int):
 @admin_bp.route("/users", methods=["GET", "POST"])
 def admin_users():
     db = get_db()
+    users_ref = db.collection('users')
+    
     if request.method == "POST":
         email = request.form.get("email", "").strip()
         password_hash = request.form.get("password_hash", "").strip()
-        preferred_styles = request.form.get("preferred_styles", "").strip()
-        preferred_colors = request.form.get("preferred_colors", "").strip()
-        now = datetime.now().isoformat(timespec="seconds")
+        now = datetime.now().isoformat()
 
         if not email or not password_hash:
             flash("email と password_hash は必須です", "error")
         else:
-            db.execute(
-                """
-                INSERT INTO users (email, password_hash, preferred_styles, preferred_colors, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    email,
-                    password_hash,
-                    preferred_styles or None,
-                    preferred_colors or None,
-                    now,
-                    now,
-                ),
-            )
-            db.commit()
+            users_ref.add({
+                "email": email,
+                "password_hash": password_hash,
+                "preferred_styles": request.form.get("preferred_styles", "").strip() or None,
+                "preferred_colors": request.form.get("preferred_colors", "").strip() or None,
+                "created_at": now,
+                "updated_at": now
+            })
             flash("user を追加しました", "success")
             return redirect(url_for("admin.admin_users"))
 
-    users = db.execute(
-        "SELECT id, email, preferred_styles, preferred_colors, created_at, updated_at FROM users ORDER BY id DESC"
-    ).fetchall()
+    docs = users_ref.order_by("created_at", direction=firestore.Query.DESCENDING).stream()
+    users = []
+    for d in docs:
+        u = d.to_dict()
+        u['id'] = d.id
+        users.append(u)
+        
     return render_template("admin/users_list.html", users=users)
 
-@admin_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])
-def admin_user_edit(user_id: int):
+@admin_bp.route("/users/<user_id>/edit", methods=["GET", "POST"])
+def admin_user_edit(user_id):
     db = get_db()
-    user = db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-    if user is None:
+    user_ref = db.collection('users').document(str(user_id))
+    doc = user_ref.get()
+    
+    if not doc.exists:
         flash("user が存在しません", "error")
         return redirect(url_for("admin.admin_users"))
+    
+    user = doc.to_dict()
+    user['id'] = doc.id
 
     if request.method == "POST":
         email = request.form.get("email", "").strip()
         password_hash = request.form.get("password_hash", "").strip()
-        preferred_styles = request.form.get("preferred_styles", "").strip()
-        preferred_colors = request.form.get("preferred_colors", "").strip()
-        now = datetime.now().isoformat(timespec="seconds")
+        now = datetime.now().isoformat()
 
         if not email or not password_hash:
             flash("email と password_hash は必須です", "error")
         else:
-            db.execute(
-                """
-                UPDATE users
-                SET email=?, password_hash=?, preferred_styles=?, preferred_colors=?, updated_at=?
-                WHERE id=?
-                """,
-                (
-                    email,
-                    password_hash,
-                    preferred_styles or None,
-                    preferred_colors or None,
-                    now,
-                    user_id,
-                ),
-            )
-            db.commit()
+            user_ref.update({
+                "email": email,
+                "password_hash": password_hash,
+                "preferred_styles": request.form.get("preferred_styles", "").strip() or None,
+                "preferred_colors": request.form.get("preferred_colors", "").strip() or None,
+                "updated_at": now
+            })
             flash("user を更新しました", "success")
             return redirect(url_for("admin.admin_users"))
 
     return render_template("admin/user_edit.html", user=user)
 
-@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
-def admin_user_delete(user_id: int):
-    require_admin()
+@admin_bp.route("/users/<user_id>/delete", methods=["POST"])
+def admin_user_delete(user_id):
     db = get_db()
-    db.execute("DELETE FROM users WHERE id = ?", (user_id,))
-    db.commit()
+    db.collection('users').document(str(user_id)).delete()
     flash("user を削除しました", "success")
     return redirect(url_for("admin.admin_users"))
