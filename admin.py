@@ -3,23 +3,49 @@ import json
 from flask import Blueprint, current_app, g, redirect, render_template, request, url_for, flash, session, abort, jsonify
 from db import get_db
 import requests
-from duckduckgo_search import DDGS
+import os
 from firebase_admin import firestore
 
 admin_bp = Blueprint("admin", __name__)
 
-def duckduckgo_image_search(query: str, max_results=8):
+def google_image_search(query: str, num=5):
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    cx = os.environ.get("GOOGLE_CX")
+    
+    if not api_key or not cx:
+        print("[Google Search] Error: API key or CX not set.")
+        return []
+
+    # Optimize query
+    search_query = f"{query} ファッション アイテム"
+    url = "https://www.googleapis.com/customsearch/v1"
+    
+    params = {
+        "key": api_key,
+        "cx": cx,
+        "q": search_query,
+        "searchType": "image",
+        "num": num,
+        "safe": "active"
+    }
+
     try:
-        with DDGS() as ddgs:
-            results = ddgs.images(
-                query,
-                region="jp-jp",
-                safesearch="off",
-                max_results=max_results
-            )
-            return [r["image"] for r in results]
+        response = requests.get(url, params=params)
+        
+        if response.status_code == 200:
+            data = response.json()
+            items = data.get("items", [])
+            return [item["link"] for item in items if "link" in item]
+        elif response.status_code in [403, 429]:
+             print(f"[Google Search] Quota exceeded or permission denied: {response.text}")
+             # Return empty list or handle gracefully
+             return []
+        else:
+             print(f"[Google Search] Error {response.status_code}: {response.text}")
+             return []
+             
     except Exception as e:
-        print(f"[DDG] Error: {e}")
+        print(f"[Google Search] Exception: {e}")
         return []
 
 @admin_bp.route("/items/suggest_images", methods=["POST"])
@@ -29,7 +55,13 @@ def suggest_images():
     if not name:
         return jsonify({"images": []})
     
-    images = duckduckgo_image_search(name)
+    # Use Google Search
+    images = google_image_search(name)
+    
+    if not images:
+        # Fallback or just empty
+        pass
+        
     return jsonify({"images": images})
 
 @admin_bp.before_request

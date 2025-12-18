@@ -8,6 +8,9 @@ from db import get_db, close_db
 from google_trends import get_trends, get_related_queries
 from admin import admin_bp
 from firebase_admin import firestore
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
