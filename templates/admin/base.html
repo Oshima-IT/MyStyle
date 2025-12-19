@@ -168,7 +168,26 @@
 
             {% block admin_content %}{% endblock %}
         </main>
+    </div>
 
+    <!-- Search Confirmation Modal -->
+    <div class="overlay hidden" id="search-confirm-overlay" style="z-index: 9999;">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <div>検索キーワードの確認</div>
+            </div>
+            <div style="padding: 20px;">
+                <p style="margin-bottom: 10px; font-size: 14px; color: #666;">
+                    検索に使用するキーワードを確認・編集してください。<br>
+                    意図しない画像が出る場合はキーワードを変更してください。
+                </p>
+                <input type="text" id="search-confirm-input" class="form-control" style="width: 100%; padding: 8px;">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="search-confirm-cancel">キャンセル</button>
+                <button type="button" class="btn btn-primary" id="search-confirm-ok">検索する</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -177,42 +196,162 @@
         window.openImageSearch = async function (inputId, query, previewId = null, candidateId = null) {
             query = query ? query.trim() : "";
 
-            // 1. Guard Clauses
-            if (!query || query.length <= 2) {
-                alert("商品名は3文字以上で入力してください");
-                return;
-            }
+            // Guard Clauses REMOVED to prevent silent failure on short inputs.
+            // User will see the modal and can correct the query there.
 
             const input = document.getElementById(inputId);
             if (!input) return;
 
-            if (input.value && !confirm("既にURLが入力されています。再検索しますか？")) {
-                return;
+            // Removed native confirm() to avoid blocking.
+            // We will show a warning in the modal instead.
+
+            // Find valid button to disable/loading
+            const button = input.nextElementSibling || input.parentElement.querySelector('button');
+            if (button) {
+                button.textContent = "検索中...";
+                button.disabled = true;
             }
 
             // 2. Fetch Logic
             const originalPlaceholder = input.placeholder;
             input.placeholder = "画像を検索中...";
 
-            // Clear candidates if any
+            // Clear candidates
             if (candidateId) {
                 const container = document.getElementById(candidateId);
                 if (container) container.innerHTML = '<div style="font-size:12px;color:#666;">検索中...</div>';
             }
 
+            // Collect Optional Fields
+            // We need to know if we are in "Add" (items_list) or "Edit" (item_edit).
+            // Logic: Try to find IDs from "Add" form first, then "Edit" form.
+            // A simple heuristic: check if `new_item_styles` exists.
+            let category = "";
+            let styles = "";
+            let colors = "";
+
+            if (document.getElementById("new_item_styles")) {
+                // Add Mode
+                category = (document.getElementById("new_item_category") || {}).value || "";
+                styles = (document.getElementById("new_item_styles") || {}).value || "";
+                colors = (document.getElementById("new_item_colors") || {}).value || "";
+            } else {
+                // Edit Mode (or other)
+                category = (document.getElementById("category") || {}).value || "";
+                styles = (document.getElementById("styles-input") || {}).value || "";
+                colors = (document.getElementById("colors-input") || {}).value || "";
+            }
+
+            // Build Query Client-Side for Confirmation
+            let queryParts = [query];
+            if (colors) queryParts.push(colors.replace(/,/g, " "));
+            if (styles) queryParts.push(styles.replace(/,/g, " "));
+            if (category) queryParts.push(category);
+
+            // Optimization Keywords
+            // "ファッション" adds context for generic names (e.g. "Ribbon")
+            queryParts.push("ファッション");
+            // "white background" prefers clean catalog images
+            queryParts.push("white background");
+
+            let fullQuery = queryParts.filter(p => p && p.trim()).join(" ");
+
+            // Allow User to Edit via Modal
+            // We wrap this in a Promise to wait for user action
+            const userConfirmedQuery = await new Promise((resolve) => {
+                const overlay = document.getElementById("search-confirm-overlay");
+                const confirmInput = document.getElementById("search-confirm-input");
+                const okBtn = document.getElementById("search-confirm-ok");
+                const cancelBtn = document.getElementById("search-confirm-cancel");
+
+                if (!overlay || !confirmInput) {
+                    // Fallback if modal missing (should not happen)
+                    resolve(prompt("検索キーワードを確認してください", fullQuery));
+                    return;
+                }
+
+                // Setup state
+                confirmInput.value = fullQuery;
+                overlay.classList.remove("hidden");
+                confirmInput.focus();
+
+                // Show/Hide Overwrite Warning
+                let warningEl = document.getElementById("search-confirm-warning");
+                if (!warningEl) {
+                    // Create if not exists
+                    warningEl = document.createElement("p");
+                    warningEl.id = "search-confirm-warning";
+                    warningEl.style.color = "#d32f2f";
+                    warningEl.style.fontSize = "13px";
+                    warningEl.style.marginTop = "8px";
+                    warningEl.style.fontWeight = "bold";
+                    // Insert before input
+                    confirmInput.parentNode.insertBefore(warningEl, confirmInput);
+                }
+
+                if (input.value && input.value.trim() !== "") {
+                    warningEl.textContent = "※現在の画像URLは上書きされます";
+                    warningEl.style.display = "block";
+                } else {
+                    warningEl.style.display = "none";
+                }
+
+                // Define handlers to remove them later
+                const handleOk = () => {
+                    cleanup();
+                    resolve(confirmInput.value);
+                };
+                const handleCancel = () => {
+                    cleanup();
+                    resolve(null);
+                };
+                const handleKey = (e) => {
+                    if (e.key === "Enter") handleOk();
+                    if (e.key === "Escape") handleCancel();
+                };
+
+                function cleanup() {
+                    overlay.classList.add("hidden");
+                    okBtn.removeEventListener("click", handleOk);
+                    cancelBtn.removeEventListener("click", handleCancel);
+                    window.removeEventListener("keydown", handleKey);
+                }
+
+                // Attach listeners
+                okBtn.addEventListener("click", handleOk);
+                cancelBtn.addEventListener("click", handleCancel);
+                window.addEventListener("keydown", handleKey);
+            });
+
+            if (userConfirmedQuery === null) {
+                // Cancelled
+                // Revert UI state
+                const button = input.nextElementSibling || input.parentElement.querySelector('button');
+                if (button) {
+                    button.textContent = button.textContent === "検索中..." ? "画像検索" : button.textContent;
+                    button.disabled = false;
+                }
+                input.placeholder = originalPlaceholder;
+                input.value = ""; // Clear if they started typing? No, input is URL. Name is separate.
+                if (candidateId) {
+                    const container = document.getElementById(candidateId);
+                    if (container) container.innerHTML = "";
+                }
+                return;
+            }
+
+            // Use confirmed query
+            // Strip if user cleared it?
+            if (!userConfirmedQuery.trim()) return;
+
             try {
                 const res = await fetch("/admin/items/suggest_images", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: query })
+                    body: JSON.stringify({
+                        custom_query: userConfirmedQuery
+                    })
                 });
-
-                if (res.status !== 200) {
-                    // Check for 403/429 specifically if backend passes it through, 
-                    // but currently backend returns 200 with empty images on error usually, 
-                    // unless we specifically handle status.
-                    // The backend code catches exception and returns [], so likely 200 OK.
-                }
 
                 const data = await res.json();
 
@@ -230,54 +369,114 @@
                         const container = document.getElementById(candidateId);
                         if (container) {
                             container.innerHTML = "";
-                            images.forEach((url, idx) => {
+                            images.forEach((url, i) => {
                                 const img = document.createElement("img");
                                 img.src = url;
                                 img.className = "candidate-img";
-                                img.onclick = () => {
-                                    input.value = url;
-                                    updatePreview(input, url, previewId);
-                                    // Highlight selected
-                                    container.querySelectorAll(".candidate-img").forEach(el => el.classList.remove("selected"));
+                                img.referrerPolicy = "no-referrer"; // Bypass hotlink protection
+
+                                // On click -> select
+                                img.onclick = function () {
+                                    // Remove selected from all
+                                    Array.from(container.children).forEach(c => c.classList.remove("selected"));
+                                    // Add to this
                                     img.classList.add("selected");
+                                    // Set Input
+                                    const input = document.getElementById(inputId);
+                                    if (input) {
+                                        input.value = url;
+                                        // Update preview if exists
+                                        if (previewId) updatePreview(previewId, url);
+                                    }
                                 };
-                                if (idx === 0) img.classList.add("selected");
+
+                                // Auto-select first (if valid?)
+                                // We trust first one initially. If it fails, user picks another.
+                                if (i === 0) {
+                                    img.classList.add("selected");
+                                    // Set Input
+                                    const input = document.getElementById(inputId);
+                                    if (input) {
+                                        input.value = url;
+                                        if (previewId) updatePreview(previewId, url);
+                                    }
+                                }
+
+                                // Handle broken images
+                                img.onerror = function () {
+                                    // If main image, maybe don't hide but show placeholder?
+                                    // For candidates, effectively remove or gray out.
+                                    // We can just hide it to avoid clutter.
+                                    img.style.display = "none";
+
+                                    // If this was selected (e.g. first one), try selecting next valid?
+                                    // But this is async. Might be complex.
+                                    // Let's just grey it out or show 'x'.
+                                    // Revert display none, show error style.
+                                    if (img.classList.contains("selected")) {
+                                        img.style.display = "block";
+                                        img.style.opacity = "0.3";
+                                        img.style.border = "2px solid red";
+                                        img.alt = "Load Failed";
+                                    }
+                                };
+
                                 container.appendChild(img);
                             });
                         }
+                    } else {
+                        // Fallback: just set first
+                        const input = document.getElementById(inputId);
+                        if (input) {
+                            input.value = images[0];
+                            if (previewId) updatePreview(previewId, images[0]);
+                        }
                     }
-
-                    // Set first image by default
-                    const firstUrl = images[0];
-                    input.value = firstUrl;
-                    updatePreview(input, firstUrl, previewId);
-
                 } else {
-                    // 4. Quota/Empty Check
-                    // If empty, backend might have failed or just no results.
-                    // We can't distinguish easy unless backend sends error flag.
-                    if (candidateId) {
-                        const container = document.getElementById(candidateId);
-                        if (container) container.innerHTML = '<div style="font-size:12px;color:#d32f2f;">画像が見つかりませんでした (検索上限の可能性あり)</div>';
-                    }
-                    alert("画像が見つかりませんでした。\n本日の検索上限（100件）に達した可能性があります。");
+                    alert("画像が見つかりませんでした。本日の検索上限（100件）に達した可能性があります。");
+                    const container = document.getElementById(candidateId);
+                    if (container) container.innerHTML = '<div style="font-size:12px;color:red;">0件</div>';
                 }
-            } catch (e) {
-                console.error(e);
-                alert("エラーが発生しました");
+            } catch (err) {
+                console.error(err);
+                try {
+                    const button = document.querySelector('button:disabled');
+                    if (button) {
+                        button.textContent = "画像検索"; // Reset text roughly
+                    }
+                } catch (e) { }
+                alert("エラーが発生しました: " + err);
             } finally {
-                input.placeholder = originalPlaceholder;
+                if (input) input.placeholder = originalPlaceholder;
+                // Re-enable found button logic would be better if we saved reference.
+                // We'll trust user can refresh if stuck, or we querySelector again.
+                // Since function is async, DOM might have changed.
+                // Re-query:
+                const button = input.nextElementSibling || input.parentElement.querySelector('button');
+                if (button) {
+                    button.disabled = false;
+                    // We need to know original text? Or just set back to "画像検索"
+                    button.textContent = "画像検索";
+                }
             }
-        }
+        };
 
-        function updatePreview(input, url, previewId) {
-            input.dispatchEvent(new Event('change'));
-            if (previewId) {
-                const img = document.getElementById(previewId);
-                if (img) {
+        function updatePreview(previewId, url) {
+            const img = document.getElementById(previewId);
+            if (img) {
+                if (!url) {
+                    img.src = "";
+                    img.classList.add("hidden");
+                    img.style.display = "none";
+                } else {
                     img.src = url;
+                    img.referrerPolicy = "no-referrer"; // Also here
                     img.classList.remove("hidden");
                     img.style.display = "block";
+                    img.onerror = function () {
+                        // If main preview fails
+                        img.alt = "読み込み失敗";
+                    };
                 }
             }
         }

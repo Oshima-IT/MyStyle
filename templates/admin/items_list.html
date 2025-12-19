@@ -99,7 +99,7 @@
             </div>
             <div>
                 <label>Category</label>
-                <input type="text" name="category">
+                <input type="text" name="category" id="new_item_category">
             </div>
             <div>
                 <label>Price</label>
@@ -108,17 +108,19 @@
             <div class="tag-picker">
                 <label>Styles</label>
                 <div class="tag-display" data-display="styles"></div>
-                <input type="hidden" name="styles" id="styles-input">
+                <input type="hidden" name="styles" id="new_item_styles">
                 <div class="actions">
-                    <button type="button" class="btn btn-secondary" data-open-modal="styles">選択</button>
+                    <button type="button" class="btn btn-secondary" data-open-modal="styles"
+                        data-target-id="new_item_styles">選択</button>
                 </div>
             </div>
             <div class="tag-picker">
                 <label>Colors</label>
                 <div class="tag-display" data-display="colors"></div>
-                <input type="hidden" name="colors" id="colors-input">
+                <input type="hidden" name="colors" id="new_item_colors">
                 <div class="actions">
-                    <button type="button" class="btn btn-secondary" data-open-modal="colors">選択</button>
+                    <button type="button" class="btn btn-secondary" data-open-modal="colors"
+                        data-target-id="new_item_colors">選択</button>
                 </div>
             </div>
             <div class="actions">
@@ -154,9 +156,18 @@
     const modalApply = document.getElementById("modal-apply");
 
     let currentType = null;
+    let currentTargetId = null;
 
-    function renderSelected(type, values) {
+    function renderSelected(type, values, targetId) {
+        // If targetId is provided, find display relative to it or by convention?
+        // Actually, renderSelected usually updates the display div.
+        // In this file, display divs are: data-display="styles" (generic).
+        // Since we have only one form here, data-display="styles" works if unique.
+        // But let's look at the HTML: <div class="tag-display" data-display="styles"></div>
+        // Just one per type. So querySelector is fine.
         const display = document.querySelector(`[data-display="${type}"]`);
+        if (!display) return;
+
         display.innerHTML = "";
         if (!values.length) {
             display.textContent = "なし";
@@ -170,9 +181,10 @@
         });
     }
 
-    function openModal(type) {
+    function openModal(type, targetId) {
         currentType = type;
-        const input = document.getElementById(`${type}-input`);
+        currentTargetId = targetId || `${type}-input`; // fallback
+        const input = document.getElementById(currentTargetId);
         const selected = input.value ? input.value.split(",") : [];
         tagGrid.innerHTML = "";
         const options = type === "styles" ? STYLE_OPTIONS : COLOR_OPTIONS;
@@ -190,27 +202,38 @@
 
     function closeModal() {
         overlay.classList.add("hidden");
+        currentType = null;
+        currentTargetId = null;
     }
 
     document.querySelectorAll("[data-open-modal]").forEach(btn => {
-        btn.addEventListener("click", () => openModal(btn.dataset.openModal));
+        btn.addEventListener("click", () => openModal(btn.dataset.openModal, btn.dataset.targetId));
     });
 
     window.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModal();
     });
     modalApply.addEventListener("click", () => {
-        if (!currentType) return;
-        const input = document.getElementById(`${currentType}-input`);
+        if (!currentType || !currentTargetId) return;
+        const input = document.getElementById(currentTargetId);
         const active = Array.from(tagGrid.querySelectorAll(".tag-btn.active")).map(b => b.textContent);
         input.value = active.join(",");
+
+        // Render selected items
+        // Since we changed IDs, we should know which display to update.
+        // For items_list, we only have one set of displays.
         renderSelected(currentType, active);
+
         closeModal();
     });
 
     // 初期表示
-    renderSelected("styles", []);
-    renderSelected("colors", []);
+    // Since IDs changed, we need to check if we have values to render (probably empty on init)
+    // renderSelected("styles", []);
+    // renderSelected("colors", []);
+    // Actually input is empty on load for new item form.
+    document.querySelector('[data-display="styles"]').textContent = "なし";
+    document.querySelector('[data-display="colors"]').textContent = "なし";
 </script>
 {% endblock %}
 {% endblock %}

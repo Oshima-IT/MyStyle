@@ -65,8 +65,8 @@ def google_image_search(query: str, num=5):
         print("[Google Search] Error: API key or CX not set.")
         return []
 
-    # Optimize query
-    search_query = f"{query} ファッション アイテム"
+    # Use query as-is (Caller is responsible for keywords)
+    search_query = query
     url = "https://www.googleapis.com/customsearch/v1"
 
     params = {
@@ -110,12 +110,51 @@ def inject_api_stats():
 @admin_bp.route("/items/suggest_images", methods=["POST"])
 def suggest_images():
     data = request.get_json() or {}
-    name = (data.get("name") or "").strip()
+    
+    # Check for direct custom query (Frontend verified)
+    if data.get("custom_query"):
+        images = google_image_search(data["custom_query"])
+        return jsonify({
+            "images": images,
+            "usage": QuotaManager.get_usage(),
+            "limit": API_LIMIT
+        })
+
+    # Fallback Logic (if not verified on frontend)
+    # 1. Sanitize Name
+    raw_name = data.get("name") or ""
+    # Zenkaku space to Hankaku, strip
+    name = raw_name.replace("　", " ").strip()
+    
     if not name:
         return jsonify({"images": [], "usage": QuotaManager.get_usage(), "limit": API_LIMIT})
-
-    # Use Google Search
-    images = google_image_search(name)
+    
+    # 2. Build Dynamic Query
+    # Get optional fields
+    category = (data.get("category") or "").replace("　", " ").strip()
+    styles = (data.get("styles") or "").replace("　", " ").strip()
+    colors = (data.get("colors") or "").replace("　", " ").strip()
+    
+    # Base parts
+    query_parts = [name]
+    
+    if colors:
+        query_parts.append(colors.replace(",", " ")) # "Black, Red" -> "Black Red"
+    if styles:
+        query_parts.append(styles.replace(",", " "))
+    if category:
+        query_parts.append(category)
+        
+    # Add optimization keywords
+    # "Fashion Item" is good, but "white background ecommerce" is requested high quality suffix
+    query_parts.append("ファッション")
+    query_parts.append("アイテム") # Was added by google_image_search
+    query_parts.append("white background ecommerce")
+    
+    # Join with single spaces
+    composed_query = " ".join(part for part in query_parts if part)
+    
+    images = google_image_search(composed_query)
 
     return jsonify({
         "images": images,
