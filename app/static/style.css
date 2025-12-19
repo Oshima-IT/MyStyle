@@ -273,38 +273,188 @@ hr {
 .photo-scroll {
     display: flex;
     overflow-x: auto;
-    padding: 15px 0;
-    gap: 20px;
+    padding: 20px 0 40px;
+    /* More bottom padding for scrollbar or breathing room */
+    gap: 32px;
+    /* Increased gap for "nuke-kan" */
+}
+
+/* Hide scrollbar for cleaner look if desired, but let's keep it default or thin */
+.photo-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.photo-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.photo-scroll::-webkit-scrollbar-thumb {
+    background: #e4e6ed;
+    border-radius: 3px;
 }
 
 .item-card {
     flex-shrink: 0;
-    width: 200px;
-    text-align: center;
-    background-color: var(--card);
-    border-radius: 10px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+    width: 280px;
+    /* Wider card */
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    /* Rounded corners */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    /* Drop shadow */
     overflow: hidden;
-    padding-bottom: 10px;
+    text-align: left;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px;
+    margin-bottom: 10px;
+    /* Spacing */
+    padding: 0 0 20px 0;
+    /* Reset internal padding */
+}
+
+/* Image */
+.item-card .img-wrapper {
+    margin: 12px 12px 0 12px;
+    /* Inner padding like reference */
+    width: calc(100% - 24px);
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    position: relative;
+    background: #f0f0f0;
+    border-radius: 8px;
+    /* Slightly rounded image */
 }
 
 .item-card img {
     width: 100%;
-    height: 220px;
+    height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.3s ease;
+    transition: transform 0.5s ease;
+    border-radius: 0;
 }
 
-.item-card img:hover {
-    transform: scale(1.03);
+.item-card:hover img {
+    transform: scale(1.05);
+    /* Slight zoom on hover */
+}
+
+.badge-style {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #000;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 2px;
+    z-index: 10;
+    letter-spacing: 0.05em;
+    max-width: 90%;
+    /* Prevent overflow if many styles */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+}
+
+/* Info Section */
+.item-card .info {
+    padding: 16px 20px 0 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.item-card .name-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.item-card .name {
+    font-family: sans-serif;
+    font-weight: 700;
+    /* Bold */
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin: 0 0 8px 0;
+    color: #000;
+    line-height: 1.3;
+}
+
+/* Metadata */
+.item-card .meta-section {
+    margin-bottom: 16px;
+}
+
+.item-card .category-text,
+.item-card .styles-text {
+    font-size: 0.75rem;
+    color: #555;
+    margin: 2px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* Footer: Price + Button */
+.card-footer {
+    margin-top: auto;
+    /* Push to bottom if needed, though structure is simple */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .item-card .price {
-    font-weight: bold;
-    color: var(--text); /* 黒色に変更 */
-    margin-top: 5px;
-    font-size: 1.1em;
+    font-weight: 700;
+    color: #000;
+    margin: 0;
+    font-size: 1.8rem;
+    /* Huge Price */
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.item-card .price .currency {
+    font-size: 0.8rem;
+    font-weight: 400;
+    margin-left: 2px;
+    vertical-align: baseline;
+}
+
+.view-details-btn {
+    background-color: #000;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 10px 14px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+
+.view-details-btn:hover {
+    background-color: #333;
+    text-decoration: none;
+    color: #fff;
+}
+
+/* Clear old Chips styles if needed */
+.style-chips {
+    display: none;
+}
+
+.chip {
+    display: none;
 }
 
 /* --- 設定画面固有スタイル --- */
@@ -416,58 +566,91 @@ hr {
 }
 
 /* --- 履歴ストリップ --- */
+/* --- 履歴ストリップ Minimal Gallery --- */
 .history-strip {
     display: flex;
-    gap: 14px;
+    gap: 12px;
     overflow-x: auto;
-    padding: 10px 4px;
+    padding: 10px 0 20px 0;
+    /* padding for aesthetic, bottom for touch */
     align-items: stretch;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+/* Hide scrollbar for Chrome/Safari */
+.history-strip::-webkit-scrollbar {
+    display: none;
 }
 
 .history-card {
-    flex: 0 0 140px;
-    background: var(--card);
-    border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    flex: 0 0 130px;
+    /* Compact fixed width */
+    background: transparent;
+    /* Minimal: no card background or nice transparent */
+    border-radius: 4px;
+    box-shadow: none;
+    /* Removed heavy shadow */
     overflow: hidden;
     text-align: left;
+    display: flex;
+    flex-direction: column;
 }
 
 .history-card img {
     width: 100%;
-    height: 100px;
+    aspect-ratio: 1 / 1;
+    /* Square */
     object-fit: cover;
     display: block;
+    border-radius: 4px;
+    /* Uniform radius */
+    background: #f4f4f4;
+    height: auto;
+}
+
+.history-card a {
+    text-decoration: none;
+    display: block;
+    margin-bottom: 6px;
+    /* spacing between img and text */
 }
 
 .history-card .placeholder {
     width: 100%;
-    height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--muted);
-    background: linear-gradient(180deg, #fafafa, #f4f4f6);
+    aspect-ratio: 1 / 1;
+    display: block;
+    background: #e0e0e0;
+    /* Grey block */
+    border-radius: 4px;
+    height: auto;
 }
 
 .history-meta {
-    padding: 8px 10px;
+    padding: 0 2px;
+    /* minimal padding */
 }
 
 .history-meta .name {
-    font-size: 0.95em;
+    font-size: 0.8rem;
     font-weight: 600;
-    color: var(--accent-weak);
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-bottom: 2px;
+    line-height: 1.2;
 }
 
 .history-meta .price {
-    font-size: 0.9em;
-    color: var(--text); /* 黒色に変更 */
-    font-weight: bold;
-    margin-top: 6px;
+    font-size: 0.8rem;
+    color: #555;
+    /* Muted price for history */
+    font-weight: 500;
+    margin: 0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
 }
 
 /* --- Admin-like overlay & tag picker (for home modal) --- */

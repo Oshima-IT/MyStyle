@@ -32,13 +32,24 @@
 
         {% for item in items %}
         <div class="item-card">
-            <a href="/detail/{{ item.id }}">
-                <img src="{{ item.image_url }}">
+            <a href="/detail/{{ item.id }}" class="img-link">
+                <figure class="img-wrapper">
+                    {% if item.styles %}
+                    <span class="badge-style">{{ item.styles }}</span>
+                    {% endif %}
+                    <img src="{{ item.image_url }}" alt="{{ item.name }}" loading="lazy">
+                </figure>
             </a>
-            <p class="name">{{ item.name }}</p>
-            <p class="category">{{ item.category }}</p>
-            <p class="styles">{{ item.styles }}</p>
-            <p class="price">{{ item.price }}円</p>
+            <div class="info">
+                <a href="/detail/{{ item.id }}" class="name-link">
+                    <h4 class="name">{{ item.name }}</h4>
+                </a>
+
+                <div class="card-footer">
+                    <p class="price">{{ item.price }}<span class="currency">円</span></p>
+                    <a href="/detail/{{ item.id }}" class="view-details-btn">VIEW DETAILS</a>
+                </div>
+            </div>
         </div>
         {% endfor %}
 
@@ -51,16 +62,16 @@
     <div class="history-strip">
         {% for h in recent_history %}
         <div class="history-card">
-            {% if h.image_url %}
-            <a href="/detail/{{ h.item_id }}"><img src="{{ h.image_url }}"></a>
-            {% else %}
-            <div class="placeholder">No Image</div>
-            {% endif %}
+            <a href="/detail/{{ h.item_id }}">
+                {% if h.image_url %}
+                <img src="{{ h.image_url }}" loading="lazy" alt="{{ h.name }}">
+                {% else %}
+                <div class="placeholder"></div>
+                {% endif %}
+            </a>
             <div class="history-meta">
                 <div class="name">{{ h.name }}</div>
-                <div class="category">{{ h.category }}</div>
-                <div class="styles">{{ h.styles }}</div>
-                <div class="price">{{ h.price or '' }}円</div>
+                <div class="price">{{ h.price or '0' }}<span style="font-size:0.8em">円</span></div>
             </div>
         </div>
         {% endfor %}
