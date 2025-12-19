@@ -17,12 +17,6 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-ALL_STYLES = [
-    "カジュアル", "きれいめ", "ストリート", "モード",
-    "フェミニン", "韓国風", "アメカジ", "トラッド",
-    "古着", "スポーティー", "コンサバ", "ナチュラル"
-]
-
 app.register_blueprint(admin_bp, url_prefix="/admin")
 
 # Path to cache file in instance directory
@@ -275,10 +269,7 @@ def home():
             items.append(d)
     
     # Filter available styles based on what is actually in DB
-    # Prioritize ALL_STYLES order, then append others found
-    sorted_styles = [s for s in ALL_STYLES if s in existing_styles]
-    others = sorted([s for s in existing_styles if s not in ALL_STYLES])
-    available_styles_list = sorted_styles + others
+    available_styles_list = sorted(list(existing_styles))
 
     # If filtered result is empty (or user has no styles), logic might differ. 
     # Original: if styles else all.
