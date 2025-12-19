@@ -3,3 +3,4 @@ pytrends
 requests
 firebase-admin
 python-dotenv
+apscheduler

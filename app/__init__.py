@@ -9,6 +9,8 @@ from .google_trends import get_trends, get_related_queries
 from .admin import admin_bp
 from firebase_admin import firestore
 from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 load_dotenv()
 
@@ -30,7 +32,8 @@ if not os.path.exists(INSTANCE_DIR):
     os.makedirs(INSTANCE_DIR)
 
 CACHE_FILE = os.path.join(INSTANCE_DIR, "google_trend_cache.pkl")
-CACHE_EXPIRE_MINUTES = 60
+# Expiry is still used to check if valid, but update is driven by scheduler
+CACHE_EXPIRE_MINUTES = 65 # Slightly longer than interval to tolerate delays
 
 def load_trend_cache():
     if os.path.exists(CACHE_FILE):
@@ -41,6 +44,67 @@ def load_trend_cache():
 def save_trend_cache(data):
     with open(CACHE_FILE, "wb") as f:
         pickle.dump(data, f)
+
+def update_trend_cache():
+    """Background task to update Google Trends data."""
+    print("Updating trend data...")
+    now = datetime.now()
+    google_trend = None
+    google_trend_error = None
+    related_keywords = []
+
+    try:
+        google_trend_df = get_trends("ファッション")
+        if not google_trend_df.empty:
+            last_row = google_trend_df.tail(1)
+            date = last_row.index[0].strftime('%Y-%m-%d')
+            value = int(last_row.iloc[0][0])
+            google_trend = {"date": date, "value": value}
+        else:
+            google_trend_error = "No data"
+        
+        related_df = get_related_queries("ファッション")
+        if related_df is not None:
+            for _, row in related_df.iterrows():
+                related_keywords.append({
+                    "keyword": row["query"],
+                    "value": row["value"]
+                })
+        
+        save_trend_cache({
+            "time": now,
+            "google_trend": google_trend,
+            "related_keywords": related_keywords,
+            "google_trend_error": google_trend_error
+        })
+        print("Trend data updated successfully.")
+    except Exception as e:
+        print(f"Error updating trend data: {e}")
+        # If error, maybe we don't save or save error state
+        # For now, let's not overwrite with error if we have old data? 
+        # But we need to update time. Let's save error state.
+        save_trend_cache({
+            "time": now,
+            "google_trend": None,
+            "related_keywords": [],
+            "google_trend_error": str(e)
+        })
+
+# Initialize Scheduler
+scheduler = BackgroundScheduler()
+# Run job every 60 minutes
+scheduler.add_job(func=update_trend_cache, trigger="interval", minutes=60)
+scheduler.start()
+
+# Should we run it once on startup if no cache exists?
+if not os.path.exists(CACHE_FILE):
+    # Run slightly after startup to not block import? 
+    # Or just run it now. It might block startup for a few seconds.
+    print("No cache found, updating trends initially...")
+    update_trend_cache()
+
+# Shut down the scheduler when exiting the app
+atexit.register(lambda: scheduler.shutdown())
 
 @app.route('/')
 def index():
@@ -350,48 +414,20 @@ def trends():
     docs = trends_ref.order_by('created_at', direction=firestore.Query.DESCENDING).stream()
     trend_list = [d.to_dict() for d in docs]
 
-    # Google Trends (logic remains similar, just cache handling)
+    # Just load from cache
     google_trend = None
     google_trend_error = None
     related_keywords = []
-    now = datetime.now()
-    cache = load_trend_cache()
-    use_cache = False
     
+    cache = load_trend_cache()
     if cache:
-        cache_time = cache.get("time")
-        if cache_time and now - cache_time < timedelta(minutes=CACHE_EXPIRE_MINUTES):
-            google_trend = cache.get("google_trend")
-            related_keywords = cache.get("related_keywords", [])
-            google_trend_error = cache.get("google_trend_error")
-            use_cache = True
-            
-    if not use_cache:
-        try:
-            google_trend_df = get_trends("ファッション")
-            if not google_trend_df.empty:
-                last_row = google_trend_df.tail(1)
-                date = last_row.index[0].strftime('%Y-%m-%d')
-                value = int(last_row.iloc[0][0])
-                google_trend = {"date": date, "value": value}
-            else:
-                google_trend_error = "No data"
-            
-            related_df = get_related_queries("ファッション")
-            if related_df is not None:
-                for _, row in related_df.iterrows():
-                    related_keywords.append({
-                        "keyword": row["query"],
-                        "value": row["value"]
-                    })
-            save_trend_cache({
-                "time": now,
-                "google_trend": google_trend,
-                "related_keywords": related_keywords,
-                "google_trend_error": google_trend_error
-            })
-        except Exception as e:
-            google_trend_error = str(e)
+        google_trend = cache.get("google_trend")
+        related_keywords = cache.get("related_keywords", [])
+        google_trend_error = cache.get("google_trend_error")
+    else:
+        # If no cache (e.g. startup failed to fetch), show error or try fetching sync?
+        # Let's show "Updating..." or error
+        google_trend_error = "Data updating..."
 
     return render_template("trends.html", trends=trend_list, google_trend=google_trend, related_keywords=related_keywords, google_trend_error=google_trend_error)
 
