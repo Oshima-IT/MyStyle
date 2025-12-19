@@ -10,25 +10,6 @@ admin_bp = Blueprint("admin", __name__)
 
 API_LIMIT = 100
 
-def get_all_unique_styles(db):
-    """Fetch all unique styles from items."""
-    items_ref = db.collection('items')
-    # Optimization: If items many, this is slow. For now it's fine.
-    docs = items_ref.stream()
-    existing_styles = set()
-    
-    for doc in docs:
-        d = doc.to_dict()
-        raw_styles = d.get('styles')
-        if raw_styles:
-            if isinstance(raw_styles, str):
-                parts = [s.strip() for s in raw_styles.split(',') if s.strip()]
-                existing_styles.update(parts)
-            elif isinstance(raw_styles, list):
-                existing_styles.update([s for s in raw_styles if s])
-    
-    return sorted(list(existing_styles))
-
 class QuotaManager:
     @staticmethod
     def get_quota_date_str():
@@ -239,8 +220,7 @@ def admin_items():
         i['id'] = d.id
         items.append(i)
         
-    available_styles = get_all_unique_styles(db)
-    return render_template("admin/items_list.html", items=items, available_styles=available_styles)
+    return render_template("admin/items_list.html", items=items)
 
 
 @admin_bp.route("/items/<item_id>/edit", methods=["GET", "POST"]) # String ID

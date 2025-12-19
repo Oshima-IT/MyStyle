@@ -78,46 +78,6 @@
                 <input type="text" id="new_item_name" name="name" required
                     onkeydown="if(event.key==='Enter'){event.preventDefault();openImageSearch('new_item_image_url', this.value, 'new_item_preview', 'new_item_candidates');}">
             </div>
-
-            <div>
-                <label>Shop URL</label>
-                <input type="text" name="shop_url">
-            </div>
-            <div>
-                <label>Category</label>
-                <input type="text" name="category" id="new_item_category">
-            </div>
-            <div>
-                <label>Price</label>
-                <input type="number" name="price" min="0">
-            </div>
-            <div>
-                <div>
-                    <label class="tag-picker-label">STYLES</label>
-                    <div class="tag-picker">
-                        <div class="tag-display" data-display="styles"></div>
-                        <input type="hidden" name="styles" id="new_item_styles">
-                        <div class="actions">
-                            <button type="button" class="btn btn-add" data-open-modal="styles"
-                                data-target-id="new_item_styles">+ ADD</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div>
-                    <label class="tag-picker-label">COLORS</label>
-                    <div class="tag-picker">
-                        <div class="tag-display" data-display="colors"></div>
-                        <input type="hidden" name="colors" id="new_item_colors">
-                        <div class="actions">
-                            <button type="button" class="btn btn-add" data-open-modal="colors"
-                                data-target-id="new_item_colors">+ ADD</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div>
                 <label>Image URL</label>
                 <div style="display: flex; gap: 8px; align-items: flex-start;">
@@ -133,9 +93,41 @@
                     </div>
                 </div>
             </div>
-
+            <div>
+                <label>Shop URL</label>
+                <input type="text" name="shop_url">
+            </div>
+            <div>
+                <label>Category</label>
+                <input type="text" name="category" id="new_item_category">
+            </div>
+            <div>
+                <label>Price</label>
+                <input type="number" name="price" min="0">
+            </div>
+            <div class="tag-picker">
+                <label>Styles</label>
+                <div class="tag-display" data-display="styles"></div>
+                <input type="hidden" name="styles" id="new_item_styles">
+                <div class="actions">
+                    <button type="button" class="btn btn-secondary" data-open-modal="styles"
+                        data-target-id="new_item_styles">選択</button>
+                </div>
+            </div>
+            <div class="tag-picker">
+                <label>Colors</label>
+                <div class="tag-display" data-display="colors"></div>
+                <input type="hidden" name="colors" id="new_item_colors">
+                <div class="actions">
+                    <button type="button" class="btn btn-secondary" data-open-modal="colors"
+                        data-target-id="new_item_colors">選択</button>
+                </div>
+            </div>
             <div class="actions">
-                <button type="submit" class="btn btn-primary w-full">追加</button>
+                <label><input type="checkbox" name="is_trend" value="1"> Trend</label>
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">追加</button>
             </div>
         </form>
     </div>
@@ -155,7 +147,7 @@
 
 {% block scripts %}
 <script>
-    const STYLE_OPTIONS = {{ available_styles | tojson }};
+    const STYLE_OPTIONS = ["ストリート", "カジュアル", "モード", "韓国系", "スポーツ", "ヴィンテージ", "ミニマル"];
     const COLOR_OPTIONS = ["黒", "白", "グレー", "ネイビー", "青", "ベージュ", "ブラウン", "緑", "赤"];
 
     const overlay = document.getElementById("picker-overlay");
@@ -166,155 +158,46 @@
     let currentType = null;
     let currentTargetId = null;
 
-    function renderSelected(type, values) {
+    function renderSelected(type, values, targetId) {
+        // If targetId is provided, find display relative to it or by convention?
+        // Actually, renderSelected usually updates the display div.
+        // In this file, display divs are: data-display="styles" (generic).
+        // Since we have only one form here, data-display="styles" works if unique.
+        // But let's look at the HTML: <div class="tag-display" data-display="styles"></div>
+        // Just one per type. So querySelector is fine.
         const display = document.querySelector(`[data-display="${type}"]`);
         if (!display) return;
 
-        // Toggle .has-tags class on parent .tag-picker
-        const picker = display.closest(".tag-picker");
-        if (picker) {
-            if (values.length > 0) {
-                picker.classList.add("has-tags");
-            } else {
-                picker.classList.remove("has-tags");
-            }
-        }
-
         display.innerHTML = "";
         if (!values.length) {
-            // display.textContent = "なし"; // No text for ZARA style if empty
+            display.textContent = "なし";
             return;
         }
         values.forEach(v => {
-            const chip = document.createElement("span");
-            chip.className = "chip";
-            chip.textContent = v;
-
-            const removeBtn = document.createElement("span");
-            removeBtn.className = "chip-remove";
-            removeBtn.textContent = "×";
-            removeBtn.onclick = (e) => {
-                e.stopPropagation();
-                removeTag(type, v);
-            };
-
-            chip.appendChild(removeBtn);
-            display.appendChild(chip);
+            const span = document.createElement("span");
+            span.className = "pill";
+            span.textContent = v;
+            display.appendChild(span);
         });
-    }
-
-    function removeTag(type, valToRemove) {
-        // Find targeted input. items_list.html uses specific IDs.
-        const targetId = type === "styles" ? "new_item_styles" : "new_item_colors";
-        const input = document.getElementById(targetId);
-        if (!input) return;
-
-        const currentVals = input.value ? input.value.split(",").map(s => s.trim()).filter(Boolean) : [];
-        const newVals = currentVals.filter(v => v !== valToRemove);
-        input.value = newVals.join(",");
-
-        renderSelected(type, newVals);
     }
 
     function openModal(type, targetId) {
         currentType = type;
-        currentTargetId = targetId || `${type}-input`;
+        currentTargetId = targetId || `${type}-input`; // fallback
         const input = document.getElementById(currentTargetId);
-
-        // Split current values by comma, trim, filter empty
-        const rawSelected = input.value ? input.value.split(",").map(s => s.trim()).filter(Boolean) : [];
-
+        const selected = input.value ? input.value.split(",") : [];
         tagGrid.innerHTML = "";
-
         const options = type === "styles" ? STYLE_OPTIONS : COLOR_OPTIONS;
-        modalTitle.textContent = type === "styles" ? "SELECT STYLES" : "SELECT COLORS";
-
-        // Determine which are presets and which are custom
-        // Use Set for options for O(1) lookup
-        const optionsSet = new Set(options);
-        const presetSelected = [];
-        const customSelected = [];
-
-        rawSelected.forEach(s => {
-            if (optionsSet.has(s)) {
-                presetSelected.push(s);
-            } else {
-                customSelected.push(s);
-            }
-        });
-
-        // Render Preset Buttons
+        modalTitle.textContent = type === "styles" ? "Styles を選択" : "Colors を選択";
         options.forEach(opt => {
-            const isActive = presetSelected.includes(opt);
-            const btn = createTagCheckBtn(opt, isActive);
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "tag-btn" + (selected.includes(opt) ? " active" : "");
+            btn.textContent = opt;
+            btn.onclick = () => btn.classList.toggle("active");
             tagGrid.appendChild(btn);
         });
-
-        // Add "Other" trigger button and hidden input
-        const otherBtn = document.createElement("button");
-        otherBtn.type = "button";
-        otherBtn.className = "tag-btn other-trigger";
-        otherBtn.textContent = "+ OTHER";
-        otherBtn.style.borderStyle = "dashed";
-
-        const otherInput = document.createElement("input");
-        otherInput.type = "text";
-        otherInput.className = "tag-input";
-        otherInput.style.display = "none";
-        otherInput.style.minWidth = "200px";
-        otherInput.placeholder = "タグを入力 (カンマ区切り可)";
-        otherInput.value = customSelected.join(","); // Populate existing custom tags
-
-        // Toggle logic
-        const showInput = () => {
-            otherBtn.style.display = "none";
-            otherInput.style.display = "inline-block";
-        };
-        const showBtn = () => {
-            otherBtn.style.display = "inline-block";
-            otherInput.style.display = "none";
-        };
-
-        otherBtn.onclick = () => {
-            showInput();
-            otherInput.focus();
-        };
-
-        // If we have custom tags, show input by default
-        if (customSelected.length > 0) {
-            showInput();
-        } else {
-            showBtn();
-        }
-
-        otherInput.onkeydown = (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                // Do not add immediately. Wait for Apply.
-            }
-        };
-
-        // Optional: Hide input if empty on blur? 
-        // User requested "Retained", so maybe don't hide if it has value.
-        otherInput.onblur = () => {
-            if (!otherInput.value.trim()) {
-                showBtn();
-            }
-        };
-
-        tagGrid.appendChild(otherBtn);
-        tagGrid.appendChild(otherInput);
-
         overlay.classList.remove("hidden");
-    }
-
-    function createTagCheckBtn(text, isActive) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "tag-btn" + (isActive ? " active" : "");
-        btn.textContent = text;
-        btn.onclick = () => btn.classList.toggle("active");
-        return btn;
     }
 
     function closeModal() {
@@ -330,36 +213,27 @@
     window.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModal();
     });
-
     modalApply.addEventListener("click", () => {
         if (!currentType || !currentTargetId) return;
         const input = document.getElementById(currentTargetId);
+        const active = Array.from(tagGrid.querySelectorAll(".tag-btn.active")).map(b => b.textContent);
+        input.value = active.join(",");
 
-        // Gather Active Buttons
-        const activePresets = Array.from(tagGrid.querySelectorAll(".tag-btn.active:not(.other-trigger)")).map(b => b.textContent);
+        // Render selected items
+        // Since we changed IDs, we should know which display to update.
+        // For items_list, we only have one set of displays.
+        renderSelected(currentType, active);
 
-        // Gather Other Input
-        // The input might be hidden if user didn't open it, but if it has value (from init), we should grab it?
-        // Wait, if it's hidden and empty, fine. If it's hidden but has value? 
-        // My logic above: onblur -> if empty showBtn. So if it has value, it stays visible.
-        // But what if user didn't touch it? It's rendered in DOM.
-        // So just grab the input value.
-        const otherInput = tagGrid.querySelector("input.tag-input");
-        const customValue = otherInput ? otherInput.value.trim() : "";
-        const customTags = customValue ? customValue.split(",").map(s => s.trim()).filter(Boolean) : [];
-
-        // Combine
-        // Use Set to dedup just in case
-        const allTags = new Set([...activePresets, ...customTags]);
-
-        input.value = Array.from(allTags).join(",");
-
-        renderSelected(currentType, Array.from(allTags));
         closeModal();
     });
 
-    // 初期表示: 何もしない (空)
-
+    // 初期表示
+    // Since IDs changed, we need to check if we have values to render (probably empty on init)
+    // renderSelected("styles", []);
+    // renderSelected("colors", []);
+    // Actually input is empty on load for new item form.
+    document.querySelector('[data-display="styles"]').textContent = "なし";
+    document.querySelector('[data-display="colors"]').textContent = "なし";
 </script>
 {% endblock %}
 {% endblock %}

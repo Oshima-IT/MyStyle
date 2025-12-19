@@ -302,8 +302,7 @@ hr {
 
 .item-card .price {
     font-weight: bold;
-    color: var(--danger);
-    /* 価格は目立つ赤 */
+    color: var(--text); /* 黒色に変更 */
     margin-top: 5px;
     font-size: 1.1em;
 }
@@ -466,7 +465,8 @@ hr {
 
 .history-meta .price {
     font-size: 0.9em;
-    color: var(--danger);
+    color: var(--text); /* 黒色に変更 */
+    font-weight: bold;
     margin-top: 6px;
 }
 

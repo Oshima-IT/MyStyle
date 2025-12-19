@@ -63,30 +63,35 @@
 
             <div class="form-grid">
                 <div class="form-field form-field--full">
-                    <label class="tag-picker-label">STYLES</label>
-                    <div class="inline-field tag-picker" style="height: auto; align-items: flex-start;">
-                        <div class="tag-display" data-display="styles">
+                    <label>Styles</label>
+                    <div class="inline-field">
+                        <div class="inline-tags" data-display="styles">
                             <!-- JSで描画されるため空でOK、初期値はJSでセット -->
                         </div>
-                        <button type="button" class="btn btn-add" data-open-modal="styles"
-                            style="min-width: auto; padding: 4px 10px; font-size: 11px;">+ ADD</button>
+                        <button type="button" class="btn btn-secondary" data-open-modal="styles"
+                            style="min-width: 60px; padding: 4px 10px; font-size: 12px;">選択</button>
                     </div>
                     <input type="hidden" name="styles" id="styles-input" value="{{ item.styles or '' }}">
                 </div>
 
                 <div class="form-field form-field--full">
-                    <label class="tag-picker-label">COLORS</label>
-                    <div class="inline-field tag-picker" style="height: auto; align-items: flex-start;">
-                        <div class="tag-display" data-display="colors">
+                    <label>Colors</label>
+                    <div class="inline-field">
+                        <div class="inline-tags" data-display="colors">
                             <!-- JSで描画 -->
                         </div>
-                        <button type="button" class="btn btn-add" data-open-modal="colors"
-                            style="min-width: auto; padding: 4px 10px; font-size: 11px;">+ ADD</button>
+                        <button type="button" class="btn btn-secondary" data-open-modal="colors"
+                            style="min-width: 60px; padding: 4px 10px; font-size: 12px;">選択</button>
                     </div>
                     <input type="hidden" name="colors" id="colors-input" value="{{ item.colors or '' }}">
                 </div>
 
-
+                <div class="form-field form-field--full trend-field">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="is_trend" value="1" {% if item.is_trend %}checked{% endif %}>
+                        トレンドアイテムとして扱う
+                    </label>
+                </div>
             </div>
         </section>
 
@@ -110,7 +115,7 @@
 
 {% block scripts %}
 <script>
-    const STYLE_OPTIONS = {{ available_styles | tojson }};
+    const STYLE_OPTIONS = ["ストリート", "カジュアル", "モード", "韓国系", "スポーツ", "ヴィンテージ", "ミニマル"];
     const COLOR_OPTIONS = ["黒", "白", "グレー", "ネイビー", "青", "ベージュ", "ブラウン", "緑", "赤"];
 
     const overlay = document.getElementById("picker-overlay");
@@ -122,149 +127,52 @@
 
     function renderSelected(type, values) {
         const display = document.querySelector(`[data-display="${type}"]`);
-        if (!display) return;
-
-        // Toggle .has-tags class on parent .tag-picker
-        const picker = display.closest(".tag-picker");
-        if (picker) {
-            if (values.length > 0) {
-                picker.classList.add("has-tags");
-            } else {
-                picker.classList.remove("has-tags");
-            }
-        }
-
         display.innerHTML = "";
         if (!values.length) {
-            // No text for minimal design
+            const empty = document.createElement("span");
+            empty.className = "help-text";
+            empty.textContent = "未選択";
+            display.appendChild(empty);
             return;
         }
         values.forEach(v => {
-            const chip = document.createElement("span");
-            chip.className = "chip";
-            chip.textContent = v;
+            const span = document.createElement("span");
+            // 色付きタグかどうかでクラスを分岐
+            if (type === "colors") {
+                span.className = "tag tag-color";
+                // ドットを追加
+                const dot = document.createElement("span");
+                dot.className = "color-dot";
+                dot.dataset.color = v;
+                span.appendChild(dot);
 
-            const removeBtn = document.createElement("span");
-            removeBtn.className = "chip-remove";
-            removeBtn.textContent = "×";
-            removeBtn.onclick = (e) => {
-                e.stopPropagation();
-                removeTag(type, v);
-            };
-
-            chip.appendChild(removeBtn);
-            display.appendChild(chip);
+                const text = document.createElement("span");
+                text.textContent = v;
+                span.appendChild(text);
+            } else {
+                span.className = "tag tag-style";
+                span.textContent = v;
+            }
+            display.appendChild(span);
         });
-    }
-
-    function removeTag(type, valToRemove) {
-        // IDs for item_edit.html are different
-        const targetId = type === "styles" ? "styles-input" : "colors-input";
-        const input = document.getElementById(targetId);
-        if (!input) return;
-
-        const currentVals = input.value ? input.value.split(",").map(s => s.trim()).filter(Boolean) : [];
-        const newVals = currentVals.filter(v => v !== valToRemove);
-        input.value = newVals.join(",");
-
-        renderSelected(type, newVals);
     }
 
     function openModal(type) {
         currentType = type;
         const input = document.getElementById(`${type}-input`);
-
-        // Split current values by comma, trim, filter empty
-        const rawSelected = input.value ? input.value.split(",").map(s => s.trim()).filter(Boolean) : [];
-
+        const selected = input.value ? input.value.split(",") : [];
         tagGrid.innerHTML = "";
         const options = type === "styles" ? STYLE_OPTIONS : COLOR_OPTIONS;
-        modalTitle.textContent = type === "styles" ? "SELECT STYLES" : "SELECT COLORS";
-
-        // Determine which are presets and which are custom
-        const optionsSet = new Set(options);
-        const presetSelected = [];
-        const customSelected = [];
-
-        rawSelected.forEach(s => {
-            if (optionsSet.has(s)) {
-                presetSelected.push(s);
-            } else {
-                customSelected.push(s);
-            }
-        });
-
-        // Render Preset Buttons
+        modalTitle.textContent = type === "styles" ? "Styles を選択" : "Colors を選択";
         options.forEach(opt => {
-            const isActive = presetSelected.includes(opt);
-            const btn = createTagCheckBtn(opt, isActive);
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "tag-btn" + (selected.includes(opt) ? " active" : "");
+            btn.textContent = opt;
+            btn.onclick = () => btn.classList.toggle("active");
             tagGrid.appendChild(btn);
         });
-
-        // Add "Other" trigger button and hidden input
-        const otherBtn = document.createElement("button");
-        otherBtn.type = "button";
-        otherBtn.className = "tag-btn other-trigger";
-        otherBtn.textContent = "+ OTHER";
-        otherBtn.style.borderStyle = "dashed";
-
-        const otherInput = document.createElement("input");
-        otherInput.type = "text";
-        otherInput.className = "tag-input";
-        otherInput.style.display = "none";
-        otherInput.style.minWidth = "200px";
-        otherInput.placeholder = "タグを入力 (カンマ区切り可)";
-        otherInput.value = customSelected.join(","); // Populate existing custom tags
-
-        // Toggle logic
-        const showInput = () => {
-            otherBtn.style.display = "none";
-            otherInput.style.display = "inline-block";
-        };
-        const showBtn = () => {
-            otherBtn.style.display = "inline-block";
-            otherInput.style.display = "none";
-        };
-
-        otherBtn.onclick = () => {
-            showInput();
-            otherInput.focus();
-        };
-
-        // If we have custom tags, show input by default
-        if (customSelected.length > 0) {
-            showInput();
-        } else {
-            showBtn();
-        }
-
-        otherInput.onkeydown = (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                // Check if user meant to add?
-                // Logic says just complete on Apply.
-            }
-        };
-
-        otherInput.onblur = () => {
-            if (!otherInput.value.trim()) {
-                showBtn();
-            }
-        };
-
-        tagGrid.appendChild(otherBtn);
-        tagGrid.appendChild(otherInput);
-
         overlay.classList.remove("hidden");
-    }
-
-    function createTagCheckBtn(text, isActive) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "tag-btn" + (isActive ? " active" : "");
-        btn.textContent = text;
-        btn.onclick = () => btn.classList.toggle("active");
-        return btn;
     }
 
     function closeModal() {
@@ -277,24 +185,12 @@
     window.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModal();
     });
-
     modalApply.addEventListener("click", () => {
         if (!currentType) return;
         const input = document.getElementById(`${currentType}-input`);
-
-        // Gather Active Buttons
-        const activePresets = Array.from(tagGrid.querySelectorAll(".tag-btn.active:not(.other-trigger)")).map(b => b.textContent);
-
-        // Gather Other Input
-        const otherInput = tagGrid.querySelector("input.tag-input");
-        const customValue = otherInput ? otherInput.value.trim() : "";
-        const customTags = customValue ? customValue.split(",").map(s => s.trim()).filter(Boolean) : [];
-
-        // Combine
-        const allTags = new Set([...activePresets, ...customTags]);
-        input.value = Array.from(allTags).join(",");
-
-        renderSelected(currentType, Array.from(allTags));
+        const active = Array.from(tagGrid.querySelectorAll(".tag-btn.active")).map(b => b.textContent);
+        input.value = active.join(",");
+        renderSelected(currentType, active);
         closeModal();
     });
 
