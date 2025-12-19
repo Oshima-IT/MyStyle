@@ -235,15 +235,33 @@ def home():
     
     docs = items_ref.stream()
     items = []
+    existing_styles = set()
+    
     for doc in docs:
         d = doc.to_dict()
         d['id'] = doc.id
+        
+        # Collect styles for filter UI
+        raw_styles = d.get('styles')
+        if raw_styles:
+            if isinstance(raw_styles, str):
+                parts = [s.strip() for s in raw_styles.split(',') if s.strip()]
+                existing_styles.update(parts)
+            elif isinstance(raw_styles, list):
+                existing_styles.update([s for s in raw_styles if s])
+
         # Simple client-side filter for MVP if styles match any
         if styles:
             item_styles = d.get('styles', "")
             if item_styles:
                 # check if any user style is in item styles
-                if any(s in item_styles for s in styles):
+                # item_styles could be list or string, handle both for filter check
+                if isinstance(item_styles, list):
+                    match = any(s in item_styles for s in styles)
+                else:
+                    match = any(s in item_styles for s in styles)
+                
+                if match:
                     items.append(d)
                 else:
                     # Optional: Include everything if no exact match? 
@@ -256,6 +274,12 @@ def home():
         else:
             items.append(d)
     
+    # Filter available styles based on what is actually in DB
+    # Prioritize ALL_STYLES order, then append others found
+    sorted_styles = [s for s in ALL_STYLES if s in existing_styles]
+    others = sorted([s for s in existing_styles if s not in ALL_STYLES])
+    available_styles_list = sorted_styles + others
+
     # If filtered result is empty (or user has no styles), logic might differ. 
     # Original: if styles else all.
     if not styles:
@@ -296,7 +320,7 @@ def home():
         except Exception as e:
             print(f"Error fetching history: {e}")
 
-    return render_template("home.html", current_styles=styles, items=items, recent_history=recent_history, available_styles=ALL_STYLES)
+    return render_template("home.html", current_styles=styles, items=items, recent_history=recent_history, available_styles=available_styles_list)
 
 # ------------------------
 # Detail
