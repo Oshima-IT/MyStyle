@@ -75,16 +75,21 @@
         <form method="post">
             <div>
                 <label>Name</label>
-                <input type="text" id="new_item_name" name="name" required>
+                <input type="text" id="new_item_name" name="name" required
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();openImageSearch('new_item_image_url', this.value, 'new_item_preview', 'new_item_candidates');}">
             </div>
             <div>
                 <label>Image URL</label>
                 <div style="display: flex; gap: 8px; align-items: flex-start;">
                     <img id="new_item_preview" class="img-preview" alt="Preview">
-                    <div style="flex: 1; display: flex; gap: 8px;">
-                        <input type="text" id="new_item_image_url" name="image_url" style="flex: 1;">
-                        <button type="button" class="btn btn-secondary"
-                            onclick="openImageSearch('new_item_image_url', document.getElementById('new_item_name').value, 'new_item_preview')">画像検索</button>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="new_item_image_url" name="image_url" style="flex: 1;">
+                            <button type="button" class="btn btn-secondary w-auto"
+                                onclick="openImageSearch('new_item_image_url', document.getElementById('new_item_name').value, 'new_item_preview', 'new_item_candidates')">画像検索</button>
+                        </div>
+                        <!-- Candidates Container -->
+                        <div id="new_item_candidates" class="candidate-grid"></div>
                     </div>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import json
 from flask import Blueprint, current_app, g, redirect, render_template, request, url_for, flash, session, abort, jsonify
 from db import get_db
@@ -8,10 +8,59 @@ from firebase_admin import firestore
 
 admin_bp = Blueprint("admin", __name__)
 
+API_LIMIT = 100
+
+class QuotaManager:
+    @staticmethod
+    def get_quota_date_str():
+        """
+        Returns YYYYMMDD string based on 17:00 JST reset.
+        If current time < 17:00 JST, belongs to 'today' (starts prev day 17:00).
+        Actually, simpler logic:
+        Day starts at 17:00 JST (08:00 UTC).
+        If current UTC < 08:00, it's part of the 'previous' Japan day?
+        Let's stick to simple logic as requested: "Reset at 17:00 JST".
+        Means a new bucket starts at 17:00 JST.
+        The bucket name can be formatted date of that start time.
+        Current JST = UTC + 9.
+        If we shift -17 hours, the date changes exactly at 17:00.
+        """
+        utcnow = datetime.now(timezone.utc)
+        # Shift so that 17:00 JST (08:00 UTC) becomes 00:00 of the "logical" day
+        # 08:00 UTC - 8 hours = 00:00
+        # So effective date changes at 08:00 UTC.
+        logical_date = utcnow - timedelta(hours=8)
+        return logical_date.strftime("%Y%m%d")
+
+    @staticmethod
+    def get_usage():
+        db = get_db()
+        date_str = QuotaManager.get_quota_date_str()
+        doc_ref = db.collection('api_stats').document(date_str)
+        doc = doc_ref.get()
+        if doc.exists:
+            return doc.to_dict().get("request_count", 0)
+        return 0
+
+    @staticmethod
+    def increment_usage():
+        db = get_db()
+        date_str = QuotaManager.get_quota_date_str()
+        doc_ref = db.collection('api_stats').document(date_str)
+
+        try:
+            # Atomic increment
+            if doc_ref.get().exists:
+                doc_ref.update({"request_count": firestore.Increment(1)})
+            else:
+                doc_ref.set({"request_count": 1, "created_at": datetime.now().isoformat()})
+        except Exception as e:
+            print(f"[Quota] Error incrementing: {e}")
+
 def google_image_search(query: str, num=5):
     api_key = os.environ.get("GOOGLE_API_KEY")
     cx = os.environ.get("GOOGLE_CX")
-    
+
     if not api_key or not cx:
         print("[Google Search] Error: API key or CX not set.")
         return []
@@ -19,7 +68,7 @@ def google_image_search(query: str, num=5):
     # Optimize query
     search_query = f"{query} ファッション アイテム"
     url = "https://www.googleapis.com/customsearch/v1"
-    
+
     params = {
         "key": api_key,
         "cx": cx,
@@ -31,8 +80,11 @@ def google_image_search(query: str, num=5):
 
     try:
         response = requests.get(url, params=params)
-        
+
         if response.status_code == 200:
+            # Success - Increment Quota
+            QuotaManager.increment_usage()
+
             data = response.json()
             items = data.get("items", [])
             return [item["link"] for item in items if "link" in item]
@@ -43,26 +95,33 @@ def google_image_search(query: str, num=5):
         else:
              print(f"[Google Search] Error {response.status_code}: {response.text}")
              return []
-             
+
     except Exception as e:
         print(f"[Google Search] Exception: {e}")
         return []
+
+@admin_bp.context_processor
+def inject_api_stats():
+    return dict(
+        api_usage=QuotaManager.get_usage(),
+        api_limit=API_LIMIT
+    )
 
 @admin_bp.route("/items/suggest_images", methods=["POST"])
 def suggest_images():
     data = request.get_json() or {}
     name = (data.get("name") or "").strip()
     if not name:
-        return jsonify({"images": []})
-    
+        return jsonify({"images": [], "usage": QuotaManager.get_usage(), "limit": API_LIMIT})
+
     # Use Google Search
     images = google_image_search(name)
-    
-    if not images:
-        # Fallback or just empty
-        pass
-        
-    return jsonify({"images": images})
+
+    return jsonify({
+        "images": images,
+        "usage": QuotaManager.get_usage(),
+        "limit": API_LIMIT
+    })
 
 @admin_bp.before_request
 def restrict_admin_access():

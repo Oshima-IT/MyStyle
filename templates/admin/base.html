@@ -11,6 +11,75 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- 管理画面専用CSS (Cache Busting) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}?v=2">
+    <style>
+        .candidate-grid {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .candidate-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border: 2px solid transparent;
+            cursor: pointer;
+            border-radius: 4px;
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .candidate-img:hover {
+            opacity: 0.8;
+        }
+
+        .candidate-img.selected {
+            border-color: #007bff;
+        }
+
+        /* API Quota Widget */
+        .api-quota-widget {
+            margin: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            /* Sidebar is dark #333 */
+            border-radius: 6px;
+            font-size: 12px;
+            color: #ccc;
+            border: 1px solid #444;
+        }
+
+        .api-quota-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .api-quota-bar-bg {
+            height: 6px;
+            background: #444;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .api-quota-bar {
+            height: 100%;
+            background: #10b981;
+            /* Default success green */
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        /* States */
+        .api-quota-bar.warning {
+            background: #f59e0b;
+        }
+
+        .api-quota-bar.danger {
+            background: #ef4444;
+        }
+    </style>
 </head>
 
 <body>
@@ -60,6 +129,26 @@
                     </a>
                 </li>
             </ul>
+
+            <!-- API Quota Widget -->
+            <div class="api-quota-widget">
+                <div class="api-quota-label">
+                    <span>画像APIリクエスト数</span>
+                    <span id="api-quota-text">{{ api_usage }}/{{ api_limit }}</span>
+                </div>
+                <div class="api-quota-bar-bg">
+                    {% set usage = api_usage|int %}
+                    {% set limit = api_limit|int %}
+                    {% set percent = (usage / limit * 100) if limit > 0 else 0 %}
+                    {% set remaining = limit - usage %}
+                    <div id="api-quota-bar"
+                        class="api-quota-bar {% if remaining <= 5 %}danger{% elif remaining <= 20 %}warning{% endif %}"
+                        style="width: {{ percent }}%;"></div>
+                </div>
+                <div style="margin-top: 4px; text-align: right; color: #888;">
+                    残り <span id="api-quota-remaining">{{ remaining }}</span> 件
+                </div>
+            </div>
         </aside>
 
         <!-- Main Content -->
@@ -85,55 +174,99 @@
     <script>
         const searchCache = {}; // { inputId: { query: str, images: [], index: int } }
 
-        window.openImageSearch = async function (inputId, query, previewId = null) {
-            if (!query) {
-                alert("商品名を入力してください");
+        window.openImageSearch = async function (inputId, query, previewId = null, candidateId = null) {
+            query = query ? query.trim() : "";
+
+            // 1. Guard Clauses
+            if (!query || query.length <= 2) {
+                alert("商品名は3文字以上で入力してください");
                 return;
             }
 
             const input = document.getElementById(inputId);
             if (!input) return;
 
-            // Check cache
-            if (!searchCache[inputId] || searchCache[inputId].query !== query) {
-                // New search
-                const originalPlaceholder = input.placeholder;
-                input.placeholder = "画像を検索中...";
+            if (input.value && !confirm("既にURLが入力されています。再検索しますか？")) {
+                return;
+            }
 
-                try {
-                    const res = await fetch("/admin/items/suggest_images", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ name: query })
-                    });
-                    const data = await res.json();
+            // 2. Fetch Logic
+            const originalPlaceholder = input.placeholder;
+            input.placeholder = "画像を検索中...";
 
-                    if (data.images && data.images.length > 0) {
-                        searchCache[inputId] = {
-                            query: query,
-                            images: data.images,
-                            index: 0
-                        };
-                        // Set first image
-                        const imgUrl = data.images[0];
-                        input.value = imgUrl;
-                        updatePreview(input, imgUrl, previewId);
-                    } else {
-                        alert("画像が見つかりませんでした");
-                    }
-                } catch (e) {
-                    console.error(e);
-                    alert("エラーが発生しました");
-                } finally {
-                    input.placeholder = originalPlaceholder;
+            // Clear candidates if any
+            if (candidateId) {
+                const container = document.getElementById(candidateId);
+                if (container) container.innerHTML = '<div style="font-size:12px;color:#666;">検索中...</div>';
+            }
+
+            try {
+                const res = await fetch("/admin/items/suggest_images", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: query })
+                });
+
+                if (res.status !== 200) {
+                    // Check for 403/429 specifically if backend passes it through, 
+                    // but currently backend returns 200 with empty images on error usually, 
+                    // unless we specifically handle status.
+                    // The backend code catches exception and returns [], so likely 200 OK.
                 }
-            } else {
-                // Valid cache exists, cycle to next
-                const cache = searchCache[inputId];
-                cache.index = (cache.index + 1) % cache.images.length;
-                const nextImage = cache.images[cache.index];
-                input.value = nextImage;
-                updatePreview(input, nextImage, previewId);
+
+                const data = await res.json();
+
+                if (data.images && data.images.length > 0) {
+                    // Update cache/preview logic
+                    const images = data.images;
+
+                    // Update Quota Widget
+                    if (data.usage !== undefined && data.limit !== undefined) {
+                        updateQuotaWidget(data.usage, data.limit);
+                    }
+
+                    // 3. Render Candidates
+                    if (candidateId) {
+                        const container = document.getElementById(candidateId);
+                        if (container) {
+                            container.innerHTML = "";
+                            images.forEach((url, idx) => {
+                                const img = document.createElement("img");
+                                img.src = url;
+                                img.className = "candidate-img";
+                                img.onclick = () => {
+                                    input.value = url;
+                                    updatePreview(input, url, previewId);
+                                    // Highlight selected
+                                    container.querySelectorAll(".candidate-img").forEach(el => el.classList.remove("selected"));
+                                    img.classList.add("selected");
+                                };
+                                if (idx === 0) img.classList.add("selected");
+                                container.appendChild(img);
+                            });
+                        }
+                    }
+
+                    // Set first image by default
+                    const firstUrl = images[0];
+                    input.value = firstUrl;
+                    updatePreview(input, firstUrl, previewId);
+
+                } else {
+                    // 4. Quota/Empty Check
+                    // If empty, backend might have failed or just no results.
+                    // We can't distinguish easy unless backend sends error flag.
+                    if (candidateId) {
+                        const container = document.getElementById(candidateId);
+                        if (container) container.innerHTML = '<div style="font-size:12px;color:#d32f2f;">画像が見つかりませんでした (検索上限の可能性あり)</div>';
+                    }
+                    alert("画像が見つかりませんでした。\n本日の検索上限（100件）に達した可能性があります。");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("エラーが発生しました");
+            } finally {
+                input.placeholder = originalPlaceholder;
             }
         }
 
@@ -145,6 +278,30 @@
                     img.src = url;
                     img.classList.remove("hidden");
                     img.style.display = "block";
+                }
+            }
+        }
+
+        function updateQuotaWidget(usage, limit) {
+            const usageEl = document.getElementById("api-quota-text");
+            const barEl = document.getElementById("api-quota-bar");
+            const remainingEl = document.getElementById("api-quota-remaining");
+
+            if (usageEl) usageEl.textContent = `${usage}/${limit}`;
+
+            const remaining = limit - usage;
+            if (remainingEl) remainingEl.textContent = remaining;
+
+            const percent = (usage / limit) * 100;
+            if (barEl) {
+                barEl.style.width = `${percent}%`;
+
+                // Colors
+                barEl.classList.remove("warning", "danger");
+                if (remaining <= 5) {
+                    barEl.classList.add("danger");
+                } else if (remaining <= 20) {
+                    barEl.classList.add("warning");
                 }
             }
         }
