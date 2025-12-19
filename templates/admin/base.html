@@ -142,8 +142,9 @@
                     {% set percent = (usage / limit * 100) if limit > 0 else 0 %}
                     {% set remaining = limit - usage %}
                     <div id="api-quota-bar"
-                        class="api-quota-bar {% if remaining <= 5 %}danger{% elif remaining <= 20 %}warning{% endif %}"
-                        style="width: {{ percent }}%;"></div>
+                        class="api-quota-bar {% if remaining <= 5 %}danger{% elif remaining <= 20 %}warning{% endif %}">
+                    </div>
+                    <script>document.getElementById('api-quota-bar').style.width = "{{ percent }}%";</script>
                 </div>
                 <div style="margin-top: 4px; text-align: right; color: #888;">
                     残り <span id="api-quota-remaining">{{ remaining }}</span> 件
