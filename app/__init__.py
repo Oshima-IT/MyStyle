@@ -229,9 +229,21 @@ def home():
     
     docs = items_ref.stream()
     items = []
+    existing_styles = set()
+
     for doc in docs:
         d = doc.to_dict()
         d['id'] = doc.id
+
+        # Collect styles for the UI filter list
+        raw_styles = d.get('styles')
+        if raw_styles:
+            if isinstance(raw_styles, str):
+                parts = [s.strip() for s in raw_styles.split(',') if s.strip()]
+                existing_styles.update(parts)
+            elif isinstance(raw_styles, list):
+                existing_styles.update([s for s in raw_styles if s])
+
         # Simple client-side filter for MVP if styles match any
         if styles:
             item_styles = d.get('styles', "")
@@ -296,7 +308,7 @@ def home():
         except Exception as e:
             print(f"Error fetching history: {e}")
 
-    return render_template("home.html", current_styles=styles, items=items, recent_history=recent_history, available_styles=ALL_STYLES)
+    return render_template("home.html", current_styles=styles, items=items, recent_history=recent_history, available_styles=available_styles_list)
 
 # ------------------------
 # Detail
