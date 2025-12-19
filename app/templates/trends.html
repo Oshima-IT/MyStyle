@@ -10,7 +10,7 @@
     <a href="{{ url_for('trends') }}" class="tab active">トレンド</a>
 </div>
 
-<h1>日本の最新ファッション・トレンド</h1>
+
 
 {# Googleトレンド表示 #}
 {% if google_trend %}
@@ -39,18 +39,18 @@
 
 {# DBのトレンド情報を必ず表示 #}
 {% if trends and trends|length > 0 %}
-    {% for t in trends %}
-    <div class="card">
-        <h3>{{ t.title }}</h3>
-        {% if t.image_url %}
-        <img src="{{ t.image_url }}" alt="{{ t.title }}" style="width:100%; max-width:400px; border-radius:8px; margin-bottom:12px;">
-        {% endif %}
-        <p>{{ t.description }}</p>
-    </div>
-    {% endfor %}
+{% for t in trends %}
+<div class="card">
+    <h3>{{ t.title }}</h3>
+    {% if t.image_url %}
+    <img src="{{ t.image_url }}" alt="{{ t.title }}"
+        style="width:100%; max-width:400px; border-radius:8px; margin-bottom:12px;">
+    {% endif %}
+    <p>{{ t.description }}</p>
+</div>
+{% endfor %}
 {% else %}
-    <p>現在表示できるトレンド情報がありません。</p>
+<p>現在表示できるトレンド情報がありません。</p>
 {% endif %}
 
 {% endblock %}
-

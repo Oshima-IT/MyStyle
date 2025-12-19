@@ -74,13 +74,22 @@ def update_trend_cache():
         print("Trend data updated successfully.")
     except Exception as e:
         print(f"Error updating trend data: {e}")
-        # If error, maybe we don't save or save error state
-        # For now, let's not overwrite with error if we have old data? 
-        # But we need to update time. Let's save error state.
+        
+        # エラー発生時はキャッシュからの復旧を試みる
+        old_cache = load_trend_cache()
+        old_trend = None
+        old_related = []
+        
+        if old_cache:
+            old_trend = old_cache.get("google_trend")
+            old_related = old_cache.get("related_keywords", [])
+            print("Recovered from cache due to error.")
+
+        # エラー情報を保存しつつ、過去のデータがあれば維持する
         save_trend_cache({
             "time": now,
-            "google_trend": None,
-            "related_keywords": [],
+            "google_trend": old_trend,
+            "related_keywords": old_related,
             "google_trend_error": str(e)
         })
 
@@ -231,10 +240,14 @@ def home():
     items = []
     existing_styles = set()
 
+    # 1. Fetch all items once and store in a dictionary for fast lookup
+    all_items_map = {}
+    
     for doc in docs:
         d = doc.to_dict()
         d['id'] = doc.id
-
+        all_items_map[str(doc.id)] = d
+        
         # Collect styles for the UI filter list
         raw_styles = d.get('styles')
         if raw_styles:
@@ -252,31 +265,15 @@ def home():
                 if any(s in item_styles for s in styles):
                     items.append(d)
                 else:
-                    # Optional: Include everything if no exact match? 
-                    # Original logic was "OR LIKE", so basically filter.
                     pass 
             else:
-                # If item has no style, maybe don't show? or show?
-                # SQL was: styles LIKE %s%...
                 pass
         else:
             items.append(d)
     
     # Filter available styles based on what is actually in DB
     available_styles_list = sorted(list(existing_styles))
-    # If filtered result is empty (or user has no styles), logic might differ. 
-    # Original: if styles else all.
-    if not styles:
-        # Re-fetch all because loop above filtered incorrectly if styles was empty
-        pass # The loop above appends all if !styles, so it's fine.
     
-    # If styles existed but no items found, maybe show all as fallback?
-    if styles and not items:
-         # Fallback to all items?
-         # For now, let's just show what we found. 
-         pass
-
-
     # Recent history
     recent_history = []
     user_id = session.get("user_id")
@@ -287,12 +284,27 @@ def home():
             seen_item_ids = set()
             for h in h_docs:
                 hd = h.to_dict()
-                item_id = hd.get('item_id')
+                item_id = str(hd.get('item_id'))
                 if not item_id or item_id in seen_item_ids:
                     continue
-                item_doc = items_ref.document(str(item_id)).get()
-                if item_doc.exists:
-                    i_data = item_doc.to_dict()
+                
+                # N+1問題の解消: DBから毎回取得せず、既に取得済みのall_items_mapから参照する
+                if item_id in all_items_map:
+                    i_data = all_items_map[item_id]
+                    recent_history.append({
+                        "item_id": item_id,
+                        "viewed_at": hd.get('viewed_at'),
+                        "name": i_data.get('name'),
+                        "price": i_data.get('price'),
+                        "image_url": i_data.get('image_url'),
+                        "category": i_data.get('category'),
+                        "styles": i_data.get('styles')
+                    })
+                    seen_item_ids.add(item_id)
+                # 万が一マップに無い（削除済み等）場合は無視
+                
+                if len(recent_history) >= 10:
+                    break
                     recent_history.append({
                         "item_id": item_id,
                         "viewed_at": hd.get('viewed_at'),

@@ -19,7 +19,7 @@
             <h2><a href="{{ url_for('home') }}">MyStyle</a></h2>
             <nav class="header-nav">
                 {% if session.get('logged_in') %}
-                {% if request.endpoint == 'home' %}
+                {% if request.endpoint == 'home' or request.endpoint == 'trends' %}
                 {% if session.get('is_admin') %}
                 <a href="{{ url_for('admin.index') }}" title="管理画面">
                     <span class="material-symbols-outlined" style="vertical-align: middle;">manage_accounts</span>
