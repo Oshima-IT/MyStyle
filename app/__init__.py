@@ -235,33 +235,15 @@ def home():
     
     docs = items_ref.stream()
     items = []
-    existing_styles = set()
-    
     for doc in docs:
         d = doc.to_dict()
         d['id'] = doc.id
-        
-        # Collect styles for filter UI
-        raw_styles = d.get('styles')
-        if raw_styles:
-            if isinstance(raw_styles, str):
-                parts = [s.strip() for s in raw_styles.split(',') if s.strip()]
-                existing_styles.update(parts)
-            elif isinstance(raw_styles, list):
-                existing_styles.update([s for s in raw_styles if s])
-
         # Simple client-side filter for MVP if styles match any
         if styles:
             item_styles = d.get('styles', "")
             if item_styles:
                 # check if any user style is in item styles
-                # item_styles could be list or string, handle both for filter check
-                if isinstance(item_styles, list):
-                    match = any(s in item_styles for s in styles)
-                else:
-                    match = any(s in item_styles for s in styles)
-                
-                if match:
+                if any(s in item_styles for s in styles):
                     items.append(d)
                 else:
                     # Optional: Include everything if no exact match? 
@@ -274,12 +256,6 @@ def home():
         else:
             items.append(d)
     
-    # Filter available styles based on what is actually in DB
-    # Prioritize ALL_STYLES order, then append others found
-    sorted_styles = [s for s in ALL_STYLES if s in existing_styles]
-    others = sorted([s for s in existing_styles if s not in ALL_STYLES])
-    available_styles_list = sorted_styles + others
-
     # If filtered result is empty (or user has no styles), logic might differ. 
     # Original: if styles else all.
     if not styles:
@@ -299,28 +275,32 @@ def home():
     if user_id:
         try:
             history_ref = db.collection('users').document(user_id).collection('history')
-            h_docs = history_ref.order_by('viewed_at', direction=firestore.Query.DESCENDING).limit(10).stream()
-            
+            h_docs = history_ref.order_by('viewed_at', direction=firestore.Query.DESCENDING).limit(50).stream()
+            seen_item_ids = set()
             for h in h_docs:
                 hd = h.to_dict()
                 item_id = hd.get('item_id')
-                # Fetch item details
-                # This N+1 query is not ideal but okay for 10 items.
-                if item_id:
-                    item_doc = items_ref.document(str(item_id)).get()
-                    if item_doc.exists:
-                        i_data = item_doc.to_dict()
-                        recent_history.append({
-                            "item_id": item_id,
-                            "viewed_at": hd.get('viewed_at'),
-                            "name": i_data.get('name'),
-                            "price": i_data.get('price'),
-                            "image_url": i_data.get('image_url')
-                        })
+                if not item_id or item_id in seen_item_ids:
+                    continue
+                item_doc = items_ref.document(str(item_id)).get()
+                if item_doc.exists:
+                    i_data = item_doc.to_dict()
+                    recent_history.append({
+                        "item_id": item_id,
+                        "viewed_at": hd.get('viewed_at'),
+                        "name": i_data.get('name'),
+                        "price": i_data.get('price'),
+                        "image_url": i_data.get('image_url'),
+                        "category": i_data.get('category'),
+                        "styles": i_data.get('styles')
+                    })
+                    seen_item_ids.add(item_id)
+                if len(recent_history) >= 10:
+                    break
         except Exception as e:
             print(f"Error fetching history: {e}")
 
-    return render_template("home.html", current_styles=styles, items=items, recent_history=recent_history, available_styles=available_styles_list)
+    return render_template("home.html", current_styles=styles, items=items, recent_history=recent_history, available_styles=ALL_STYLES)
 
 # ------------------------
 # Detail
@@ -382,27 +362,30 @@ def history():
     db = get_db()
     user_id = session["user_id"]
     rows = []
-    
     try:
         h_ref = db.collection('users').document(user_id).collection('history')
-        # Limit 50
-        h_docs = h_ref.order_by('viewed_at', direction=firestore.Query.DESCENDING).limit(50).stream()
-        
+        h_docs = h_ref.order_by('viewed_at', direction=firestore.Query.DESCENDING).limit(100).stream()
+        seen_item_ids = set()
         for h in h_docs:
             hd = h.to_dict()
             item_id = hd.get('item_id')
-            if item_id:
-                i_doc = db.collection('items').document(str(item_id)).get()
-                if i_doc.exists:
-                    i_data = i_doc.to_dict()
-                    rows.append({
-                        "id": h.id, 
-                        "item_id": item_id,
-                        "viewed_at": hd.get('viewed_at'),
-                        "name": i_data.get('name'),
-                        "price": i_data.get('price'),
-                        "image_url": i_data.get('image_url')
-                    })
+            if not item_id or item_id in seen_item_ids:
+                continue
+            i_doc = db.collection('items').document(str(item_id)).get()
+            if i_doc.exists:
+                i_data = i_doc.to_dict()
+                rows.append({
+                    "id": h.id, 
+                    "item_id": item_id,
+                    "viewed_at": hd.get('viewed_at'),
+                    "name": i_data.get('name'),
+                    "price": i_data.get('price'),
+                    "image_url": i_data.get('image_url')
+                })
+                seen_item_ids.add(item_id)
+            # 50件で打ち切り
+            if len(rows) >= 50:
+                break
     except Exception as e:
         print(e)
 

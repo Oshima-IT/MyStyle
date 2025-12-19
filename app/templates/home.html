@@ -35,6 +35,9 @@
             <a href="/detail/{{ item.id }}">
                 <img src="{{ item.image_url }}">
             </a>
+            <p class="name">{{ item.name }}</p>
+            <p class="category">{{ item.category }}</p>
+            <p class="styles">{{ item.styles }}</p>
             <p class="price">{{ item.price }}円</p>
         </div>
         {% endfor %}
@@ -55,7 +58,9 @@
             {% endif %}
             <div class="history-meta">
                 <div class="name">{{ h.name }}</div>
-                <div class="price">{{ h.price or '' }}</div>
+                <div class="category">{{ h.category }}</div>
+                <div class="styles">{{ h.styles }}</div>
+                <div class="price">{{ h.price or '' }}円</div>
             </div>
         </div>
         {% endfor %}
