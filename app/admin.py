@@ -1,7 +1,7 @@
 from datetime import datetime, timezone, timedelta
 import json
 from flask import Blueprint, current_app, g, redirect, render_template, request, url_for, flash, session, abort, jsonify
-from db import get_db
+from .db import get_db
 import requests
 import os
 from firebase_admin import firestore

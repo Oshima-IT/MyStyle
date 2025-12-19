@@ -5,11 +5,18 @@ import os
 
 # Initialize Firestore
 if not firebase_admin._apps:
-    if os.path.exists("serviceAccountKey.json"):
-        cred = credentials.Certificate("serviceAccountKey.json")
+    # Look for key in config directory relative to this script
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    key_path = os.path.join(current_dir, "..", "config", "serviceAccountKey.json")
+    
+    if os.path.exists(key_path):
+        cred = credentials.Certificate(key_path)
         firebase_admin.initialize_app(cred)
+    elif os.path.exists("serviceAccountKey.json"): # Fallback for old way
+         cred = credentials.Certificate("serviceAccountKey.json")
+         firebase_admin.initialize_app(cred)
     else:
-        print("Error: serviceAccountKey.json not found.")
+        print(f"Error: serviceAccountKey.json not found at {key_path}")
         exit(1)
 
 db = firestore.client()

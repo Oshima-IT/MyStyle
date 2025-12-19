@@ -5,7 +5,9 @@ from flask import g
 import os
 
 # Use serviceAccountKey.json for credentials
-CRED_PATH = "serviceAccountKey.json"
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CRED_PATH = os.path.join(BASE_DIR, "config", "serviceAccountKey.json")
 
 def get_db():
     if 'db' not in g:

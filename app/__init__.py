@@ -4,9 +4,9 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, make_response, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
-from db import get_db, close_db
-from google_trends import get_trends, get_related_queries
-from admin import admin_bp
+from .db import get_db, close_db
+from .google_trends import get_trends, get_related_queries
+from .admin import admin_bp
 from firebase_admin import firestore
 from dotenv import load_dotenv
 
@@ -23,7 +23,13 @@ ALL_STYLES = [
 
 app.register_blueprint(admin_bp, url_prefix="/admin")
 
-CACHE_FILE = "google_trend_cache.pkl"
+# Path to cache file in instance directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+INSTANCE_DIR = os.path.join(os.path.dirname(BASE_DIR), 'instance')
+if not os.path.exists(INSTANCE_DIR):
+    os.makedirs(INSTANCE_DIR)
+
+CACHE_FILE = os.path.join(INSTANCE_DIR, "google_trend_cache.pkl")
 CACHE_EXPIRE_MINUTES = 60
 
 def load_trend_cache():
