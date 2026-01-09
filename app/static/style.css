@@ -843,11 +843,219 @@ hr {
     transition: opacity 0.2s;
 }
 
-.btn-text-link:hover {
-    color: #000;
-    opacity: 0.7;
-    background: transparent;
-    box-shadow: none;
+
+/* --- Auth Pages Refinement (Zara-like Minimal) --- */
+.auth-container {
+    max-width: 360px;
+    margin: 0 auto;
+    padding-top: 40px;
+    /* No background/border/shadow - pure minimal */
+}
+
+.auth-container h2 {
+    font-size: 24px;
+    font-weight: 300;
+    margin-bottom: 40px;
+    text-align: center;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+}
+
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.auth-container label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.auth-container input[type="text"],
+.auth-container input[type="email"],
+.auth-container input[type="password"] {
+    width: 100%;
+    height: 48px;
+    padding: 0 12px;
+    border: 1px solid #d1d1d1;
+    border-radius: 0;
+    font-size: 14px;
+    background: #fff;
+    transition: border-color 0.2s;
+    margin: 0;
+    /* Reset */
+}
+
+.auth-container input:focus {
+    border-color: #000;
+    outline: none;
+}
+
+.auth-container .actions {
+    margin-top: 8px;
+}
+
+.auth-container button[type="submit"] {
+    width: 100%;
+    height: 50px;
+    background: #000;
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.auth-container button[type="submit"]:hover {
+    background: #333;
     transform: none;
+    /* Remove subtle bounce from default */
+    box-shadow: none;
+}
+
+.auth-links {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+}
+
+.auth-links a {
+    color: #333;
     text-decoration: underline;
+    text-underline-offset: 4px;
+    /* Slight separation */
+    text-decoration-thickness: 1px;
+}
+
+.auth-links a:hover {
+    color: #000;
+    font-weight: 500;
+}
+
+/* Header refined typography */
+.header-content h2 a {
+    font-weight: 300;
+    /* Thinner */
+    font-size: 1.6rem;
+    /* Smaller */
+    letter-spacing: 0.1em;
+}
+
+/* --- Product Detail Redesign (High-End Fashion) --- */
+.detail-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+}
+
+.detail-image-area {
+    width: 100%;
+}
+
+.detail-image {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    background-color: #f4f4f4;
+    display: block;
+}
+
+.detail-info-area {
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.detail-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+    letter-spacing: 0.05em;
+    line-height: 1.4;
+}
+
+.detail-price {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+    letter-spacing: 0.02em;
+}
+
+.detail-meta {
+    margin-bottom: 40px;
+}
+
+.meta-label {
+    font-size: 11px;
+    color: #999;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.meta-value {
+    font-size: 14px;
+    font-weight: 400;
+    color: #333;
+}
+
+.btn-black-sharp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 56px;
+    background: #000;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    border: none;
+    border-radius: 0;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: auto;
+    /* Push to bottom if flex container has height */
+}
+
+.btn-black-sharp:hover {
+    background: #333;
+    color: #fff;
+}
+
+/* Responsive for Mobile */
+@media (max-width: 768px) {
+    .detail-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        margin-top: 20px;
+    }
+
+    .detail-title {
+        font-size: 1.3rem;
+        margin-bottom: 16px;
+    }
+
+    .detail-price {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+    }
 }

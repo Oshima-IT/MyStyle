@@ -3,40 +3,48 @@
 {% block title %}{{ item.name }} - 詳細{% endblock %}
 
 {% block content %}
-<div class="card">
+<div class="detail-container">
 
-    <section class="item-info-area">
-        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="item-photo">
+    <!-- Left: Image (3:4 Ratio) -->
+    <div class="detail-image-area">
+        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="detail-image">
+    </div>
 
-        <div class="item-text-details">
-            <h1>{{ item.name }}</h1>
+    <!-- Right: Info -->
+    <div class="detail-info-area">
+        <h1 class="detail-title">{{ item.name }}</h1>
+        <p class="detail-price">¥{{ item.price }}</p>
 
-            <p class="item-price">
-                ¥{{ item.price }}
-            </p>
-
-            <hr>
-
-            <section class="item-category">
-                <p style="color: var(--muted); font-weight: 600; margin-bottom: 5px;">カテゴリ</p>
-                <p><span class="pill">{{ item.category }}</span></p>
-            </section>
+        <div class="detail-meta">
+            <span class="meta-label">Category</span>
+            <span class="meta-value">{{ item.category }}</span>
         </div>
-    </section>
 
-    <hr>
-
-    <section class="item-sites">
-        <h3>購入可能サイト</h3>
-
-        {% if item.shop_url %}
-        <a href="{{ item.shop_url }}" target="_blank" class="site-link">
-            ▶ 販売ページへ
-        </a>
+        {% if item.styles %}
+        <div class="detail-meta">
+            <span class="meta-label">Styles</span>
+            <span class="meta-value" style="font-size: 12px; line-height: 1.6;">
+                {% if item.styles is string %}
+                {{ item.styles }}
+                {% else %}
+                {{ item.styles|join(', ') }}
+                {% endif %}
+            </span>
+        </div>
         {% endif %}
 
+        {% if item.shop_url %}
+        <a href="{{ item.shop_url }}" target="_blank" class="btn-black-sharp">
+            販売ページへ
+        </a>
+        {% else %}
+        <!-- No link available state -->
+        <button class="btn-black-sharp" disabled style="background: #ccc; cursor: not-allowed;">
+            SOLD OUT
+        </button>
+        {% endif %}
 
-    </section>
+    </div>
 
 </div>
 {% endblock %}
