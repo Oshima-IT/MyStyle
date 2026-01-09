@@ -7,8 +7,7 @@
     <title>{% block title %}MyStyle{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     {% block head %}{% endblock %}
 </head>
 
@@ -22,13 +21,11 @@
                 {% if request.endpoint == 'home' or request.endpoint == 'trends' %}
                 {% if session.get('is_admin') %}
                 <a href="{{ url_for('admin.index') }}" title="管理画面">
-                    <span class="material-symbols-outlined"
-                        style="vertical-align: middle; font-size: 20px;">manage_accounts</span>
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 20px;">manage_accounts</span>
                 </a>
                 {% endif %}
                 <a href="{{ url_for('logout') }}" title="ログアウト">
-                    <span class="material-symbols-outlined"
-                        style="vertical-align: middle; font-size: 20px;">logout</span>
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 20px;">logout</span>
                 </a>
                 {% else %}
                 <a href="{{ url_for('home') }}" title="ホーム">
