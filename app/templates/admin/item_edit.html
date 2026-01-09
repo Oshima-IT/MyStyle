@@ -15,8 +15,7 @@
             <div class="form-grid">
                 <div class="form-field">
                     <label for="name">Name</label>
-                    <input id="name" name="name" type="text" value="{{ item.name }}" required
-                        onkeydown="if(event.key==='Enter'){event.preventDefault();openImageSearch('image_url', this.value, 'edit_item_preview', 'edit_item_candidates');}">
+                    <input id="name" name="name" type="text" value="{{ item.name }}" required onkeydown="if(event.key==='Enter'){event.preventDefault();openImageSearch('image_url', this.value, 'edit_item_preview', 'edit_item_candidates');}">
                 </div>
 
                 <div class="form-field">
@@ -30,10 +29,8 @@
                         <img id="edit_item_preview" class="img-preview" src="{{ item.image_url or '' }}" alt="Preview">
                         <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
                             <div style="display: flex; gap: 8px;">
-                                <input id="image_url" name="image_url" type="url" value="{{ item.image_url or '' }}"
-                                    style="flex: 1;">
-                                <button type="button" class="btn btn-secondary w-auto"
-                                    onclick="openImageSearch('image_url', document.getElementById('name').value, 'edit_item_preview', 'edit_item_candidates')">画像検索</button>
+                                <input id="image_url" name="image_url" type="url" value="{{ item.image_url or '' }}" style="flex: 1;">
+                                <button type="button" class="btn btn-secondary w-auto" onclick="openImageSearch('image_url', document.getElementById('name').value, 'edit_item_preview', 'edit_item_candidates')">画像検索</button>
                             </div>
                             <div id="edit_item_candidates" class="candidate-grid"></div>
                         </div>
@@ -49,8 +46,7 @@
                     <label for="price">Price</label>
                     <div class="input-prefix">
                         <span>¥</span>
-                        <input id="price" name="price" type="number" min="0"
-                            value="{{ item.price if item.price is not none else '' }}">
+                        <input id="price" name="price" type="number" min="0" value="{{ item.price if item.price is not none else '' }}">
                     </div>
                 </div>
             </div>
@@ -68,8 +64,7 @@
                         <div class="tag-display" data-display="styles">
                             <!-- JSで描画されるため空でOK、初期値はJSでセット -->
                         </div>
-                        <button type="button" class="btn btn-add" data-open-modal="styles"
-                            style="min-width: auto; padding: 4px 10px; font-size: 11px;">+ ADD</button>
+                        <button type="button" class="btn btn-add" data-open-modal="styles" style="min-width: auto; padding: 4px 10px; font-size: 11px;">+ ADD</button>
                     </div>
                     <input type="hidden" name="styles" id="styles-input" value="{{ item.styles or '' }}">
                 </div>
@@ -80,13 +75,15 @@
                         <div class="tag-display" data-display="colors">
                             <!-- JSで描画 -->
                         </div>
-                        <button type="button" class="btn btn-add" data-open-modal="colors"
-                            style="min-width: auto; padding: 4px 10px; font-size: 11px;">+ ADD</button>
+                        <button type="button" class="btn btn-add" data-open-modal="colors" style="min-width: auto; padding: 4px 10px; font-size: 11px;">+ ADD</button>
                     </div>
                     <input type="hidden" name="colors" id="colors-input" value="{{ item.colors or '' }}">
                 </div>
 
-
+                <div class="form-field">
+                    <label for="popularity_score">Popularity Score</label>
+                    <input id="popularity_score" name="popularity_score" type="number" min="0" value="{{ item.popularity_score or 0 }}">
+                </div>
             </div>
         </section>
 
