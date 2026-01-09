@@ -116,9 +116,7 @@
                 &laquo; Prev
             </a>
             <div class="page-info">
-                Page
-                <input type="number" id="page-jump" value="{{ page }}" min="1" max="{{ total_pages }}" data-url="{{ url_for('admin.admin_items') }}" data-sort="{{ sort_by }}" data-order="{{ order }}">
-                of {{ total_pages }}
+                {{ page }} / {{ total_pages }}
             </div>
             <a href="{{ url_for('admin.admin_items', page=page+1, sort=sort_by, order=order) }}" class="btn btn-secondary {% if page == total_pages %}disabled{% endif %}">
                 Next &raquo;
@@ -196,7 +194,7 @@
 
 
             <div class="actions">
-                <button type="submit" class="btn btn-primary w-full">追加</button>
+                <button type="submit" class="btn-black-sharp w-full">追加</button>
             </div>
         </form>
     </div>
@@ -328,19 +326,6 @@
         document.querySelectorAll("[data-open-modal]").forEach(btn => {
             btn.addEventListener("click", () => openModal(btn.dataset.openModal, btn.dataset.targetId));
         });
-        const pageJump = document.getElementById('page-jump');
-        if (pageJump) {
-            pageJump.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    const page = this.value;
-                    const baseUrl = this.getAttribute('data-url');
-                    const sort = this.getAttribute('data-sort');
-                    const order = this.getAttribute('data-order');
-                    let url = `${baseUrl}?page=${page}&sort=${sort || ""}&order=${order || ""}`;
-                    window.location.href = url;
-                }
-            });
-        }
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initScripts);

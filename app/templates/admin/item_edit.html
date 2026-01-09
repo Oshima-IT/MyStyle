@@ -88,7 +88,7 @@
         </section>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">保存</button>
+            <button type="submit" class="btn-black-sharp">保存</button>
             <a href="{{ url_for('admin.admin_items') }}" class="btn btn-secondary">戻る</a>
         </div>
     </form>
@@ -107,7 +107,7 @@
 
 {% block scripts %}
 <script>
-    const STYLE_OPTIONS = {{ available_styles | tojson }};
+    const STYLE_OPTIONS = {{ available_styles | tojson | safe }};
     const COLOR_OPTIONS = ["黒", "白", "グレー", "ネイビー", "青", "ベージュ", "ブラウン", "緑", "赤"];
 
     const overlay = document.getElementById("picker-overlay");

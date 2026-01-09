@@ -284,6 +284,24 @@ input[type="number"]:focus {
     background-color: #0056b3;
 }
 
+/* Sharp Black Button */
+.btn-black-sharp {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    padding: 10px 20px;
+    transition: background 0.2s;
+}
+
+.btn-black-sharp:hover {
+    background-color: #333;
+}
+
 /* 編集用（グレー） */
 .btn-secondary {
     background-color: #e5e7eb;
