@@ -44,11 +44,26 @@
 <div class="card" style="background:#f3f8ff;">
     <h3>
         Googleトレンド：
-        「{{ google_trend.primary_keyword if google_trend.primary_keyword else 'ファッション' }}」
+        {% if google_trend.multi_values %}
+            キーワード比較
+        {% else %}
+            「{{ google_trend.primary_keyword if google_trend.primary_keyword else 'ファッション' }}」
+        {% endif %}
     </h3>
     <p>
         最新データ（{{ google_trend.date }}）：
-        人気度 = <b>{{ google_trend.value }}</b>
+        {% if google_trend.multi_values %}
+            <ul style="list-style:none; padding-left:0;">
+            {% for kw, val in google_trend.multi_values.items() %}
+                <li style="margin-bottom:4px;">
+                    <span style="font-weight:bold;">{{ kw }}</span>：
+                    <span style="font-size:18px; color:#2a5;">{{ val }}</span>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            人気度 = <b>{{ google_trend.value }}</b>
+        {% endif %}
     </p>
 </div>
 {% elif google_trend_error %}
@@ -106,7 +121,7 @@
 </div>
 {% endfor %}
 {% else %}
-<p>現在表示できるトレンド情報がありません。</p>
+<p></p>
 {% endif %}
 
 {% endblock %}
