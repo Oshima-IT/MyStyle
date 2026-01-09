@@ -231,8 +231,23 @@ def admin_items():
             flash("item を追加しました", "success")
             return redirect(url_for("admin.admin_items"))
 
-    # List items
-    docs = items_ref.order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    # Pagination logic
+    page = request.args.get('page', 1, type=int)
+    per_page = 5
+    
+    # 1. Get total count for pagination UI
+    # Firestore counts can be expensive on large datasets, but for this scale it's fine.
+    # .count() is a newer Firestore feature (Aggregation).
+    total_count_query = items_ref.count()
+    total_items = total_count_query.get()[0][0].value
+    total_pages = (total_items + per_page - 1) // per_page
+
+    # 2. Fetch paginated items
+    docs = items_ref.order_by('created_at', direction=firestore.Query.DESCENDING)\
+                    .limit(per_page)\
+                    .offset((page - 1) * per_page)\
+                    .stream()
+    
     items = []
     for d in docs:
         i = d.to_dict()
@@ -240,7 +255,7 @@ def admin_items():
         items.append(i)
         
     available_styles = get_all_unique_styles(db)
-    return render_template("admin/items_list.html", items=items, available_styles=available_styles)
+    return render_template("admin/items_list.html", items=items, page=page, total_pages=total_pages, available_styles=available_styles)
 
 
 @admin_bp.route("/items/<item_id>/edit", methods=["GET", "POST"]) # String ID

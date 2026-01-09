@@ -113,6 +113,71 @@ body {
     /* コンテンツのみ縦スクロール */
 }
 
+/* --- Pagination --- */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 0 8px;
+}
+
+.pagination .page-info {
+    font-size: 16px;
+    font-weight: 600;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.page-input {
+    width: 48px;
+    height: 36px;
+    padding: 0 4px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.page-input:focus {
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.page-input::-webkit-inner-spin-button,
+.page-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.page-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.pagination .btn {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 16px;
+    min-width: auto;
+}
+
+.pagination .btn.disabled {
+    pointer-events: none;
+    background-color: #f9fafb;
+    color: #d1d5db;
+    border-color: #e5e7eb;
+}
+
 /* --- Form Components (Ported from style.css) --- */
 form {
     display: grid;
