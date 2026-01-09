@@ -152,6 +152,26 @@ body {
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
 }
 
+.admin-select {
+    appearance: auto !important;
+    -webkit-appearance: menulist !important;
+    -moz-appearance: menulist !important;
+    cursor: pointer;
+    outline: none;
+    padding-right: 12px;
+    /* Breathing room on the right */
+}
+
+.sort-group a {
+    color: #ccc;
+    text-decoration: none;
+    padding: 0 2px;
+}
+
+.sort-group a:hover {
+    color: #888;
+}
+
 .page-input::-webkit-inner-spin-button,
 .page-input::-webkit-outer-spin-button {
     -webkit-appearance: none;
