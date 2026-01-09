@@ -2,7 +2,9 @@ from pytrends.request import TrendReq
 
 def get_trends(keyword="python"):
     pytrends = TrendReq(hl="ja-JP", tz=540)
-    pytrends.build_payload([keyword], timeframe="now 7-d")
+    # Support list of keywords or single string
+    kw_list = keyword if isinstance(keyword, list) else [keyword]
+    pytrends.build_payload(kw_list, timeframe="now 7-d")
     data = pytrends.interest_over_time()
     return data
 

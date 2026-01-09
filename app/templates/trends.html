@@ -15,7 +15,7 @@
 {# Googleトレンド表示 #}
 {% if google_trend %}
 <div class="card" style="background:#f3f8ff;">
-    <h3>Googleトレンド: 「ファッション」</h3>
+    <h3>Googleトレンド: 「{{ google_trend.primary_keyword if google_trend.primary_keyword else 'ファッション' }}」</h3>
     <p>最新データ: {{ google_trend.date }} の人気度 = <b>{{ google_trend.value }}</b></p>
 </div>
 {% elif google_trend_error %}
@@ -31,7 +31,12 @@
     <h3>関連キーワード</h3>
     <ol>
         {% for kw in related_keywords %}
-        <li>{{ kw.keyword }} <span style="color:#888; font-size:13px;">({{ kw.value }})</span></li>
+        <li>
+            <a href="{{ url_for('home', search=kw.keyword) }}" style="text-decoration: underline; color: #333;">
+                {{ kw.keyword }}
+            </a>
+            <span style="color:#888; font-size:13px;">({{ kw.value }})</span>
+        </li>
         {% endfor %}
     </ol>
 </div>
