@@ -1,20 +1,47 @@
 import os
+import json
 import pickle
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, session, make_response, jsonify
+
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    make_response,
+    jsonify
+)
+
 from werkzeug.security import generate_password_hash, check_password_hash
-import json
-from .db import get_db, close_db
-from .google_trends import get_trends, get_related_queries
-from .admin import admin_bp
+
 from firebase_admin import firestore
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
+
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer
+
+# =========================
+# app 内モジュール
+# =========================
+from .db import get_db, close_db
+from .admin import admin_bp
+
+# =========================
+# services 配下
+# =========================
+from .services.google_trends import get_trends, get_related_queries
+from .services.zozo_trends import get_zozo_trend_data, evaluate_trend
+
+
+
+
+
 
 load_dotenv()
 
@@ -642,28 +669,59 @@ def trends():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
+    # =========================
+    # DB：保存済みトレンド情報
+    # =========================
     db = get_db()
-    # Assuming 'trends' collection exists
     trends_ref = db.collection('trends')
-    docs = trends_ref.order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+    docs = trends_ref.order_by(
+        'created_at',
+        direction=firestore.Query.DESCENDING
+    ).stream()
     trend_list = [d.to_dict() for d in docs]
 
-    # Just load from cache
+    # =========================
+    # Googleトレンド（キャッシュ）
+    # =========================
     google_trend = None
-    google_trend_error = None
     related_keywords = []
-    
+    google_trend_error = None
+
     cache = load_trend_cache()
     if cache:
         google_trend = cache.get("google_trend")
         related_keywords = cache.get("related_keywords", [])
         google_trend_error = cache.get("google_trend_error")
     else:
-        # If no cache (e.g. startup failed to fetch), show error or try fetching sync?
-        # Let's show "Updating..." or error
-        google_trend_error = "Data updating..."
+        google_trend_error = "トレンドデータを更新中です"
 
-    return render_template("trends.html", trends=trend_list, google_trend=google_trend, related_keywords=related_keywords, google_trend_error=google_trend_error)
+    # =========================
+    # ZOZO × トレンド評価
+    # =========================
+    zozo_data = None
+    zozo_evaluation = None
+
+    # Googleトレンドからキーワードを取得できる場合のみ実行
+    if google_trend and isinstance(google_trend, dict):
+        keyword = google_trend.get("primary_keyword")
+        if keyword:
+            zozo_data = get_zozo_trend_data(keyword)
+            zozo_evaluation = evaluate_trend(google_trend, zozo_data)
+
+    # =========================
+    # 画面描画
+    # =========================
+    return render_template(
+        "trends.html",
+        trends=trend_list,
+        google_trend=google_trend,
+        related_keywords=related_keywords,
+        google_trend_error=google_trend_error,
+        zozo_evaluation=zozo_evaluation
+
+        
+    )
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)
