@@ -7,8 +7,7 @@
     <title>管理画面 - MyStyle</title>
     <!-- 共通のフォント -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- 管理画面専用CSS (Cache Busting) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}?v=2">
     <style>
@@ -90,8 +89,7 @@
         <div class="admin-header-user">
             <!-- 拡張用: ここにログイン中の管理者名などを出せる -->
             <span>admin@example.com</span>
-            <a href="{{ url_for('logout') }}"><span class="material-symbols-outlined"
-                    style="vertical-align: middle;">logout</span></a>
+            <a href="{{ url_for('logout') }}"><span class="material-symbols-outlined" style="vertical-align: middle;">logout</span></a>
         </div>
     </header>
 
@@ -102,20 +100,12 @@
         <aside class="admin-sidebar">
             <ul class="admin-sidebar-nav">
                 <li>
-                    <a href="{{ url_for('admin.admin_items') }}"
-                        class="{% if 'items' in request.path %}active{% endif %}">
+                    <a href="{{ url_for('admin.admin_items') }}" class="{% if 'items' in request.path %}active{% endif %}">
                         アイテム管理
                     </a>
                 </li>
                 <li>
-                    <a href="{{ url_for('admin.admin_shops') }}"
-                        class="{% if 'shops' in request.path %}active{% endif %}">
-                        ショップ管理
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ url_for('admin.admin_users') }}"
-                        class="{% if 'users' in request.path %}active{% endif %}">
+                    <a href="{{ url_for('admin.admin_users') }}" class="{% if 'users' in request.path %}active{% endif %}">
                         ユーザー管理
                     </a>
                 </li>
@@ -124,8 +114,7 @@
                 <hr>
                 <li>
                     <a href="{{ url_for('home') }}" target="_blank">
-                        サイトを表示 <span class="material-symbols-outlined"
-                            style="font-size: 14px; vertical-align: middle;">open_in_new</span>
+                        サイトを表示 <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">open_in_new</span>
                     </a>
                 </li>
             </ul>
@@ -141,8 +130,7 @@
                     {% set limit = api_limit|int %}
                     {% set percent = (usage / limit * 100) if limit > 0 else 0 %}
                     {% set remaining = limit - usage %}
-                    <div id="api-quota-bar"
-                        class="api-quota-bar {% if remaining <= 5 %}danger{% elif remaining <= 20 %}warning{% endif %}">
+                    <div id="api-quota-bar" class="api-quota-bar {% if remaining <= 5 %}danger{% elif remaining <= 20 %}warning{% endif %}">
                     </div>
                     <script>document.getElementById('api-quota-bar').style.width = "{{ percent }}%";</script>
                 </div>
@@ -158,8 +146,7 @@
             {% if messages %}
             <div style="margin-bottom: 20px;">
                 {% for category, message in messages %}
-                <div
-                    style="padding: 10px; border-radius: 4px; background: #fff; border-left: 4px solid #333; margin-bottom: 5px;">
+                <div style="padding: 10px; border-radius: 4px; background: #fff; border-left: 4px solid #333; margin-bottom: 5px;">
                     {{ message }}
                 </div>
                 {% endfor %}
@@ -506,6 +493,7 @@
             }
         }
     </script>
+    {% block scripts %}{% endblock %}
 </body>
 
 </html>

@@ -65,7 +65,7 @@
     <div class="history-strip">
         {% for h in recent_history %}
         <div class="history-card">
-            <a href="/detail/{{ h.item_id }}">
+            <a href="/detail/{{ h.id }}">
                 {% if h.image_url %}
                 <img src="{{ h.image_url }}" loading="lazy" alt="{{ h.name }}">
                 {% else %}
@@ -75,6 +75,29 @@
             <div class="history-meta">
                 <div class="name">{{ h.name }}</div>
                 <div class="price">{{ h.price or '0' }}<span style="font-size:0.8em">円</span></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if saved_items %}
+<section class="card">
+    <h3>お気に入り</h3>
+    <div class="history-strip">
+        {% for s in saved_items %}
+        <div class="history-card">
+            <a href="/detail/{{ s.id }}">
+                {% if s.image_url %}
+                <img src="{{ s.image_url }}" loading="lazy" alt="{{ s.name }}">
+                {% else %}
+                <div class="placeholder"></div>
+                {% endif %}
+            </a>
+            <div class="history-meta">
+                <div class="name">{{ s.name }}</div>
+                <div class="price">{{ s.price or '0' }}<span style="font-size:0.8em">円</span></div>
             </div>
         </div>
         {% endfor %}

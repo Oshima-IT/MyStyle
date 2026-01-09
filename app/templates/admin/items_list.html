@@ -2,21 +2,63 @@
 {% block admin_content %}
 <div class="split">
     <div class="card">
-        <h2>Items</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">Items</h2>
+            <div class="admin-sort-controls">
+                <select id="sort-select" class="admin-select" style="padding: 4px 8px; font-size: 13px; border: 1px solid #ddd; background: #fff;">
+                    <option value="score" {% if sort_by=='score' %}selected{% endif %}>
+                        スコア順
+                    </option>
+                    <option value="date" {% if sort_by=='date' %}selected{% endif %}>
+                        追加日順
+                    </option>
+                </select>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('sort-select').addEventListener('mousedown', function (e) {
+                // If the user clicks the already selected option, toggle order
+                this._preClickValue = this.value;
+            });
+
+            document.getElementById('sort-select').addEventListener('change', function () {
+                const sort = this.value;
+                let order = 'desc';
+
+                // If it was already selected, toggle direction
+                const currentSort = "{{ sort_by }}";
+                const currentOrder = "{{ order }}";
+
+                if (sort === currentSort) {
+                    order = currentOrder === 'desc' ? 'asc' : 'desc';
+                }
+
+                window.location.href = `{{ url_for('admin.admin_items') }}?sort=${sort}&order=${order}`;
+            });
+
+            // Handle the "click same to toggle" logic by re-selecting after change or manual trigger
+            // Note: Standard <select> change triggers only on different values.
+            // For true 2-option toggle behavior, we might need a slightly different UI,
+            // but let's try this simple logic first: Selecting the other one switches to it (DESC).
+            // Selecting the CURRENT one again (if possible via UI) toggles it.
+        </script>
         <div class="admin-list">
             {% for item in items %}
             <div class="admin-card-row">
                 <div class="admin-card-image">
-                    <img src="{{ item.image_url or url_for('static', filename='images/no_image.png') }}"
-                        alt="{{ item.name }}" loading="lazy">
+                    <img src="{{ item.image_url or url_for('static', filename='images/no_image.png') }}" alt="{{ item.name }}" loading="lazy">
                 </div>
                 <div class="admin-card-main">
                     <div class="admin-card-title">
                         <span class="admin-card-id">#{{ item.id }}</span>
                         <span class="admin-card-name">{{ item.name }}</span>
-                        {% if item.is_trend %}
-                        <span class="tag tag-trend">trend</span>
+                        {% if item.popularity_score %}
+                        <span class="tag tag-trend">Score: {{ item.popularity_score }}</span>
                         {% endif %}
+                        <span class="admin-card-stats" style="font-size: 11px; color: #666; margin-left: 8px;">
+                            (V:{{ item.stats_summary.views }}, C:{{ item.stats_summary.clicks }}, S:{{ item.stats_summary.saves }})
+                        </span>
                     </div>
 
                     <div class="admin-card-meta">
@@ -53,12 +95,10 @@
                 </div>
 
                 <div class="admin-card-actions">
-                    <a class="btn btn-secondary btn-icon"
-                        href="{{ url_for('admin.admin_item_edit', item_id=item.id) }}">
+                    <a class="btn btn-secondary btn-icon" href="{{ url_for('admin.admin_item_edit', item_id=item.id) }}">
                         <span class="material-symbols-outlined">edit</span>
                     </a>
-                    <form action="{{ url_for('admin.admin_item_delete', item_id=item.id) }}" method="post"
-                        onsubmit="return confirm('削除しますか？');">
+                    <form action="{{ url_for('admin.admin_item_delete', item_id=item.id) }}" method="post" onsubmit="return confirm('削除しますか？');">
                         <button class="btn btn-danger btn-icon" type="submit">
                             <span class="material-symbols-outlined">delete</span>
                         </button>
@@ -69,14 +109,29 @@
             <p class="admin-empty">No items.</p>
             {% endfor %}
         </div>
+
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            <a href="{{ url_for('admin.admin_items', page=page-1, sort=sort_by, order=order) }}" class="btn btn-secondary {% if page == 1 %}disabled{% endif %}">
+                &laquo; Prev
+            </a>
+            <div class="page-info">
+                Page
+                <input type="number" id="page-jump" value="{{ page }}" min="1" max="{{ total_pages }}" data-url="{{ url_for('admin.admin_items') }}" data-sort="{{ sort_by }}" data-order="{{ order }}">
+                of {{ total_pages }}
+            </div>
+            <a href="{{ url_for('admin.admin_items', page=page+1, sort=sort_by, order=order) }}" class="btn btn-secondary {% if page == total_pages %}disabled{% endif %}">
+                Next &raquo;
+            </a>
+        </div>
+        {% endif %}
     </div>
     <div class="card">
-        <h2>Itemを追加</h2>
+        <h2 style="margin: 0; margin-bottom: 20px;">Itemを追加</h2>
         <form method="post">
             <div>
                 <label>Name</label>
-                <input type="text" id="new_item_name" name="name" required
-                    onkeydown="if(event.key==='Enter'){event.preventDefault();openImageSearch('new_item_image_url', this.value, 'new_item_preview', 'new_item_candidates');}">
+                <input type="text" id="new_item_name" name="name" required onkeydown="if(event.key==='Enter'){event.preventDefault();openImageSearch('new_item_image_url', this.value, 'new_item_preview', 'new_item_candidates');}">
             </div>
 
             <div>
@@ -84,12 +139,20 @@
                 <input type="text" name="shop_url">
             </div>
             <div>
-                <label>Category</label>
-                <input type="text" name="category" id="new_item_category">
-            </div>
-            <div>
                 <label>Price</label>
                 <input type="number" name="price" min="0">
+            </div>
+            <div>
+                <div>
+                    <label class="tag-picker-label">CATEGORY</label>
+                    <div class="tag-picker">
+                        <div class="tag-display" data-display="category"></div>
+                        <input type="hidden" name="category" id="new_item_category">
+                        <div class="actions">
+                            <button type="button" class="btn btn-add" data-open-modal="category" data-target-id="new_item_category">+ ADD</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div>
                 <div>
@@ -98,8 +161,7 @@
                         <div class="tag-display" data-display="styles"></div>
                         <input type="hidden" name="styles" id="new_item_styles">
                         <div class="actions">
-                            <button type="button" class="btn btn-add" data-open-modal="styles"
-                                data-target-id="new_item_styles">+ ADD</button>
+                            <button type="button" class="btn btn-add" data-open-modal="styles" data-target-id="new_item_styles">+ ADD</button>
                         </div>
                     </div>
                 </div>
@@ -111,8 +173,7 @@
                         <div class="tag-display" data-display="colors"></div>
                         <input type="hidden" name="colors" id="new_item_colors">
                         <div class="actions">
-                            <button type="button" class="btn btn-add" data-open-modal="colors"
-                                data-target-id="new_item_colors">+ ADD</button>
+                            <button type="button" class="btn btn-add" data-open-modal="colors" data-target-id="new_item_colors">+ ADD</button>
                         </div>
                     </div>
                 </div>
@@ -125,14 +186,14 @@
                     <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
                         <div style="display: flex; gap: 8px;">
                             <input type="text" id="new_item_image_url" name="image_url" style="flex: 1;">
-                            <button type="button" class="btn btn-secondary w-auto"
-                                onclick="openImageSearch('new_item_image_url', document.getElementById('new_item_name').value, 'new_item_preview', 'new_item_candidates')">画像検索</button>
+                            <button type="button" class="btn btn-secondary w-auto" onclick="openImageSearch('new_item_image_url', document.getElementById('new_item_name').value, 'new_item_preview', 'new_item_candidates')">画像検索</button>
                         </div>
                         <!-- Candidates Container -->
                         <div id="new_item_candidates" class="candidate-grid"></div>
                     </div>
                 </div>
             </div>
+
 
             <div class="actions">
                 <button type="submit" class="btn btn-primary w-full">追加</button>
@@ -153,10 +214,15 @@
     </div>
 </div>
 
+{% endblock %}
+
 {% block scripts %}
 <script>
-    const STYLE_OPTIONS = {{ available_styles | tojson }};
+    console.log("Admin Items Script initializing...");
+
+    const STYLE_OPTIONS = {{ available_styles | tojson | safe }};
     const COLOR_OPTIONS = ["黒", "白", "グレー", "ネイビー", "青", "ベージュ", "ブラウン", "緑", "赤"];
+    const CATEGORY_OPTIONS = {{ available_categories | tojson | safe }};
 
     const overlay = document.getElementById("picker-overlay");
     const tagGrid = document.getElementById("tag-grid");
@@ -169,197 +235,132 @@
     function renderSelected(type, values) {
         const display = document.querySelector(`[data-display="${type}"]`);
         if (!display) return;
-
-        // Toggle .has-tags class on parent .tag-picker
         const picker = display.closest(".tag-picker");
         if (picker) {
-            if (values.length > 0) {
-                picker.classList.add("has-tags");
-            } else {
-                picker.classList.remove("has-tags");
-            }
+            if (values.length > 0) picker.classList.add("has-tags");
+            else picker.classList.remove("has-tags");
         }
-
         display.innerHTML = "";
-        if (!values.length) {
-            // display.textContent = "なし"; // No text for ZARA style if empty
-            return;
-        }
         values.forEach(v => {
             const chip = document.createElement("span");
             chip.className = "chip";
             chip.textContent = v;
-
             const removeBtn = document.createElement("span");
             removeBtn.className = "chip-remove";
             removeBtn.textContent = "×";
-            removeBtn.onclick = (e) => {
-                e.stopPropagation();
-                removeTag(type, v);
-            };
-
+            removeBtn.onclick = (e) => { e.stopPropagation(); removeTag(type, v); };
             chip.appendChild(removeBtn);
             display.appendChild(chip);
         });
     }
 
     function removeTag(type, valToRemove) {
-        // Find targeted input. items_list.html uses specific IDs.
-        const targetId = type === "styles" ? "new_item_styles" : "new_item_colors";
+        let targetId;
+        if (type === "styles") targetId = "new_item_styles";
+        else if (type === "colors") targetId = "new_item_colors";
+        else if (type === "category") targetId = "new_item_category";
         const input = document.getElementById(targetId);
         if (!input) return;
-
         const currentVals = input.value ? input.value.split(",").map(s => s.trim()).filter(Boolean) : [];
         const newVals = currentVals.filter(v => v !== valToRemove);
         input.value = newVals.join(",");
-
         renderSelected(type, newVals);
     }
 
-    function openModal(type, targetId) {
+    window.openModal = function (type, targetId) {
+        console.log("openModal called:", type, targetId);
         currentType = type;
-        currentTargetId = targetId || `${type}-input`;
+        currentTargetId = targetId;
         const input = document.getElementById(currentTargetId);
-
-        // Split current values by comma, trim, filter empty
+        if (!input) return;
         const rawSelected = input.value ? input.value.split(",").map(s => s.trim()).filter(Boolean) : [];
-
         tagGrid.innerHTML = "";
-
-        const options = type === "styles" ? STYLE_OPTIONS : COLOR_OPTIONS;
-        modalTitle.textContent = type === "styles" ? "SELECT STYLES" : "SELECT COLORS";
-
-        // Determine which are presets and which are custom
-        // Use Set for options for O(1) lookup
+        let options = [];
+        if (type === "styles") options = STYLE_OPTIONS;
+        else if (type === "colors") options = COLOR_OPTIONS;
+        else if (type === "category") options = CATEGORY_OPTIONS;
         const optionsSet = new Set(options);
         const presetSelected = [];
         const customSelected = [];
-
         rawSelected.forEach(s => {
-            if (optionsSet.has(s)) {
-                presetSelected.push(s);
-            } else {
-                customSelected.push(s);
-            }
+            if (optionsSet.has(s)) presetSelected.push(s);
+            else customSelected.push(s);
         });
-
-        // Render Preset Buttons
         options.forEach(opt => {
             const isActive = presetSelected.includes(opt);
-            const btn = createTagCheckBtn(opt, isActive);
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "tag-btn" + (isActive ? " active" : "");
+            btn.textContent = opt;
+            btn.onclick = () => btn.classList.toggle("active");
             tagGrid.appendChild(btn);
         });
-
-        // Add "Other" trigger button and hidden input
         const otherBtn = document.createElement("button");
         otherBtn.type = "button";
         otherBtn.className = "tag-btn other-trigger";
         otherBtn.textContent = "+ OTHER";
         otherBtn.style.borderStyle = "dashed";
-
         const otherInput = document.createElement("input");
         otherInput.type = "text";
         otherInput.className = "tag-input";
         otherInput.style.display = "none";
         otherInput.style.minWidth = "200px";
         otherInput.placeholder = "タグを入力 (カンマ区切り可)";
-        otherInput.value = customSelected.join(","); // Populate existing custom tags
-
-        // Toggle logic
-        const showInput = () => {
-            otherBtn.style.display = "none";
-            otherInput.style.display = "inline-block";
-        };
-        const showBtn = () => {
-            otherBtn.style.display = "inline-block";
-            otherInput.style.display = "none";
-        };
-
-        otherBtn.onclick = () => {
-            showInput();
-            otherInput.focus();
-        };
-
-        // If we have custom tags, show input by default
-        if (customSelected.length > 0) {
-            showInput();
-        } else {
-            showBtn();
-        }
-
-        otherInput.onkeydown = (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                // Do not add immediately. Wait for Apply.
-            }
-        };
-
-        // Optional: Hide input if empty on blur? 
-        // User requested "Retained", so maybe don't hide if it has value.
-        otherInput.onblur = () => {
-            if (!otherInput.value.trim()) {
-                showBtn();
-            }
-        };
-
+        otherInput.value = customSelected.join(",");
+        const showInput = () => { otherBtn.style.display = "none"; otherInput.style.display = "inline-block"; };
+        const showBtn = () => { otherBtn.style.display = "inline-block"; otherInput.style.display = "none"; };
+        otherBtn.onclick = () => { showInput(); otherInput.focus(); };
+        if (customSelected.length > 0) showInput();
+        else showBtn();
+        otherInput.onblur = () => { if (!otherInput.value.trim()) showBtn(); };
         tagGrid.appendChild(otherBtn);
         tagGrid.appendChild(otherInput);
-
         overlay.classList.remove("hidden");
-    }
+    };
 
-    function createTagCheckBtn(text, isActive) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "tag-btn" + (isActive ? " active" : "");
-        btn.textContent = text;
-        btn.onclick = () => btn.classList.toggle("active");
-        return btn;
-    }
-
-    function closeModal() {
-        overlay.classList.add("hidden");
+    window.closeModal = function () {
+        if (overlay) overlay.classList.add("hidden");
         currentType = null;
         currentTargetId = null;
+    };
+
+    function initScripts() {
+        document.querySelectorAll("[data-open-modal]").forEach(btn => {
+            btn.addEventListener("click", () => openModal(btn.dataset.openModal, btn.dataset.targetId));
+        });
+        const pageJump = document.getElementById('page-jump');
+        if (pageJump) {
+            pageJump.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    const page = this.value;
+                    const baseUrl = this.getAttribute('data-url');
+                    const sort = this.getAttribute('data-sort');
+                    const order = this.getAttribute('data-order');
+                    let url = `${baseUrl}?page=${page}&sort=${sort || ""}&order=${order || ""}`;
+                    window.location.href = url;
+                }
+            });
+        }
     }
 
-    document.querySelectorAll("[data-open-modal]").forEach(btn => {
-        btn.addEventListener("click", () => openModal(btn.dataset.openModal, btn.dataset.targetId));
-    });
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initScripts);
+    else initScripts();
 
-    window.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeModal();
-    });
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
-    modalApply.addEventListener("click", () => {
-        if (!currentType || !currentTargetId) return;
-        const input = document.getElementById(currentTargetId);
-
-        // Gather Active Buttons
-        const activePresets = Array.from(tagGrid.querySelectorAll(".tag-btn.active:not(.other-trigger)")).map(b => b.textContent);
-
-        // Gather Other Input
-        // The input might be hidden if user didn't open it, but if it has value (from init), we should grab it?
-        // Wait, if it's hidden and empty, fine. If it's hidden but has value? 
-        // My logic above: onblur -> if empty showBtn. So if it has value, it stays visible.
-        // But what if user didn't touch it? It's rendered in DOM.
-        // So just grab the input value.
-        const otherInput = tagGrid.querySelector("input.tag-input");
-        const customValue = otherInput ? otherInput.value.trim() : "";
-        const customTags = customValue ? customValue.split(",").map(s => s.trim()).filter(Boolean) : [];
-
-        // Combine
-        // Use Set to dedup just in case
-        const allTags = new Set([...activePresets, ...customTags]);
-
-        input.value = Array.from(allTags).join(",");
-
-        renderSelected(currentType, Array.from(allTags));
-        closeModal();
-    });
-
-    // 初期表示: 何もしない (空)
-
+    if (modalApply) {
+        modalApply.addEventListener("click", () => {
+            if (!currentType || !currentTargetId) return;
+            const input = document.getElementById(currentTargetId);
+            const activePresets = Array.from(tagGrid.querySelectorAll(".tag-btn.active:not(.other-trigger)")).map(b => b.textContent);
+            const otherInput = tagGrid.querySelector("input.tag-input");
+            const customValue = otherInput ? otherInput.value.trim() : "";
+            const customTags = customValue ? customValue.split(",").map(s => s.trim()).filter(Boolean) : [];
+            const allTags = new Set([...activePresets, ...customTags]);
+            input.value = Array.from(allTags).join(",");
+            renderSelected(currentType, Array.from(allTags));
+            closeModal();
+        });
+    }
 </script>
-{% endblock %}
 {% endblock %}

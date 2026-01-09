@@ -16,6 +16,7 @@ from flask import (
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from .stats import record_event
 from firebase_admin import firestore
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -511,51 +512,59 @@ def home():
     
     # Recent history
     recent_history = []
+    saved_items = []
     user_id = session.get("user_id")
+
     if user_id:
         try:
+            # 1. Fetch History
             history_ref = db.collection('users').document(user_id).collection('history')
-            h_docs = history_ref.order_by('viewed_at', direction=firestore.Query.DESCENDING).limit(50).stream()
+            h_docs = history_ref.order_by('viewed_at', direction=firestore.Query.DESCENDING).limit(10).stream()
             seen_item_ids = set()
             for h in h_docs:
                 hd = h.to_dict()
                 item_id = str(hd.get('item_id'))
-                if not item_id or item_id in seen_item_ids:
-                    continue
-                
-                # N+1問題の解消: DBから毎回取得せず、既に取得済みのall_items_mapから参照する
+                if item_id in all_items_map and item_id not in seen_item_ids:
+                    recent_history.append(all_items_map[item_id])
+                    seen_item_ids.add(item_id)
+            
+            # 2. Fetch Bookmarks
+            bookmark_ref = db.collection('users').document(user_id).collection('bookmarks')
+            b_docs = bookmark_ref.order_by('saved_at', direction=firestore.Query.DESCENDING).limit(10).stream()
+            for b in b_docs:
+                item_id = str(b.id)
                 if item_id in all_items_map:
-                    i_data = all_items_map[item_id]
-                    recent_history.append({
-                        "item_id": item_id,
-                        "viewed_at": hd.get('viewed_at'),
-                        "name": i_data.get('name'),
-                        "price": i_data.get('price'),
-                        "image_url": i_data.get('image_url'),
-                        "category": i_data.get('category'),
-                        "styles": i_data.get('styles')
-                    })
-                    seen_item_ids.add(item_id)
-                # 万が一マップに無い（削除済み等）場合は無視
-                
-                if len(recent_history) >= 10:
-                    break
-                    recent_history.append({
-                        "item_id": item_id,
-                        "viewed_at": hd.get('viewed_at'),
-                        "name": i_data.get('name'),
-                        "price": i_data.get('price'),
-                        "image_url": i_data.get('image_url'),
-                        "category": i_data.get('category'),
-                        "styles": i_data.get('styles')
-                    })
-                    seen_item_ids.add(item_id)
-                if len(recent_history) >= 10:
-                    break
+                    saved_items.append(all_items_map[item_id])
         except Exception as e:
-            print(f"Error fetching history: {e}")
+            print(f"Error fetching history/bookmarks: {e}")
+    else:
+        # For guests (Cookies)
+        try:
+            # History from cookie
+            anon_h = json.loads(request.cookies.get("anon_history", "[]"))
+            seen_h = set()
+            for entry in anon_h:
+                iid = entry.get("item_id")
+                if iid in all_items_map and iid not in seen_h:
+                    recent_history.append(all_items_map[iid])
+                    seen_h.add(iid)
+                if len(recent_history) >= 10: break
 
-    return render_template("home.html", current_styles=styles, items=items, recent_history=recent_history, available_styles=available_styles_list)
+            # Bookmarks from cookie
+            anon_b = json.loads(request.cookies.get("bookmarks", "[]"))
+            for iid in reversed(anon_b): # Show newest first if stored as list
+                if iid in all_items_map:
+                    saved_items.append(all_items_map[iid])
+                if len(saved_items) >= 10: break
+        except Exception as e:
+            print(f"Error fetching guest data: {e}")
+
+    return render_template("home.html", 
+                           current_styles=styles, 
+                           items=items, 
+                           recent_history=recent_history, 
+                           saved_items=saved_items,
+                           available_styles=available_styles_list)
 
 # ------------------------
 # Detail
@@ -571,6 +580,9 @@ def detail(item_id):
         
     item = doc.to_dict()
     item['id'] = doc.id
+
+    # Record View Event
+    record_event(item_id, 'views')
     
     # Fetch shops (assuming separate collection or subcollection? Original had many-to-many)
     # Since we are migrating, let's just assume shops are not fully migrated or simplistic.
@@ -591,6 +603,22 @@ def detail(item_id):
         except Exception:
             pass
 
+    # Check if bookmarked
+    is_bookmarked = False
+    if session.get("logged_in") and session.get("user_id"):
+        try:
+            bookmark_doc = db.collection('users').document(session["user_id"]).collection('bookmarks').document(str(item_id)).get()
+            is_bookmarked = bookmark_doc.exists
+        except:
+            pass
+    else:
+        # Check from cookie for guests
+        try:
+            bookmarks = json.loads(request.cookies.get("bookmarks", "[]"))
+            is_bookmarked = item_id in bookmarks
+        except:
+            pass
+
     # Anon history cookie
     if not session.get("logged_in"):
         try:
@@ -603,11 +631,69 @@ def detail(item_id):
         arr.insert(0, {"item_id": item_id, "viewed_at": datetime.now().isoformat()})
         arr = arr[:20]
         
-        resp = make_response(render_template("detail.html", item=item, shops=shops))
+        resp = make_response(render_template("detail.html", item=item, shops=shops, is_bookmarked=is_bookmarked))
         resp.set_cookie("anon_history", json.dumps(arr, ensure_ascii=False), max_age=30*24*3600, httponly=True)
         return resp
 
-    return render_template("detail.html", item=item, shops=shops)
+    return render_template("detail.html", item=item, shops=shops, is_bookmarked=is_bookmarked)
+
+@app.route('/items/<item_id>/click')
+def item_click(item_id):
+    db = get_db()
+    item_ref = db.collection('items').document(str(item_id))
+    doc = item_ref.get()
+    
+    if not doc.exists:
+        return "Item not found", 404
+        
+    item = doc.to_dict()
+    shop_url = item.get("shop_url")
+    
+    # Record Click Event
+    record_event(item_id, 'clicks')
+    
+    if not shop_url:
+        return redirect(url_for('detail', item_id=item_id))
+        
+    return redirect(shop_url)
+
+@app.route('/items/<item_id>/save', methods=['POST'])
+def item_save(item_id):
+    db = get_db()
+    is_bookmarked = False
+    
+    if session.get("logged_in") and session.get("user_id"):
+        user_id = session["user_id"]
+        bookmark_ref = db.collection('users').document(user_id).collection('bookmarks').document(str(item_id))
+        doc = bookmark_ref.get()
+        if doc.exists:
+            bookmark_ref.delete()
+            record_event(item_id, 'saves', amount=-1)
+            is_bookmarked = False
+        else:
+            bookmark_ref.set({"saved_at": datetime.now().isoformat()})
+            record_event(item_id, 'saves', amount=1)
+            is_bookmarked = True
+        return jsonify({"status": "ok", "is_bookmarked": is_bookmarked})
+    else:
+        # For guests using cookies
+        try:
+            bookmarks = json.loads(request.cookies.get("bookmarks", "[]"))
+        except:
+            bookmarks = []
+            
+        if item_id in bookmarks:
+            bookmarks.remove(item_id)
+            record_event(item_id, 'saves', amount=-1)
+            is_bookmarked = False
+        else:
+            bookmarks.append(item_id)
+            record_event(item_id, 'saves', amount=1)
+            is_bookmarked = True
+            
+        resp = jsonify({"status": "ok", "is_bookmarked": is_bookmarked})
+        resp.set_cookie("bookmarks", json.dumps(bookmarks), max_age=30*24*3600, httponly=True)
+        return resp
 
 @app.route('/history')
 def history():

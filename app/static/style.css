@@ -273,10 +273,9 @@ hr {
 .photo-scroll {
     display: flex;
     overflow-x: auto;
-    padding: 20px 0 40px;
-    /* More bottom padding for scrollbar or breathing room */
+    padding: 20px 0 10px;
+    margin-bottom: 30px;
     gap: 32px;
-    /* Increased gap for "nuke-kan" */
 }
 
 /* Hide scrollbar for cleaner look if desired, but let's keep it default or thin */
