@@ -184,119 +184,120 @@ def save_trend_cache(data):
         pickle.dump(data, f)
 
 def update_trend_cache():
-    """Background task to update Google Trends data."""
-    print("Updating trend data...")
-    now = datetime.now()
-    
-    # 既存のキャッシュを先にロードしておく
-    old_cache = load_trend_cache()
-    
-    # Imports inside function or at top - assuming standard imports available
-    import random
+    with app.app_context():
+        print("Updating trend data...")
+        now = datetime.now()
+        
+        # 既存のキャッシュを先にロードしておく
+        old_cache = load_trend_cache()
+        
+        # Imports inside function or at top - assuming standard imports available
+        import random
 
-    try:
-        # 1. DBからスタイルを取得してキーワードリストを作成
-        db = get_db()
-        items_stream = db.collection('items').stream()
-        unique_styles = set()
-        for doc in items_stream:
-            item_data = doc.to_dict()
-            s_raw = item_data.get('styles')
-            if s_raw:
-                if isinstance(s_raw, str):
-                   parts = [s.strip() for s in s_raw.split(',') if s.strip()]
-                   unique_styles.update(parts)
-                elif isinstance(s_raw, list):
-                   unique_styles.update([s for s in s_raw if s])
-        
-        style_list = list(unique_styles)
-        
-        # Google Trendsは最大5キーワードまで比較可能
-        if len(style_list) > 5:
-            search_keywords = random.sample(style_list, 5)
-        elif len(style_list) > 0:
-            search_keywords = style_list
-        else:
-            search_keywords = ["ファッション"] # フォールバック
-
-        print(f"Updating trends for: {search_keywords}")
-
-        # データ取得 (Comparison)
-        google_trend_df = get_trends(search_keywords)
-        
-        # 構造を少し変える: google_trend = { date: "YYYY-MM-DD", values: { "StyleA": 10, "StyleB": 50... } }
-        # 既存UIとの互換性のため、メインのグラフ用のデータ構造を整形
-        google_trend = {}
-        
-        if not google_trend_df.empty:
-            last_row = google_trend_df.tail(1)
-            date = last_row.index[0].strftime('%Y-%m-%d')
+        try:
+            # 1. DBからスタイルを取得してキーワードリストを作成
+            db = get_db()
+            items_stream = db.collection('items').stream()
+            unique_styles = set()
+            for doc in items_stream:
+                item_data = doc.to_dict()
+                s_raw = item_data.get('styles')
+                if s_raw:
+                    if isinstance(s_raw, str):
+                       parts = [s.strip() for s in s_raw.split(',') if s.strip()]
+                       unique_styles.update(parts)
+                    elif isinstance(s_raw, list):
+                       unique_styles.update([s for s in s_raw if s])
             
-            values = {}
-            for kw in search_keywords:
-                if kw in last_row:
-                    values[kw] = int(last_row[kw].iloc[0])
-                else:
-                    values[kw] = 0
+            style_list = list(unique_styles)
             
-            # Simple format for charts: just pass the whole dict logic? 
-            # Original code expected specific {date, value} format which might be for single line.
-            # We need to adapt trends.html if we want multi-line.
-            # For "Prompt 1" request, it implies comparison.
-            # Let's save a structure compatible with a new chart or simplistic view.
-            
-            google_trend = {
-                "date": date,
-                "multi_values": values, # New support for multiple
-                "primary_keyword": search_keywords[0],
-                "value": values.get(search_keywords[0], 0) # Fallback for old UI
-            }
-        
-        related_keywords = []
-        # Related queries for the PRIMARY keyword (first one) to keep it simple/stable
-        primary_kw = search_keywords[0]
-        related_df = get_related_queries(primary_kw)
-        if related_df is not None:
-            for _, row in related_df.iterrows():
-                related_keywords.append({
-                    "keyword": row["query"],
-                    "value": row["value"]
-                })
-        
-        # 成功時はエラーを None にして保存
-        save_trend_cache({
-            "time": now,
-            "google_trend": google_trend,
-            "related_keywords": related_keywords,
-            "google_trend_error": None
-        })
-        print("Trend data updated successfully.")
+            # Google Trendsは最大5キーワードまで比較可能
+            if len(style_list) > 5:
+                search_keywords = random.sample(style_list, 5)
+            elif len(style_list) > 0:
+                search_keywords = style_list
+            else:
+                search_keywords = ["ファッション"] # フォールバック
 
-    except Exception as e:
-        print(f"Error updating trend data: {e}")
-        
-        # エラー時は「古いキャッシュ」か「モック」を使い、google_trend_errorはNoneにする
-        # これにより画面上の赤いエラーメッセージを消す
-        if old_cache and old_cache.get("google_trend"):
-            data_to_save = old_cache
-            data_to_save["google_trend_error"] = None
-            save_trend_cache(data_to_save)
-            print("Recovered from old cache. Error suppressed for UI.")
-        else:
-            mock_date = (now - timedelta(days=1)).strftime('%Y-%m-%d')
+            print(f"Updating trends for: {search_keywords}")
+
+            # データ取得 (Comparison)
+            google_trend_df = get_trends(search_keywords)
+            
+            # 構造を少し変える: google_trend = { date: "YYYY-MM-DD", values: { "StyleA": 10, "StyleB": 50... } }
+            # 既存UIとの互換性のため、メインのグラフ用のデータ構造を整形
+            google_trend = {}
+            
+            if not google_trend_df.empty:
+                last_row = google_trend_df.tail(1)
+                date = last_row.index[0].strftime('%Y-%m-%d')
+                
+                values = {}
+                for kw in search_keywords:
+                    if kw in last_row:
+                        values[kw] = int(last_row[kw].iloc[0])
+                    else:
+                        values[kw] = 0
+                
+                # Simple format for charts: just pass the whole dict logic? 
+                # Original code expected specific {date, value} format which might be for single line.
+                # We need to adapt trends.html if we want multi-line.
+                # For "Prompt 1" request, it implies comparison.
+                # Let's save a structure compatible with a new chart or simplistic view.
+                
+                google_trend = {
+                    "date": date,
+                    "multi_values": values, # New support for multiple
+                    "primary_keyword": search_keywords[0],
+                    "value": values.get(search_keywords[0], 0) # Fallback for old UI
+                }
+            
+            related_keywords = []
+            # Related queries for the PRIMARY keyword (first one) to keep it simple/stable
+            primary_kw = search_keywords[0]
+            related_df = get_related_queries(primary_kw)
+            if related_df is not None:
+                print (related_df.iterrows())
+                for _, row in related_df.iterrows():
+                    related_keywords.append({
+                        "keyword": row["query"],
+                        "value": row["value"]
+                    })
+            
+            # 成功時はエラーを None にして保存
             save_trend_cache({
                 "time": now,
-                "google_trend": {"date": mock_date, "value": 75},
-                "related_keywords": [
-                    {"keyword": "秋コーデ メンズ", "value": 100},
-                    {"keyword": "ニット ベスト", "value": 85},
-                    {"keyword": "ワイドパンツ", "value": 70},
-                    {"keyword": "カーディガン", "value": 60},
-                    {"keyword": "セットアップ", "value": 50},
-                ],
+                "google_trend": google_trend,
+                "related_keywords": related_keywords,
                 "google_trend_error": None
             })
-            print("Using MOCK data. Error suppressed for UI.")
+            print("Trend data updated successfully.")
+
+        except Exception as e:
+            print(f"Error updating trend data: {e}")
+            
+            # エラー時は「古いキャッシュ」か「モック」を使い、google_trend_errorはNoneにする
+            # これにより画面上の赤いエラーメッセージを消す
+            if old_cache and old_cache.get("google_trend"):
+                data_to_save = old_cache
+                data_to_save["google_trend_error"] = None
+                save_trend_cache(data_to_save)
+                print("Recovered from old cache. Error suppressed for UI.")
+            else:
+                mock_date = (now - timedelta(days=1)).strftime('%Y-%m-%d')
+                save_trend_cache({
+                    "time": now,
+                    "google_trend": {"date": mock_date, "value": 75},
+                    "related_keywords": [
+                        {"keyword": "秋コーデ メンズ", "value": 100},
+                        {"keyword": "ニット ベスト", "value": 85},
+                        {"keyword": "ワイドパンツ", "value": 70},
+                        {"keyword": "カーディガン", "value": 60},
+                        {"keyword": "セットアップ", "value": 50},
+                    ],
+                    "google_trend_error": None
+                })
+                print("Using MOCK data. Error suppressed for UI.")
 
 # Initialize Scheduler
 scheduler = BackgroundScheduler()
