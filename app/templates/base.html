@@ -22,20 +22,19 @@
                 {% if request.endpoint == 'home' or request.endpoint == 'trends' %}
                 {% if session.get('is_admin') %}
                 <a href="{{ url_for('admin.index') }}" title="管理画面">
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">manage_accounts</span>
+                    <span class="material-symbols-outlined"
+                        style="vertical-align: middle; font-size: 20px;">manage_accounts</span>
                 </a>
                 {% endif %}
                 <a href="{{ url_for('logout') }}" title="ログアウト">
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">logout</span>
+                    <span class="material-symbols-outlined"
+                        style="vertical-align: middle; font-size: 20px;">logout</span>
                 </a>
                 {% else %}
                 <a href="{{ url_for('home') }}" title="ホーム">
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">home</span>
+                    <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 20px;">home</span>
                 </a>
                 {% endif %}
-                {% else %}
-                <a href="{{ url_for('login') }}">ログイン</a>
-                <a href="{{ url_for('account_registration') }}">新規登録</a>
                 {% endif %}
             </nav>
         </div>

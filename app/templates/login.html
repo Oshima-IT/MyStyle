@@ -3,38 +3,33 @@
 {% block title %}ログイン - MyStyle{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 400px; margin: 40px auto;">
-    <h2>ログイン</h2>
+<div class="auth-container">
+    <h2>LOGIN</h2>
 
     <form method="POST" action="/login">
 
         {% if error %}
-        <div style="color: red; margin-bottom: 15px;">{{ error }}</div>
+        <div style="color: red; margin-bottom: 15px; font-size: 0.9rem; text-align: center;">{{ error }}</div>
         {% endif %}
 
         <div>
-            <label for="email">メールアドレス</label>
-            <input type="text" id="email" name="email" required>
+            <label for="email">Email</label>
+            <input type="text" id="email" name="email" required placeholder="">
         </div>
 
         <div>
-            <label for="password">パスワード</label>
-            <input type="password" id="password" name="password" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required placeholder="">
         </div>
 
-        <div class="actions" style="margin-top: 15px;">
-            <button type="submit">ログイン</button>
+        <div class="actions">
+            <button type="submit">LOGIN</button>
         </div>
     </form>
 
-    <hr>
-
-    <p style="text-align: center;">
-        アカウントをお持ちでないですか？
-        <a href="{{ url_for('account_registration') }}">アカウント登録</a>
-    </p>
-    <p style="text-align: center;">
-        <a href="#">パスワードを忘れた場合</a>
-    </p>
+    <div class="auth-links">
+        <a href="{{ url_for('account_registration') }}">CREATE ACCOUNT</a>
+        <a href="{{ url_for('forgot_password') }}">FORGOT PASSWORD?</a>
+    </div>
 </div>
 {% endblock %}

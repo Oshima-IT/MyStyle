@@ -3,39 +3,36 @@
 {% block title %}アカウント登録 - MyStyle{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 450px; margin: 40px auto;">
-    <h2>新規アカウント登録</h2>
+<div class="auth-container">
+    <h2>CREATE ACCOUNT</h2>
 
     {% if error %}
-    <p style="color: red;">{{ error }}</p>
+    <p style="color: red; text-align: center; font-size: 0.9rem;">{{ error }}</p>
     {% endif %}
 
     <form method="POST" action="{{ url_for('account_registration') }}">
         <div>
-            <label for="email">メールアドレス</label>
+            <label for="email">Email</label>
             <input type="email" id="email" name="email" required>
         </div>
 
         <div>
-            <label for="password">パスワード</label>
+            <label for="password">Password</label>
             <input type="password" id="password" name="password" required minlength="8">
         </div>
 
         <div>
-            <label for="confirm_password">パスワード（確認用）</label>
+            <label for="confirm_password">Confirm Password</label>
             <input type="password" id="confirm_password" name="confirm_password" required>
         </div>
 
-        <div class="actions" style="margin-top: 15px;">
-            <button type="submit">アカウントを登録する</button>
+        <div class="actions">
+            <button type="submit">REGISTER</button>
         </div>
     </form>
 
-    <hr>
-
-    <p style="text-align: center;">
-        すでにアカウントをお持ちですか？
-        <a href="{{ url_for('login') }}">ログインはこちら</a>
-    </p>
+    <div class="auth-links" style="justify-content: center;">
+        <a href="{{ url_for('login') }}">ALREADY HAVE AN ACCOUNT? LOGIN</a>
+    </div>
 </div>
 {% endblock %}
