@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% block admin_content %}
 <div class="split">
-    <div class="card">
+    <div class="card" style="padding-bottom: 15px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 style="margin: 0;">Items</h2>
             <div class="admin-sort-controls">
@@ -51,7 +51,7 @@
                 </div>
                 <div class="admin-card-main">
                     <div class="admin-card-title">
-                        <span class="admin-card-id">#{{ item.id }}</span>
+                        <!-- <span class="admin-card-id">#{{ item.id }}</span> -->
                         <span class="admin-card-name">{{ item.name }}</span>
                         {% if item.popularity_score %}
                         <span class="tag tag-trend">Score: {{ item.popularity_score }}</span>
@@ -112,14 +112,11 @@
 
         {% if total_pages > 1 %}
         <div class="pagination">
-            <a href="{{ url_for('admin.admin_items', page=page-1, sort=sort_by, order=order) }}" class="btn btn-secondary {% if page == 1 %}disabled{% endif %}">
-                &laquo; Prev
+            <a href="{{ url_for('admin.admin_items', page=page-1, sort=sort_by, order=order) }}" class="btn btn-secondary btn-icon {% if page == 1 %}disabled{% endif %}">
+                <span class="material-symbols-outlined">chevron_left</span>
             </a>
-            <div class="page-info">
-                {{ page }} / {{ total_pages }}
-            </div>
-            <a href="{{ url_for('admin.admin_items', page=page+1, sort=sort_by, order=order) }}" class="btn btn-secondary {% if page == total_pages %}disabled{% endif %}">
-                Next &raquo;
+            <a href="{{ url_for('admin.admin_items', page=page+1, sort=sort_by, order=order) }}" class="btn btn-secondary btn-icon {% if page == total_pages %}disabled{% endif %}">
+                <span class="material-symbols-outlined">chevron_right</span>
             </a>
         </div>
         {% endif %}

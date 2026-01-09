@@ -89,7 +89,6 @@
         <div class="admin-header-user">
             <!-- 拡張用: ここにログイン中の管理者名などを出せる -->
             <span>admin@example.com</span>
-            <a href="{{ url_for('logout') }}"><span class="material-symbols-outlined" style="vertical-align: middle;">logout</span></a>
         </div>
     </header>
 
@@ -101,11 +100,13 @@
             <ul class="admin-sidebar-nav">
                 <li>
                     <a href="{{ url_for('admin.admin_items') }}" class="{% if 'items' in request.path %}active{% endif %}">
+                        <span class="material-symbols-outlined">inventory_2</span>
                         アイテム管理
                     </a>
                 </li>
                 <li>
                     <a href="{{ url_for('admin.admin_users') }}" class="{% if 'users' in request.path %}active{% endif %}">
+                        <span class="material-symbols-outlined">group</span>
                         ユーザー管理
                     </a>
                 </li>
@@ -114,7 +115,8 @@
                 <hr>
                 <li>
                     <a href="{{ url_for('home') }}" target="_blank">
-                        サイトを表示 <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">open_in_new</span>
+                        <span class="material-symbols-outlined">visibility</span>
+                        サイトを表示
                     </a>
                 </li>
             </ul>
@@ -137,6 +139,15 @@
                 <div style="margin-top: 4px; text-align: right; color: #888;">
                     残り <span id="api-quota-remaining">{{ remaining }}</span> 件
                 </div>
+            </div>
+
+            <!-- Logout Button -->
+            <div class="admin-sidebar-logout">
+                <hr>
+                <a href="{{ url_for('logout') }}">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">logout</span>
+                    ログアウト
+                </a>
             </div>
         </aside>
 

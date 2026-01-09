@@ -82,12 +82,18 @@ body {
 }
 
 .admin-sidebar-nav li a {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     padding: 12px 20px;
     color: #ccc;
     text-decoration: none;
     transition: background 0.2s, color 0.2s;
     font-size: 0.95rem;
+}
+
+.admin-sidebar-nav li a .material-symbols-outlined {
+    font-size: 20px;
 }
 
 .admin-sidebar-nav li a:hover,
@@ -104,6 +110,37 @@ body {
     margin: 15px 20px;
 }
 
+.admin-sidebar-logout {
+    margin-top: auto;
+    padding-bottom: 20px;
+}
+
+.admin-sidebar-logout hr {
+    border: 0;
+    border-top: 1px solid #444;
+    margin: 15px 20px;
+}
+
+.admin-sidebar-logout a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    color: #ef4444;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.admin-sidebar-logout a:hover {
+    background-color: #444;
+}
+
+.admin-sidebar-logout a .material-symbols-outlined {
+    font-size: 20px;
+}
+
 /* Main Content */
 .admin-main {
     flex: 1;
@@ -116,10 +153,10 @@ body {
 /* --- Pagination --- */
 .pagination {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
-    gap: 12px;
-    padding: 24px 0 8px;
+    gap: 8px;
+    padding: 12px 0 0;
 }
 
 .pagination .page-info {
@@ -351,7 +388,6 @@ input[type="number"]:focus {
     border-bottom: 1px solid #e5e7eb;
     border-radius: 0;
     padding: 10px 0;
-    margin-bottom: 16px;
     background: transparent;
     display: flex;
     justify-content: flex-start;
@@ -546,7 +582,6 @@ input[type="number"]:focus {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     padding: 24px;
-    margin-bottom: 24px;
 }
 
 table {
@@ -571,7 +606,7 @@ td {
 .split {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    gap: 24px;
+    gap: 12px;
     align-items: start;
 }
 
