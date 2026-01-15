@@ -45,26 +45,33 @@
             {% endif %}
 
             <button id="save-btn" class="btn-save {% if is_bookmarked %}active{% endif %}" style="width: 50px; border: 1px solid #000; display: flex; align-items: center; justify-content: center; background: #fff; cursor: pointer;">
-                <span class="material-symbols-outlined icon-bookmark" style="font-variation-settings: 'FILL' {{ 1 if is_bookmarked else 0 }}, 'wght' 400, 'GRAD' 0, 'opsz' 24;">
+                <span class="material-symbols-outlined icon-bookmark">
                     bookmark
                 </span>
             </button>
         </div>
 
+        <style>
+            .icon-bookmark {
+                font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            }
+
+            .btn-save.active .icon-bookmark {
+                font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            }
+        </style>
+
         <script>
             document.getElementById('save-btn')?.addEventListener('click', async function () {
                 const btn = this;
-                const icon = btn.querySelector('.material-symbols-outlined');
                 const res = await fetch("{{ url_for('item_save', item_id=item.id) }}", { method: 'POST' });
                 const data = await res.json();
 
                 if (data.status === 'ok') {
                     if (data.is_bookmarked) {
                         btn.classList.add('active');
-                        icon.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
                     } else {
                         btn.classList.remove('active');
-                        icon.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
                     }
                 }
             });
