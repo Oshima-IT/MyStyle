@@ -482,6 +482,10 @@ def home():
     # Filter available styles based on what is actually in DB
     available_styles_list = sorted(list(existing_styles))
     
+    # Sort items by popularity_score (descending), then by name
+    # Items without popularity_score will be treated as 0
+    items.sort(key=lambda x: (x.get('popularity_score') or 0, x.get('name', '')), reverse=True)
+    
     # Recent history
     recent_history = []
     saved_items = []
