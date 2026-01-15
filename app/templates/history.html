@@ -15,7 +15,7 @@
             </a>
             <div style="margin-left:12px;">
                 <a href="/detail/{{ h.item_id }}">{{ h.name }}</a>
-                <div class="history-meta">{{ h.viewed_at }}</div>
+                <div class="history-meta">{{ h.viewed_at|fmt_dt }}</div>
             </div>
         </div>
         {% endfor %}

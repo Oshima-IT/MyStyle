@@ -24,6 +24,19 @@ app.secret_key = "your_secret_key" # In production, use env var
 serializer = URLSafeTimedSerializer(app.secret_key)
 
 app.register_blueprint(admin_bp, url_prefix="/admin")
+
+# Template Filter for datetime formatting
+@app.template_filter("fmt_dt")
+def fmt_dt(v):
+    if v is None:
+        return ""
+    # Firestore Timestamp might have to_datetime()
+    if hasattr(v, "to_datetime"):
+        v = v.to_datetime()
+    if isinstance(v, datetime):
+        return v.strftime("%Y/%m/%d %H:%M")
+    return str(v)
+
 # ... CACHE logic ...
 
 def send_reset_email(to_email, token):
@@ -334,16 +347,30 @@ def login():
                     history_ref = db.collection('users').document(user_id).collection('history')
                     
                     for e in entries:
-                        item_id = e.get("item_id")
-                        viewed_at = e.get("viewed_at")
-                        if item_id and viewed_at:
-                            new_doc = history_ref.document()
-                            batch.set(new_doc, {
-                                "item_id": item_id,
-                                "viewed_at": viewed_at
-                            })
+                        item_id = str(e.get("item_id") or "").strip()
+                        viewed_at_raw = e.get("viewed_at")
+                        
+                        if not item_id:
+                            continue
+
+                        # Cookie ISO format -> datetime or ServerTimestamp
+                        dt = None
+                        if viewed_at_raw:
+                            try:
+                                dt = datetime.fromisoformat(viewed_at_raw)
+                            except Exception:
+                                dt = None
+                                
+                        doc_ref = history_ref.document(item_id)
+                        batch.set(doc_ref, {
+                            "item_id": item_id,
+                            "viewed_at": dt if dt else datetime.now()
+                        }, merge=True)
+                        
                     batch.commit()
                 except Exception as e:
+                    import traceback
+                    traceback.print_exc()
                     print(f"Error migrating history: {e}")
 
                 resp = make_response(redirect(url_for("home")))
@@ -493,16 +520,38 @@ def home():
 
     if user_id:
         try:
-            # 1. Fetch History
+            # Fetch History
             history_ref = db.collection('users').document(user_id).collection('history')
-            h_docs = history_ref.order_by('viewed_at', direction=firestore.Query.DESCENDING).limit(10).stream()
-            seen_item_ids = set()
+            # Fetch ALL history to ensure we sort correctly in Python.
+            # Firestore sort is unreliable with mixed types (String/Timestamp), and limit() without sort
+            # arbitrarily cuts off documents by ID, hiding recently viewed items.
+            h_docs = history_ref.stream() 
+            
+            # Helper to parse time for sorting
+            def parse_time(val):
+                if not val: return datetime.min
+                if hasattr(val, 'to_datetime'): return val.to_datetime().replace(tzinfo=None)
+                if isinstance(val, datetime): return val.replace(tzinfo=None)
+                try: return datetime.fromisoformat(str(val)).replace(tzinfo=None)
+                except: return datetime.min
+
+            # Load into list and sort python-side
+            loaded_history = []
             for h in h_docs:
                 hd = h.to_dict()
-                item_id = str(hd.get('item_id'))
+                loaded_history.append(hd)
+            
+            # Sort desc
+            loaded_history.sort(key=lambda x: parse_time(x.get('viewed_at')), reverse=True)
+
+            seen_item_ids = set()
+            for hd in loaded_history:
+                item_id = str(hd.get('item_id') or "")
                 if item_id in all_items_map and item_id not in seen_item_ids:
                     recent_history.append(all_items_map[item_id])
                     seen_item_ids.add(item_id)
+                if len(recent_history) >= 10:
+                    break
             
             # 2. Fetch Bookmarks
             bookmark_ref = db.collection('users').document(user_id).collection('bookmarks')
@@ -572,12 +621,17 @@ def detail(item_id):
     # Log history
     if session.get("logged_in") and session.get("user_id"):
         try:
-            db.collection('users').document(session["user_id"]).collection('history').add({
-                "item_id": item_id,
-                "viewed_at": datetime.now().isoformat()
-            })
-        except Exception:
-            pass
+            # Use item_id as document ID to prevent duplicates
+            h_ref = db.collection('users').document(session["user_id"]).collection('history').document(str(item_id))
+            h_ref.set({
+                "item_id": str(item_id),
+                "viewed_at": datetime.now()
+            }, merge=True)
+            print(f"DEBUG: Saved history for {item_id}")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"Error saving history: {e}")
 
     # Check if bookmarked
     is_bookmarked = False
@@ -681,30 +735,50 @@ def history():
     rows = []
     try:
         h_ref = db.collection('users').document(user_id).collection('history')
-        h_docs = h_ref.order_by('viewed_at', direction=firestore.Query.DESCENDING).limit(100).stream()
-        seen_item_ids = set()
+        # Fetch up to 50 recent items
+        h_docs = list(h_ref.order_by('viewed_at', direction=firestore.Query.DESCENDING).limit(50).stream())
+        
+        item_ids = []
+        history_map = {} # item_id -> viewed_at
+
         for h in h_docs:
             hd = h.to_dict()
-            item_id = hd.get('item_id')
-            if not item_id or item_id in seen_item_ids:
-                continue
-            i_doc = db.collection('items').document(str(item_id)).get()
-            if i_doc.exists:
-                i_data = i_doc.to_dict()
-                rows.append({
-                    "id": h.id, 
-                    "item_id": item_id,
-                    "viewed_at": hd.get('viewed_at'),
-                    "name": i_data.get('name'),
-                    "price": i_data.get('price'),
-                    "image_url": i_data.get('image_url')
-                })
-                seen_item_ids.add(item_id)
-            # 50件で打ち切り
-            if len(rows) >= 50:
-                break
+            item_id = str(hd.get('item_id') or "").strip()
+            if not item_id:
+               continue
+            
+            # If duplicates somehow exist in query results (unlikely with docID=itemID but good safety)
+            if item_id not in history_map:
+                item_ids.append(item_id)
+                history_map[item_id] = hd.get('viewed_at')
+
+        if item_ids:
+            # Batch fetch items
+            # Create references
+            # Note: Firestore 'IN' query is limited to 10 or 30. get_all is better for batch retrieval by ID.
+            item_refs = [db.collection('items').document(iid) for iid in item_ids]
+            item_docs = db.get_all(item_refs)
+            
+            for doc in item_docs:
+                if doc.exists:
+                    iid = doc.id
+                    i_data = doc.to_dict()
+                    rows.append({
+                        "id": iid, # Using item_id as row id
+                        "item_id": iid,
+                        "viewed_at": history_map.get(iid),
+                        "name": i_data.get('name'),
+                        "price": i_data.get('price'),
+                        "image_url": i_data.get('image_url')
+                    })
+            
+            # Sort again by viewed_at because get_all might not preserve order
+            rows.sort(key=lambda x: x['viewed_at'] if x['viewed_at'] else datetime.min, reverse=True)
+
     except Exception as e:
-        print(e)
+        import traceback
+        traceback.print_exc()
+        print(f"Error fetching history: {e}")
 
     return render_template("history.html", history=rows)
 
