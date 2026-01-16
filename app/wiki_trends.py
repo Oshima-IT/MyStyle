@@ -56,9 +56,21 @@ def build_wiki_trend_payload(mapping):
     returns payload with ranked trends
     """
     results = []
-    for label, article in mapping.items():
+    for label, info in mapping.items():
+        # normalize info
+        if isinstance(info, str):
+            article = info
+            lang = "en"
+        elif isinstance(info, dict):
+            article = info.get("wiki_article") or info.get("article")
+            lang = info.get("lang", "en")
+        else:
+            continue
+
+        project = f"{lang}.wikipedia"
+        
         try:
-            s = fetch_pageviews_last_7_days(article)
+            s = fetch_pageviews_last_7_days(article, project=project)
             g = compute_growth(s)
             results.append({
                 "label": label,

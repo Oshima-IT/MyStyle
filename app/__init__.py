@@ -217,19 +217,9 @@ WIKI_CACHE_FILE = os.path.join(INSTANCE_DIR, "wiki_trend_cache.json")
 WIKI_TTL_SEC = 6 * 60 * 60  # 6 hours
 
 # 表示ラベル → Wikipedia記事（英語）
-WIKI_STYLE_MAPPING = {
-    "ストリート": "Street_fashion",
-    "ヴィンテージ": "Vintage_clothing",
-    "Y2K": "Y2K_fashion",
-    "ミニマリズム": "Minimalism",
-    "ゴープコア": "Gorpcore",
-    "サステナブル": "Sustainable_fashion",
-    "スニーカー": "Sneaker_collecting",
-    "モード": "High_fashion",
-    "アウトドア": "Outdoor_recreation",
-    "スポーツ": "Sportswear",
-    "韓国ファッション": "Korean_fashion"
-}
+# WIKI_STYLE_MAPPING removed in favor of DB style_wiki_map
+# However, we keep it temporarily or rely on DB. 
+# The user wants DB only.
 
 def load_wiki_cache():
     try:
@@ -246,6 +236,7 @@ def save_wiki_cache(payload):
         print(f"Error saving wiki cache: {e}")
 
 def update_wiki_cache(force=False):
+    # Check TTL
     if not force and os.path.exists(WIKI_CACHE_FILE):
         try:
             age = time.time() - os.path.getmtime(WIKI_CACHE_FILE)
@@ -255,19 +246,98 @@ def update_wiki_cache(force=False):
             pass
 
     try:
-        print("Updating wiki trends data...")
-        payload = build_wiki_trend_payload(WIKI_STYLE_MAPPING)
+        print("Updating wiki trends data (DB-Driven)...")
+        # Need a DB connection. Since this runs in scheduler (thread), 'g' is not available.
+        # We can use firestore.client() if app is initialized, or get_db() if context pushed.
+        # Assuming app is initialized globally in this file.
+        # Ideally: with app.app_context(): db = get_db()
+        # But 'app' might be defined later. 'firestore.client()' works if firebase_admin is initialized.
+        
+        # Use get_db() which handles initialization safely
+        db = get_db()
+
+        # 1. Aggregate Tags from Items
+        # NOTE: With large datasets, avoid reading all. For now (demonstration/MVP), reading all items is accepted.
+        items_ref = db.collection('items').stream()
+        tag_counts = {}
+        for doc in items_ref:
+            # Assuming 'styles' is list or CSV string
+            data = doc.to_dict()
+            styles = data.get('styles')
+            if not styles:
+                continue
+            
+            if isinstance(styles, str):
+                tags = [s.strip() for s in styles.split(',')]
+            elif isinstance(styles, list):
+                tags = [str(s).strip() for s in styles]
+            else:
+                continue
+            
+            for t in tags:
+                if t:
+                    tag_counts[t] = tag_counts.get(t, 0) + 1
+        
+        # Sort by count desc and take top 20
+        sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
+        top_tags = [t[0] for t in sorted_tags[:20]]
+        print(f"Top tags from DB: {top_tags}")
+
+        # 2. Fetch Mapping
+        # Fetch all enabled mappings (assuming map size is small)
+        map_docs = db.collection('style_wiki_map').where('is_enabled', '==', True).stream()
+        mapping_dict = {} # Label -> Article
+        
+        # Helper to normalize for matching (simple lowercase check)
+        # Firestore keys are case sensitive. Our seed normalized to Japanese label as key.
+        # We will load all into memory.
+        for d in map_docs:
+            data = d.to_dict()
+            label = d.id # The Tag Name
+            article = data.get('wiki_article')
+            lang = data.get('lang', 'en') # Default to English
+            
+            if label and article:
+                mapping_dict[label] = {"article": article, "lang": lang}
+        
+        # 3. Intersect
+        target_mapping = {}
+        for tag in top_tags:
+            # Try direct match
+            if tag in mapping_dict:
+                target_mapping[tag] = mapping_dict[tag]
+            else:
+                # Optional: Try fuzzy or case insensitive? 
+                # For now, strict match per design requirement A.
+                pass
+        
+        if not target_mapping:
+            print("No matching wiki articles found for top tags. Fallback to full map or empty?")
+            # Fallback: If intersection is empty, maybe use top mapped items regardless of popularity?
+            # Or just use the top mapped items from the map itself if items are empty?
+            # Let's trust the logic: if no items match, trend is empty.
+            if not top_tags and mapping_dict:
+                 # Cold start fallback: use all mapped
+                 target_mapping = mapping_dict
+        
+        print(f"Target Mapping for API: {target_mapping.keys()}")
+
+        # 4. Build Payload
+        payload = build_wiki_trend_payload(target_mapping)
         payload["ok"] = True
         save_wiki_cache(payload)
         print("Wiki trends updated successfully.")
+
     except Exception as e:
         print(f"Error updating wiki trends: {e}")
+        # logic for stale fall back
         old = load_wiki_cache()
         if old:
-            old["ok"] = True
+            old["ok"] = False # Mark as failed/stale
             old["stale"] = True
             old["error"] = str(e)
             save_wiki_cache(old)
+            print("Fallback to stale wiki data.")
         else:
             save_wiki_cache({"ok": False, "error": str(e), "source": "Wikimedia Pageviews"})
 
@@ -884,13 +954,40 @@ def trends():
         return redirect(url_for("login"))
 
     db = get_db()
-    # Assuming 'trends' collection exists
+    # Assuming 'trends' collection exists (Legacy DB trends)
     trends_ref = db.collection('trends')
     docs = trends_ref.order_by('created_at', direction=firestore.Query.DESCENDING).stream()
     trend_list = [d.to_dict() for d in docs]
 
     # Wiki Trends
     wiki = load_wiki_cache() or {"ok": False}
+    
+    # Enrich Wiki Trends with actual items
+    if wiki.get("ok") and wiki.get("trends"):
+        # Fetch a pool of items (limit to prevent scale issues, e.g. 300 recent)
+        items_ref = db.collection('items').limit(300)
+        i_docs = items_ref.stream()
+        item_pool = []
+        for d in i_docs:
+            dic = d.to_dict()
+            dic['id'] = d.id
+            # Normalize styles for matching
+            styles = dic.get('styles')
+            tags = set()
+            if isinstance(styles, str):
+                tags.update([s.strip() for s in styles.split(',')])
+            elif isinstance(styles, list):
+                tags.update([str(s).strip() for s in styles])
+            dic['_tags'] = tags
+            item_pool.append(dic)
+            
+        # Attach items to each trend
+        for tr in wiki["trends"]:
+            label = tr.get("label")
+            # Find items containing this label (exact match on tag)
+            matched = [it for it in item_pool if label in it['_tags']]
+            # Take top 20
+            tr["trend_items"] = matched[:20]
 
     return render_template("trends.html", trends=trend_list, wiki=wiki)
 

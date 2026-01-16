@@ -796,6 +796,12 @@ hr {
     color: var(--accent);
 }
 
+.page-tabs .tab.active {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 1.1em;
+}
+
 
 /* --- User Style Section Minimal Redesign --- */
 .style-section-minimal {
@@ -1057,4 +1063,439 @@ hr {
         font-size: 1.8rem;
         margin-bottom: 30px;
     }
+}
+
+/* ===== Trends (scoped) ===== */
+#trends.trends-page {
+    /* Uses main's 1100px max-width */
+}
+
+#trends .trends-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+
+#trends .trends-title {
+    font-size: 20px;
+    letter-spacing: .01em;
+    margin: 0 0 6px;
+}
+
+#trends .trends-desc {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(17, 24, 39, .65);
+}
+
+#trends .trends-meta {
+    display: grid;
+    gap: 8px;
+    justify-items: end;
+}
+
+#trends .meta-chip {
+    display: inline-flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(17, 24, 39, .10);
+    background: rgba(255, 255, 255, .92);
+    backdrop-filter: blur(6px);
+}
+
+#trends .meta-chip.is-warn {
+    border-color: rgba(210, 47, 47, .25);
+}
+
+#trends .meta-label {
+    font-size: 11px;
+    color: rgba(17, 24, 39, .55);
+    letter-spacing: .02em;
+}
+
+#trends .meta-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #111827;
+}
+
+#trends .trends-note {
+    font-size: 12px;
+    color: rgba(17, 24, 39, .55);
+    margin: 8px 0 12px;
+}
+
+#trends .trend-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#trends .trend-card {
+    border-radius: 12px;
+    border: 1px solid rgba(17, 24, 39, .08);
+    background: #fff;
+    padding: 14px;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+#trends .trend-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 32px rgba(0, 0, 0, .06);
+    border-color: rgba(17, 24, 39, .14);
+}
+
+#trends .trend-card.is-top {
+    border-color: rgba(17, 24, 39, .18);
+}
+
+#trends .trend-card-head {
+    display: grid;
+    grid-template-columns: 36px 1fr 130px;
+    gap: 14px;
+    align-items: center;
+}
+
+#trends .trend-rank {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 12px;
+    color: #111827;
+    background: rgba(17, 24, 39, .06);
+}
+
+#trends .trend-name-row {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+#trends .trend-name {
+    font-weight: 800;
+    letter-spacing: .01em;
+    color: #111827;
+}
+
+#trends .trend-article {
+    font-size: 12px;
+    color: rgba(17, 24, 39, .55);
+}
+
+#trends .trend-sub {
+    margin-top: 6px;
+    font-size: 12px;
+    color: rgba(17, 24, 39, .62);
+}
+
+#trends .trend-pv {
+    font-weight: 700;
+    color: rgba(17, 24, 39, .86);
+}
+
+#trends .trend-metric {
+    text-align: right;
+    padding-left: 12px;
+    border-left: 1px solid rgba(17, 24, 39, .08);
+}
+
+#trends .trend-growth {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: .01em;
+    color: #0f766e;
+}
+
+#trends .trend-growth-label {
+    font-size: 12px;
+    color: rgba(17, 24, 39, .55);
+}
+
+#trends .trend-card-foot {
+    margin-top: 12px;
+}
+
+#trends .btn-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(17, 24, 39, .14);
+    background: #fff;
+    color: #111827;
+    font-size: 12px;
+    text-decoration: none;
+    transition: background .15s ease, border-color .15s ease;
+}
+
+#trends .btn-trend:hover {
+    background: rgba(17, 24, 39, .04);
+    border-color: rgba(17, 24, 39, .22);
+}
+
+@media (max-width:720px) {
+    #trends .trends-hero {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #trends .trends-meta {
+        justify-items: start;
+    }
+
+    #trends .trend-card-head {
+        grid-template-columns: 36px 1fr;
+    }
+
+    #trends .trend-metric {
+        grid-column: 1 / -1;
+        text-align: left;
+        border-left: none;
+        padding-left: 0;
+        margin-top: 10px;
+    }
+}
+
+/* ===== Trends Plan A Updates ===== */
+/* カード全体クリック */
+#trends .trend-card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+/* フッターのCTAは右寄せにして“ボタン感”は残す */
+#trends .trend-card-foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+#trends .trend-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    background: #fff;
+    font-size: 12px;
+    color: #111827;
+}
+
+#trends .trend-card-link:hover .trend-cta {
+    background: rgba(17, 24, 39, 0.04);
+    border-color: rgba(17, 24, 39, 0.22);
+}
+
+/* 改行位置の改善：ラベルと(article)を“同じ行に保ちやすく” */
+#trends .trend-name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: nowrap;
+    /* ←折り返しを基本させない */
+    min-width: 0;
+    /* ←ellipsisのために必要 */
+}
+
+#trends .trend-name {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* 長いラベルは…にする */
+}
+
+#trends .trend-article {
+    white-space: nowrap;
+    /* articleは基本折らない */
+    opacity: .65;
+}
+
+/* 伸び率の色：増加=ティール、減少=赤系（品位維持） */
+#trends .trend-card.is-up .trend-growth {
+    color: #0f766e;
+}
+
+#trends .trend-card.is-down .trend-growth {
+    color: rgba(210, 47, 47, 0.90);
+}
+
+#trends .trend-card.is-down .trend-growth-label {
+    color: rgba(210, 47, 47, 0.70);
+}
+
+/* クリック可能な“押せる感”を少しだけ強化 */
+#trends .trend-card:has(.trend-card-link:hover) {
+    border-color: rgba(17, 24, 39, 0.18);
+}
+
+/* ===== Trends Accordion (Plan B) ===== */
+
+/* details/summary styling */
+details.trend-card>summary {
+    list-style: none;
+    cursor: pointer;
+    outline: none;
+    position: relative;
+}
+
+details.trend-card>summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Chevron positioning */
+.trend-summary {
+    display: flex;
+    align-items: center;
+    /* Vertical center */
+    padding-right: 40px;
+    /* Space for chevron */
+}
+
+/* Ensure the head takes full width */
+.trend-card-head {
+    flex: 1;
+}
+
+.trend-chevron {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    transition: transform 0.2s ease;
+}
+
+details.trend-card[open] .trend-chevron {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Expander Area */
+.trend-items-expander {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Items Grid -> Horizontal Scroll Strip (Modified) */
+.trend-item-grid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 10px 0 10px 0;
+    /* Add bottom padding for touch scroll comfort */
+    align-items: stretch;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+.trend-item-grid::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+/* trend-item-thumb as fixed width card */
+.trend-item-thumb {
+    flex: 0 0 130px;
+    /* Fixed width like history card */
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fdfdfd;
+    border: 1px solid #f0f0f0;
+    transition: box-shadow 0.2s;
+    height: auto;
+}
+
+.trend-item-thumb:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.ti-img-box {
+    aspect-ratio: 3/4;
+    background: #eee;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 11px;
+}
+
+.ti-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ti-info {
+    padding: 8px;
+}
+
+.ti-brand {
+    font-size: 10px;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ti-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* More Link & Empty State */
+.trend-more-link {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.trend-more-link a {
+    font-size: 13px;
+    color: #6366f1;
+    /* Brand indigo */
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.trend-more-link a:hover {
+    text-decoration: underline;
+}
+
+.trend-no-items {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.btn-trend-sm {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #111827;
+    text-decoration: none;
 }
