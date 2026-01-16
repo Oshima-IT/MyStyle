@@ -5,7 +5,6 @@ from flask import Flask, render_template, request, redirect, url_for, session, m
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 from .db import get_db, close_db
-from .google_trends import get_trends, get_related_queries
 from .admin import admin_bp
 from .stats import record_event
 from firebase_admin import firestore
@@ -16,6 +15,9 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from itsdangerous import URLSafeTimedSerializer
+import time
+from .open_meteo import fetch_nagoya_weather
+from .wiki_trends import build_wiki_trend_payload
 
 load_dotenv()
 
@@ -150,153 +152,228 @@ def reset_password(token):
     return render_template("reset_password.html", token=token)
 
 
+# ... CACHE logic ...
+
 # Path to cache file in instance directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INSTANCE_DIR = os.path.join(os.path.dirname(BASE_DIR), 'instance')
 if not os.path.exists(INSTANCE_DIR):
     os.makedirs(INSTANCE_DIR)
 
-CACHE_FILE = os.path.join(INSTANCE_DIR, "google_trend_cache.pkl")
-# Expiry is still used to check if valid, but update is driven by scheduler
-CACHE_EXPIRE_MINUTES = 65 # Slightly longer than interval to tolerate delays
+# --- Weather Cache & Logic ---
+WEATHER_CACHE_FILE = os.path.join(INSTANCE_DIR, "weather_cache.json")
+WEATHER_TTL_SEC = 60 * 60  # 1 hour
 
-def load_trend_cache():
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, "rb") as f:
-            return pickle.load(f)
+def load_weather_cache():
+    try:
+        if os.path.exists(WEATHER_CACHE_FILE):
+            with open(WEATHER_CACHE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
     return None
 
-def save_trend_cache(data):
-    with open(CACHE_FILE, "wb") as f:
-        pickle.dump(data, f)
+def save_weather_cache(payload):
+    try:
+        with open(WEATHER_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False)
+    except Exception as e:
+        print(f"Error saving weather cache: {e}")
 
-def update_trend_cache():
-    """Background task to update Google Trends data."""
-    print("Updating trend data...")
-    now = datetime.now()
-    
-    # 既存のキャッシュを先にロードしておく
-    old_cache = load_trend_cache()
-    
-    # Imports inside function or at top - assuming standard imports available
-    import random
+def update_weather_cache(force=False):
+    # Check TTL
+    if not force and os.path.exists(WEATHER_CACHE_FILE):
+        try:
+            age = time.time() - os.path.getmtime(WEATHER_CACHE_FILE)
+            if age < WEATHER_TTL_SEC:
+                return
+        except:
+            pass
 
     try:
-        # 1. DBからスタイルを取得してキーワードリストを作成
-        db = get_db()
-        items_stream = db.collection('items').stream()
-        unique_styles = set()
-        for doc in items_stream:
-            item_data = doc.to_dict()
-            s_raw = item_data.get('styles')
-            if s_raw:
-                if isinstance(s_raw, str):
-                   parts = [s.strip() for s in s_raw.split(',') if s.strip()]
-                   unique_styles.update(parts)
-                elif isinstance(s_raw, list):
-                   unique_styles.update([s for s in s_raw if s])
-        
-        style_list = list(unique_styles)
-        
-        # Google Trendsは最大5キーワードまで比較可能
-        if len(style_list) > 5:
-            search_keywords = random.sample(style_list, 5)
-        elif len(style_list) > 0:
-            search_keywords = style_list
-        else:
-            search_keywords = ["ファッション"] # フォールバック
-
-        print(f"Updating trends for: {search_keywords}")
-
-        # データ取得 (Comparison)
-        google_trend_df = get_trends(search_keywords)
-        
-        # 構造を少し変える: google_trend = { date: "YYYY-MM-DD", values: { "StyleA": 10, "StyleB": 50... } }
-        # 既存UIとの互換性のため、メインのグラフ用のデータ構造を整形
-        google_trend = {}
-        
-        if not google_trend_df.empty:
-            last_row = google_trend_df.tail(1)
-            date = last_row.index[0].strftime('%Y-%m-%d')
-            
-            values = {}
-            for kw in search_keywords:
-                if kw in last_row:
-                    values[kw] = int(last_row[kw].iloc[0])
-                else:
-                    values[kw] = 0
-            
-            # Simple format for charts: just pass the whole dict logic? 
-            # Original code expected specific {date, value} format which might be for single line.
-            # We need to adapt trends.html if we want multi-line.
-            # For "Prompt 1" request, it implies comparison.
-            # Let's save a structure compatible with a new chart or simplistic view.
-            
-            google_trend = {
-                "date": date,
-                "multi_values": values, # New support for multiple
-                "primary_keyword": search_keywords[0],
-                "value": values.get(search_keywords[0], 0) # Fallback for old UI
-            }
-        
-        related_keywords = []
-        # Related queries for the PRIMARY keyword (first one) to keep it simple/stable
-        primary_kw = search_keywords[0]
-        related_df = get_related_queries(primary_kw)
-        if related_df is not None:
-            for _, row in related_df.iterrows():
-                related_keywords.append({
-                    "keyword": row["query"],
-                    "value": row["value"]
-                })
-        
-        # 成功時はエラーを None にして保存
-        save_trend_cache({
-            "time": now,
-            "google_trend": google_trend,
-            "related_keywords": related_keywords,
-            "google_trend_error": None
-        })
-        print("Trend data updated successfully.")
-
+        print("Updating weather data...")
+        payload = fetch_nagoya_weather()
+        payload["ok"] = True
+        save_weather_cache(payload)
+        print("Weather data updated successfully.")
     except Exception as e:
-        print(f"Error updating trend data: {e}")
-        
-        # エラー時は「古いキャッシュ」か「モック」を使い、google_trend_errorはNoneにする
-        # これにより画面上の赤いエラーメッセージを消す
-        if old_cache and old_cache.get("google_trend"):
-            data_to_save = old_cache
-            data_to_save["google_trend_error"] = None
-            save_trend_cache(data_to_save)
-            print("Recovered from old cache. Error suppressed for UI.")
+        print(f"Error updating weather data: {e}")
+        old = load_weather_cache()
+        if old:
+            old["ok"] = True
+            old["stale"] = True
+            old["error"] = str(e)
+            save_weather_cache(old)
         else:
-            mock_date = (now - timedelta(days=1)).strftime('%Y-%m-%d')
-            save_trend_cache({
-                "time": now,
-                "google_trend": {"date": mock_date, "value": 75},
-                "related_keywords": [
-                    {"keyword": "秋コーデ メンズ", "value": 100},
-                    {"keyword": "ニット ベスト", "value": 85},
-                    {"keyword": "ワイドパンツ", "value": 70},
-                    {"keyword": "カーディガン", "value": 60},
-                    {"keyword": "セットアップ", "value": 50},
-                ],
-                "google_trend_error": None
+            save_weather_cache({
+                "ok": False,
+                "source": "Open-Meteo",
+                "location": {"name": "Nagoya"},
+                "error": str(e),
             })
-            print("Using MOCK data. Error suppressed for UI.")
+
+# --- Wiki Trends Cache & Logic ---
+WIKI_CACHE_FILE = os.path.join(INSTANCE_DIR, "wiki_trend_cache.json")
+WIKI_TTL_SEC = 6 * 60 * 60  # 6 hours
+
+# 表示ラベル → Wikipedia記事（英語）
+WIKI_STYLE_MAPPING = {
+    "ストリート": "Street_fashion",
+    "ヴィンテージ": "Vintage_clothing",
+    "Y2K": "Y2K_fashion",
+    "ミニマリズム": "Minimalism",
+    "ゴープコア": "Gorpcore",
+    "サステナブル": "Sustainable_fashion",
+    "スニーカー": "Sneaker_collecting",
+    "モード": "High_fashion",
+    "アウトドア": "Outdoor_recreation",
+    "スポーツ": "Sportswear",
+    "韓国ファッション": "Korean_fashion"
+}
+
+def load_wiki_cache():
+    try:
+        with open(WIKI_CACHE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+def save_wiki_cache(payload):
+    try:
+        with open(WIKI_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False)
+    except Exception as e:
+        print(f"Error saving wiki cache: {e}")
+
+def update_wiki_cache(force=False):
+    if not force and os.path.exists(WIKI_CACHE_FILE):
+        try:
+            age = time.time() - os.path.getmtime(WIKI_CACHE_FILE)
+            if age < WIKI_TTL_SEC:
+                return
+        except:
+            pass
+
+    try:
+        print("Updating wiki trends data...")
+        payload = build_wiki_trend_payload(WIKI_STYLE_MAPPING)
+        payload["ok"] = True
+        save_wiki_cache(payload)
+        print("Wiki trends updated successfully.")
+    except Exception as e:
+        print(f"Error updating wiki trends: {e}")
+        old = load_wiki_cache()
+        if old:
+            old["ok"] = True
+            old["stale"] = True
+            old["error"] = str(e)
+            save_wiki_cache(old)
+        else:
+            save_wiki_cache({"ok": False, "error": str(e), "source": "Wikimedia Pageviews"})
 
 # Initialize Scheduler
 scheduler = BackgroundScheduler()
-# Run job every 60 minutes
-scheduler.add_job(func=update_trend_cache, trigger="interval", minutes=60)
 scheduler.start()
 
-# Should we run it once on startup if no cache exists?
-if not os.path.exists(CACHE_FILE):
-    # Run slightly after startup to not block import? 
-    # Or just run it now. It might block startup for a few seconds.
-    print("No cache found, updating trends initially...")
-    update_trend_cache()
+# Add weather update to scheduler
+scheduler.add_job(func=update_weather_cache, trigger="interval", minutes=60)
+# Add wiki update to scheduler
+scheduler.add_job(func=update_wiki_cache, trigger="interval", hours=6)
+
+# Run weather initially if needed
+if not os.path.exists(WEATHER_CACHE_FILE):
+    try:
+        update_weather_cache(force=True)
+    except:
+        pass
+
+# Run wiki initially if needed
+if not os.path.exists(WIKI_CACHE_FILE):
+    # Run in background via thread or just sync for simple start?
+    # Sync for demo so data appears immediately
+    try:
+        print("Initial Wiki Trends update...")
+        update_wiki_cache(force=True)
+    except Exception as e:
+        print(f"Initial Wiki Update failed: {e}")
+
+def build_weather_rules(weather):
+    fired = []
+    score_w = {
+        "waterproof": 0,
+        "outer": 0,
+        "windproof": 0,
+        "layering": 0,
+        "breathable": 0,
+    }
+
+    if not weather: 
+        return score_w, fired
+
+    p = weather.get("precip_prob_max")
+    tmax = weather.get("today_max")
+    tmin = weather.get("today_min")
+    wind = weather.get("wind_max")
+
+    if p is not None and p >= 40:
+        score_w["waterproof"] += 3
+        fired.append(f"降水確率が高い（{p}%）→ 防水/撥水を優先")
+
+    if tmax is not None and tmax <= 12:
+        score_w["outer"] += 3
+        fired.append(f"最高気温が低い（{tmax}℃）→ アウターを優先")
+
+    if wind is not None and wind >= 8:
+        score_w["windproof"] += 2
+        fired.append(f"風が強い（{wind}m/s）→ 防風を優先")
+
+    if tmax is not None and tmin is not None and (tmax - tmin) >= 8:
+        score_w["layering"] += 2
+        fired.append(f"寒暖差が大きい（{tmax - tmin}℃）→ 重ね着向きを優先")
+
+    if tmax is not None and tmax >= 25:
+        score_w["breathable"] += 2
+        fired.append(f"暑い（最高{tmax}℃）→ 通気性を優先")
+
+    return score_w, fired
+
+def score_item_by_weather(item, w_scores):
+    # Normalize tags/styles to check against rules
+    # styles is csv string or list
+    raw_styles = item.get("styles")
+    tags = set()
+    if raw_styles:
+        if isinstance(raw_styles, str):
+            tags.update([s.strip().lower() for s in raw_styles.split(',')])
+        elif isinstance(raw_styles, list):
+            tags.update([str(s).lower() for s in raw_styles])
+    
+    # Also check 'category' or 'name' if tags are missing, 
+    # but for now let's stick to styles tags mapping or loose matching
+    # Map Japanese keywords to internal keys if needed, OR just match keys if they exist in tags
+    # Let's add basic mapping for demo if tags are Japanese
+    # This is a heuristic mapping
+    # Ensure all components are strings before concatenation
+    name_str = str(item.get("name") or "")
+    cat_str = str(item.get("category") or "")
+    style_str = str(item.get("styles") or "")
+    
+    text_to_check = (name_str + " " + cat_str + " " + style_str).lower()
+    
+    s = 0
+    # Simple keyword matching for demo
+    if w_scores["waterproof"] > 0 and any(x in text_to_check for x in ["防水", "撥水", "ナイロン", "waterproof", "rain"]):
+        s += w_scores["waterproof"]
+    if w_scores["outer"] > 0 and any(x in text_to_check for x in ["コート", "ダウン", "ジャケット", "アウター", "outer", "jacket"]):
+        s += w_scores["outer"]
+    if w_scores["windproof"] > 0 and any(x in text_to_check for x in ["防風", "ウィンド", "wind", "レザー"]):
+        s += w_scores["windproof"]
+    if w_scores["layering"] > 0 and any(x in text_to_check for x in ["カーディガン", "ベスト", "シャツ", "layer", "cardigan"]):
+        s += w_scores["layering"]
+    if w_scores["breathable"] > 0 and any(x in text_to_check for x in ["リネン", "麻", "メッシュ", "半袖", "breathable", "cool"]):
+        s += w_scores["breathable"]
+        
+    return s
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
@@ -812,22 +889,68 @@ def trends():
     docs = trends_ref.order_by('created_at', direction=firestore.Query.DESCENDING).stream()
     trend_list = [d.to_dict() for d in docs]
 
-    # Just load from cache
-    google_trend = None
-    google_trend_error = None
-    related_keywords = []
-    
-    cache = load_trend_cache()
-    if cache:
-        google_trend = cache.get("google_trend")
-        related_keywords = cache.get("related_keywords", [])
-        google_trend_error = cache.get("google_trend_error")
-    else:
-        # If no cache (e.g. startup failed to fetch), show error or try fetching sync?
-        # Let's show "Updating..." or error
-        google_trend_error = "Data updating..."
+    # Wiki Trends
+    wiki = load_wiki_cache() or {"ok": False}
 
-    return render_template("trends.html", trends=trend_list, google_trend=google_trend, related_keywords=related_keywords, google_trend_error=google_trend_error)
+    return render_template("trends.html", trends=trend_list, wiki=wiki)
+
+@app.route('/weather')
+def weather():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+        
+    db = get_db()
+    
+    # Weather Logic
+    weather_data = load_weather_cache() or {}
+    if not weather_data:
+        weather_data = {"ok": False, "error": "weather cache missing"}
+    
+    w_scores, fired_rules = build_weather_rules(weather_data if weather_data.get("ok") else {})
+    
+    # Fetch Items for Recommendation
+    items_ref = db.collection('items')
+    i_docs = items_ref.stream()
+    all_items = []
+    for d in i_docs:
+        dic = d.to_dict()
+        dic['id'] = d.id
+        all_items.append(dic)
+        
+    # Score items
+    weather_recommended = []
+    if w_scores and any(v > 0 for v in w_scores.values()):
+        scored = []
+        for it in all_items:
+            # Ensure all components are strings before concatenation
+            name_str = str(it.get("name") or "")
+            cat_str = str(it.get("category") or "")
+            style_str = str(it.get("styles") or "")
+            
+            text_to_check = (name_str + " " + cat_str + " " + style_str).lower()
+            
+            s = 0
+            if w_scores["waterproof"] > 0 and any(x in text_to_check for x in ["防水", "撥水", "ナイロン", "waterproof", "rain"]):
+                s += w_scores["waterproof"]
+            if w_scores["outer"] > 0 and any(x in text_to_check for x in ["コート", "ダウン", "ジャケット", "アウター", "outer", "jacket"]):
+                s += w_scores["outer"]
+            if w_scores["windproof"] > 0 and any(x in text_to_check for x in ["防風", "ウィンド", "wind", "レザー"]):
+                s += w_scores["windproof"]
+            if w_scores["layering"] > 0 and any(x in text_to_check for x in ["カーディガン", "ベスト", "シャツ", "layer", "cardigan"]):
+                s += w_scores["layering"]
+            if w_scores["breathable"] > 0 and any(x in text_to_check for x in ["リネン", "麻", "メッシュ", "半袖", "breathable", "cool"]):
+                s += w_scores["breathable"]
+            
+            scored.append((s, it))
+        # Sort by score desc
+        scored.sort(key=lambda x: x[0], reverse=True)
+        # Take top 10 if score > 0
+        weather_recommended = [it for score, it in scored if score > 0][:10]
+
+    return render_template("weather.html", 
+                           weather=weather_data,
+                           weather_rules=fired_rules,
+                           weather_recommended=weather_recommended)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000, debug=True)

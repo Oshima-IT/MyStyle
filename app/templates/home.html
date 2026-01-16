@@ -4,10 +4,11 @@
 
 {% block content %}
 
-<!-- ▼ タブ（ホーム / トレンド）をヘッダーの下に統一表示 -->
+<!-- ▼ タブ（ホーム / トレンド / 天気おすすめ） -->
 <div class="page-tabs">
     <a href="{{ url_for('home') }}" class="tab active">ホーム</a>
     <a href="{{ url_for('trends') }}" class="tab">トレンド</a>
+    <a href="{{ url_for('weather') }}" class="tab">天気おすすめ</a>
 </div>
 
 <section class="style-section-minimal">

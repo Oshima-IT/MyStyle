@@ -4,43 +4,61 @@
 
 {% block content %}
 
-<!-- ▼ タブ（ホーム / トレンド） -->
+<!-- ▼ タブ（ホーム / トレンド / 天気おすすめ） -->
 <div class="page-tabs">
     <a href="{{ url_for('home') }}" class="tab">ホーム</a>
     <a href="{{ url_for('trends') }}" class="tab active">トレンド</a>
+    <a href="{{ url_for('weather') }}" class="tab">天気おすすめ</a>
 </div>
 
+<section class="card" style="margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <div>
+            <h2 style="margin:0;">今週のスタイルトレンド（オープンデータ）</h2>
+            <div style="font-size:0.9em; opacity:0.8;">
+                Data Source: {{ wiki.source }}
+            </div>
+        </div>
+        <div style="font-size:0.85em; opacity:0.8; text-align:right;">
+            Updated: {{ wiki.updated_at }}
+            {% if wiki.stale %}<div style="color:#b45309;">（前回データを使用中）</div>{% endif %}
+        </div>
+    </div>
 
+    {% if wiki.ok and wiki.trends %}
+    <ol style="margin:12px 0 0; padding-left:18px;">
+        {% for t in wiki.trends[:5] %}
+        <li style="margin:6px 0;">
+            <div style="display:flex; justify-content:space-between; gap:12px;">
+                <div>
+                    <strong>{{ t.label }}</strong>
+                    <span style="opacity:0.8;">（{{ t.article }}）</span>
+                    <div style="font-size:0.9em; opacity:0.75;">
+                        7日間の推移: {{ t.series[0].views }} → {{ t.series[-1].views }}
+                    </div>
+                </div>
+                <div style="min-width:90px; text-align:right;">
+                    <strong>{{ (t.growth*100)|round(1) }}%</strong>
+                    <div style="font-size:0.85em; opacity:0.7;">増加</div>
+                </div>
+            </div>
 
-{# Googleトレンド表示 #}
-{% if google_trend %}
-<div class="card" style="background:#f3f8ff;">
-    <h3>Googleトレンド: 「{{ google_trend.primary_keyword if google_trend.primary_keyword else 'ファッション' }}」</h3>
-    <p>最新データ: {{ google_trend.date }} の人気度 = <b>{{ google_trend.value }}</b></p>
-</div>
-{% elif google_trend_error %}
-<div class="card" style="background:#fff0f0; color:#b00;">
-    <h3>Googleトレンド取得エラー</h3>
-    <p>{{ google_trend_error }}</p>
-</div>
-{% endif %}
-
-{# Googleトレンド関連キーワード表示 #}
-{% if related_keywords and related_keywords|length > 0 %}
-<div class="card" style="background:#f8fafd;">
-    <h3>関連キーワード</h3>
-    <ol>
-        {% for kw in related_keywords %}
-        <li>
-            <a href="{{ url_for('home', search=kw.keyword) }}" style="text-decoration: underline; color: #333;">
-                {{ kw.keyword }}
-            </a>
-            <span style="color:#888; font-size:13px;">({{ kw.value }})</span>
+            <!-- クリックで検索へ：ラベルをそのままsearchに渡す -->
+            <div style="margin-top:6px;">
+                <a class="btn" href="/home?search={{ t.label|urlencode }}">このトレンドで探す</a>
+            </div>
         </li>
         {% endfor %}
     </ol>
-</div>
-{% endif %}
+    {% else %}
+    <div style="margin-top:12px; background:#fee2e2; padding:10px; border-radius:8px;">
+        トレンドデータの取得に失敗しました: {{ wiki.error }}
+    </div>
+    {% endif %}
+</section>
+
+
+
 
 {# DBのトレンド情報を必ず表示 #}
 {% if trends and trends|length > 0 %}
@@ -48,14 +66,11 @@
 <div class="card">
     <h3>{{ t.title }}</h3>
     {% if t.image_url %}
-    <img src="{{ t.image_url }}" alt="{{ t.title }}"
-        style="width:100%; max-width:400px; border-radius:8px; margin-bottom:12px;">
+    <img src="{{ t.image_url }}" alt="{{ t.title }}" style="width:100%; max-width:400px; border-radius:8px; margin-bottom:12px;">
     {% endif %}
     <p>{{ t.description }}</p>
 </div>
 {% endfor %}
-{% else %}
-<p>現在表示できるトレンド情報がありません。</p>
 {% endif %}
 
 {% endblock %}
