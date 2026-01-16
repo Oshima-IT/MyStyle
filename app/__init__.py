@@ -989,6 +989,9 @@ def trends():
             # Take top 20
             tr["trend_items"] = matched[:20]
 
+        # Filter out trends with no items
+        wiki["trends"] = [tr for tr in wiki["trends"] if tr.get("trend_items")]
+
     return render_template("trends.html", trends=trend_list, wiki=wiki)
 
 @app.route('/weather')
