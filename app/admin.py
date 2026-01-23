@@ -206,6 +206,7 @@ def restrict_admin_access():
     if not doc.exists:
         abort(403)
     
+    user_data = doc.to_dict()
     if user_data.get("email", "").lower() != "admin@example.com":
        abort(403)
     pass
