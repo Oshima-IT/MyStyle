@@ -206,9 +206,10 @@ def restrict_admin_access():
     if not doc.exists:
         abort(403)
     
-    user_data = doc.to_dict()
-    if user_data.get("email", "").lower() != "admin@example.com":
-        abort(403)
+    # Allowed for all logged-in users
+    # if user_data.get("email", "").lower() != "admin@example.com":
+    #    abort(403)
+    pass
 
 @admin_bp.route("/")
 def index():

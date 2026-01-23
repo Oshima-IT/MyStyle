@@ -476,10 +476,7 @@ def login():
             session["logged_in"] = True
             session["user_id"] = user_id
             
-            if user.get("email", "").lower() == "admin@example.com":
-                 session["is_admin"] = True
-            else:
-                 session["is_admin"] = False
+            session["is_admin"] = True
 
             p_styles = user.get("preferred_styles", "")
             styles = p_styles.split(",") if p_styles else []
