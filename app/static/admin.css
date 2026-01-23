@@ -53,6 +53,26 @@ body {
     color: #333;
 }
 
+/* Hamburger Menu */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #333;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .user-email {
+        display: none;
+    }
+}
+
 /* Layout Container (Sidebar + Main) */
 .admin-container {
     display: flex;
@@ -73,6 +93,53 @@ body {
     box-sizing: border-box;
     flex-shrink: 0;
     /* 幅固定 */
+    transition: transform 0.3s ease;
+    z-index: 1001;
+    /* Ensure above overlay */
+}
+
+/* Mobile Sidebar Styles */
+@media (max-width: 768px) {
+    .admin-container {
+        position: relative;
+        /* For overlay positioning */
+    }
+
+    .admin-sidebar {
+        position: fixed;
+        top: 60px;
+        /* Below header */
+        bottom: 0;
+        right: 0;
+        /* Right side */
+        left: auto;
+        /* Reset left */
+        transform: translateX(100%);
+        /* Hide to right */
+        width: 240px;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+    }
+
+    .admin-sidebar.open {
+        transform: translateX(0);
+        /* Show when open */
+    }
+
+    /* Overlay when sidebar is open */
+    .sidebar-overlay {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        display: none;
+    }
+
+    .sidebar-overlay.visible {
+        display: block;
+    }
 }
 
 .admin-sidebar-nav {
