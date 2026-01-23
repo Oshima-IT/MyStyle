@@ -12,6 +12,12 @@ def init_db():
     conn = sqlite3.connect(DB_FILENAME)
     with open(SCHEMA_FILENAME, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
+    
+    if os.path.exists("init_db.sql"):
+        with open("init_db.sql", "r", encoding="utf-8") as f:
+            conn.executescript(f.read())
+        print("DB seeded with init_db.sql.")
+    
     conn.close()
     print("DB initialized with schema.")
 
