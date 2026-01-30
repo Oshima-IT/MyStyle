@@ -285,6 +285,7 @@ body {
 
 .page-input[type=number] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 .pagination .btn {
@@ -400,6 +401,11 @@ input[type="number"]:focus {
     font-weight: 700;
     padding: 10px 20px;
     transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    /* Space between icon and text */
 }
 
 .btn-black-sharp:hover {
@@ -1134,4 +1140,540 @@ td {
 
 .w-full {
     width: 100%;
+}
+
+/* --- Material Design 3 User List Styles --- */
+.md3-card-row {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e0e0e0;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    transition: box-shadow 0.2s;
+}
+
+.md3-card-row:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.md3-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.md3-card-header {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.md3-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e3f2fd;
+    /* Light Blue */
+    color: #0d47a1;
+    /* Dark Blue */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.md3-text-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.md3-primary-text {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1a1c1e;
+    line-height: 1.4;
+}
+
+.md3-secondary-text {
+    font-size: 12px;
+    color: #444746;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.4;
+}
+
+.md3-secondary-text .material-symbols-outlined {
+    font-size: 14px;
+    color: #747775;
+}
+
+.md3-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 56px;
+    /* Align with text, skipping avatar gap (40+16) */
+}
+
+.md3-meta-row {
+    display: flex;
+    align-items: flex-start;
+    /* Chips might wrap */
+    gap: 8px;
+}
+
+.meta-icon {
+    font-size: 16px !important;
+    color: #747775;
+    margin-top: 4px;
+    /* Align with first line of chips */
+}
+
+.md3-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.md3-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #1d1b20;
+    border: 1px solid transparent;
+}
+
+.md3-chip.surface-variant {
+    background-color: #f1f0f4;
+    /* M3 Surface Variant */
+    border-color: #e0e2e5;
+}
+
+.color-dot-small {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.md3-card-action {
+    display: flex;
+    align-items: center;
+}
+
+.md3-icon-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #444746;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.md3-icon-button:hover {
+    background-color: #f1f0f4;
+    color: #1a1c1e;
+}
+
+@media (max-width: 600px) {
+    .md3-card-meta {
+        padding-left: 0;
+        margin-top: 8px;
+    }
+
+    .md3-card-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .md3-card-action {
+        justify-content: flex-end;
+        margin-top: -40px;
+        /* Pull up to align with header if desired, or just let it sit below */
+        margin-top: 0;
+        border-top: 1px solid #f0f0f0;
+        padding-top: 8px;
+    }
+}
+
+/* --- Material Design 3 Form Styles --- */
+.md3-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Floating Label Input */
+.md3-input-group {
+    position: relative;
+    padding-top: 6px;
+    /* Space for label */
+}
+
+.md3-input-field {
+    width: 100%;
+    padding: 12px 12px 12px 42px !important;
+    /* Force padding to clear icon */
+    border: 1px solid #747775;
+    border-radius: 4px;
+    font-size: 16px;
+    background: inherit;
+    color: #1a1c1e;
+    transition: border-color 0.2s;
+    height: 56px;
+    /* Standard MD height */
+    box-sizing: border-box;
+}
+
+.md3-input-field:focus {
+    border-color: #0b57d0;
+    border-width: 2px;
+    padding-left: 41px !important;
+    /* Adjust for border width change (42-1) */
+    padding-right: 11px;
+    outline: none;
+}
+
+.md3-input-label {
+    position: absolute;
+    left: 40px;
+    top: 20px;
+    /* Center in 56px height */
+    color: #444746;
+    background-color: #fff;
+    /* Mask border */
+    padding: 0 4px;
+    font-size: 16px;
+    transition: all 0.2s ease-out;
+    pointer-events: none;
+}
+
+.md3-input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    /* Centered vertically relative to container */
+    font-size: 20px;
+    color: #444746;
+    pointer-events: none;
+    z-index: 2;
+    /* Ensure above input background if needed */
+}
+
+/* Focused or Has Value State */
+.md3-input-field:focus~.md3-input-label,
+.md3-input-field:not(:placeholder-shown)~.md3-input-label {
+    top: -2px;
+    left: 36px;
+    /* Align slightly left */
+    font-size: 12px;
+    color: #0b57d0;
+    font-weight: 500;
+}
+
+.md3-input-field:not(:placeholder-shown)~.md3-input-label {
+    color: #444746;
+    /* Regular color when not focused but has value */
+}
+
+.md3-input-field:focus~.md3-input-icon {
+    color: #0b57d0;
+}
+
+/* Read-only / Hash field */
+.md3-input-field[readonly] {
+    background-color: #f1f0f4;
+    border-color: #e0e2e5;
+    color: #444746;
+}
+
+.copy-btn {
+    position: absolute;
+    right: 8px;
+    top: 10px;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #444746;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.copy-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* --- Chip Input Styles --- */
+.chip-input-container {
+    /* Removed border and standard form-field styling to match ZARA-style tag picker */
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    min-height: auto;
+    display: flex;
+    flex-direction: column;
+    /* Stack label on top */
+    align-items: flex-start;
+    gap: 8px;
+    cursor: default;
+    background: transparent;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* Hide focus styles since it's no longer an input field feel */
+.chip-input-container:focus-within {
+    border: none;
+    padding: 0;
+}
+
+/* Restore labels but style them as section headers (ZARA-style) */
+.chip-input-container .md3-input-label {
+    display: block;
+    position: static;
+    /* No longer floating absolute */
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 4px;
+    pointer-events: none;
+    transform: none;
+    /* Reset any float transform */
+    width: 100%;
+    order: -1;
+    /* Display first */
+}
+
+/* Ensure container allows wrapping */
+.chip-input-container {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+}
+
+.chip-input-container .md3-input-icon {
+    display: none;
+    /* Keep icons hidden */
+}
+
+.chip-input-field {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    flex: 1;
+    min-width: 120px;
+    color: #1a1c1e;
+    padding: 4px 0;
+    height: 24px;
+    /* Text height */
+}
+
+/* Edit Chip */
+.edit-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #e3f2fd;
+    /* Secondary Container or similar */
+    color: #1d1b20;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.edit-chip .material-symbols-outlined {
+    font-size: 16px;
+    cursor: pointer;
+    color: #444746;
+}
+
+.edit-chip .material-symbols-outlined:hover {
+    color: #b3261e;
+    /* Error color for delete */
+}
+
+/* --- Actions --- */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.btn-filled {
+    background-color: #0b57d0;
+    color: #ffffff;
+    border-radius: 20px;
+    /* Stadium pill */
+    padding: 10px 24px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    transition: box-shadow 0.2s, background 0.2s;
+}
+
+.btn-filled:hover {
+    box-shadow: 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+    background-color: #0842a0;
+}
+
+.btn-text {
+    background: transparent;
+    color: #0b57d0;
+    font-weight: 500;
+    padding: 10px 16px;
+    border-radius: 20px;
+}
+
+.btn-text:hover {
+    background-color: rgba(11, 87, 208, 0.08);
+    /* Light blue overlay */
+}
+
+
+/* --- Modal Styles (Redesign) --- */
+.md3-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    /* Boost z-index */
+    display: none !important;
+    /* Force hidden by default */
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.md3-modal-overlay.open {
+    display: flex !important;
+    /* Force flex when open */
+    opacity: 1;
+}
+
+.md3-modal-card {
+    background: #fff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    /* Wide layout */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    padding: 0;
+    /* Header/Footer handles padding */
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.md3-modal-overlay.open .md3-modal-card {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* Fix for using md3-modal-card inside .overlay (users_list.html) */
+/* Fix for using md3-modal-card inside .overlay (users_list.html) - adjusted */
+.overlay .md3-modal-card {
+    /* Only ensure visibility, let default positioning handle scale if needed, or keep simple */
+    opacity: 1 !important;
+    display: flex !important;
+    /* Ensure flex is active */
+    /* transform removed to avoid conflicts if animation is not desired or jarring */
+}
+
+.md3-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    /* Reduced vertical padding slightly */
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.md3-modal-title {
+    font-size: 24px;
+    font-weight: 500;
+    color: #1a1c1e;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.md3-modal-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #444746;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.md3-modal-close:hover {
+    background-color: #f1f0f4;
+}
+
+.md3-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.md3-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+/* Single column on mobile */
+@media (max-width: 768px) {
+    .md3-grid-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.md3-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background-color: #fff;
+    border-radius: 0 0 12px 12px;
 }
