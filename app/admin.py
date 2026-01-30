@@ -1,6 +1,7 @@
 from datetime import datetime, timezone, timedelta
 import json
 from flask import Blueprint, current_app, g, redirect, render_template, request, url_for, flash, session, abort, jsonify
+from werkzeug.security import generate_password_hash
 from .db import get_db
 from .stats import get_popularity_summary
 import requests
@@ -342,12 +343,15 @@ def admin_users():
     
     if request.method == "POST":
         email = request.form.get("email", "").strip()
-        password_hash = request.form.get("password_hash", "").strip()
+        password = request.form.get("password", "").strip()
         now = datetime.now().isoformat()
 
-        if not email or not password_hash:
-            flash("email と password_hash は必須です", "error")
+        if not email or not password:
+            flash("email と password は必須です", "error")
         else:
+            # Hash the password before storing
+            password_hash = generate_password_hash(password)
+            
             users_ref.add({
                 "email": email,
                 "password_hash": password_hash,
@@ -366,7 +370,8 @@ def admin_users():
         u['id'] = d.id
         users.append(u)
         
-    return render_template("admin/users_list.html", users=users)
+    available_styles = get_all_unique_styles(db)
+    return render_template("admin/users_list.html", users=users, available_styles=available_styles)
 
 @admin_bp.route("/users/<user_id>/edit", methods=["GET", "POST"])
 def admin_user_edit(user_id):
