@@ -207,9 +207,10 @@ def restrict_admin_access():
     if not doc.exists:
         abort(403)
     
-    user_data = doc.to_dict()
-    if user_data.get("email", "").lower() != "admin@example.com":
-       abort(403)
+    # Admin権限を全員に付与: 署名済みユーザーなら通す
+    # user_data = doc.to_dict()
+    # if user_data.get("email", "").lower() != "admin@example.com":
+    #    abort(403)
     pass
 
 @admin_bp.route("/")
@@ -332,8 +333,43 @@ def admin_item_edit(item_id):
 @admin_bp.route("/items/<item_id>/delete", methods=["POST"])
 def admin_item_delete(item_id):
     db = get_db()
+    # Log delete action (who deleted what)
+    try:
+        user_id = session.get("user_id")
+        user_email = None
+        if user_id:
+            u_doc = db.collection('users').document(user_id).get()
+            if u_doc.exists:
+                user_email = (u_doc.to_dict().get("email") or "").strip()
+
+        item_ref = db.collection('items').document(str(item_id))
+        item_doc = item_ref.get()
+        item_name = None
+        if item_doc.exists:
+            item_name = item_doc.to_dict().get("name")
+
+        db.collection('admin_item_deletes').add({
+            "user_id": user_id,
+            "user_email": user_email,
+            "item_id": str(item_id),
+            "item_name": item_name,
+            "deleted_at": datetime.now().isoformat()
+        })
+
+        # Persist cumulative delete counts for quick lookups
+        if user_id:
+            stats_ref = db.collection('admin_item_delete_stats').document(user_id)
+            stats_ref.set({
+                "user_id": user_id,
+                "user_email": user_email,
+                "delete_count": firestore.Increment(1),
+                "updated_at": datetime.now().isoformat()
+            }, merge=True)
+    except Exception as e:
+        print(f"Error logging item delete: {e}")
+
     db.collection('items').document(str(item_id)).delete()
-    flash("item を削除しました", "success")
+    flash("item ???????", "success")
     return redirect(url_for("admin.admin_items"))
 
 
@@ -365,11 +401,30 @@ def admin_users():
             flash("user を追加しました", "success")
             return redirect(url_for("admin.admin_users"))
 
+    # Aggregate delete counts by user (prefer pre-computed stats, fall back to raw logs)
+    delete_counts = {}
+    try:
+        stats_docs = db.collection('admin_item_delete_stats').stream()
+        for s in stats_docs:
+            delete_counts[s.id] = int(s.to_dict().get("delete_count", 0))
+    except Exception as e:
+        print(f"Error loading delete stats: {e}")
+        try:
+            delete_docs = db.collection('admin_item_deletes').stream()
+            for d in delete_docs:
+                dd = d.to_dict()
+                uid = dd.get("user_id")
+                if uid:
+                    delete_counts[uid] = delete_counts.get(uid, 0) + 1
+        except Exception as fallback_error:
+            print(f"Error aggregating delete counts from logs: {fallback_error}")
+
     docs = users_ref.order_by("created_at", direction=firestore.Query.DESCENDING).stream()
     users = []
     for d in docs:
         u = d.to_dict()
         u['id'] = d.id
+        u['delete_count'] = delete_counts.get(d.id, 0)
         users.append(u)
         
     available_styles = get_all_unique_styles(db)

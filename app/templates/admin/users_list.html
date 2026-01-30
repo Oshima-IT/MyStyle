@@ -67,7 +67,7 @@
 
                 <!-- Action: Edit Button (Triggers Modal) -->
                 <div class="md3-card-action">
-                    <button class="md3-icon-button" type="button" data-id="{{ user.id }}" data-email="{{ user.email }}" data-password-hash="{{ user.password_hash }}" data-styles="{{ user.preferred_styles or '' }}" data-colors="{{ user.preferred_colors or '' }}" onclick="openUserEditModal(this)" title="Edit">
+                    <button class="md3-icon-button" type="button" data-id="{{ user.id }}" data-email="{{ user.email }}" data-password-hash="{{ user.password_hash }}" data-styles="{{ user.preferred_styles or '' }}" data-colors="{{ user.preferred_colors or '' }}" data-delete-count="{{ user.delete_count or 0 }}" onclick="openUserEditModal(this)" title="Edit">
                         <span class="material-symbols-outlined">edit</span>
                     </button>
                 </div>
@@ -85,9 +85,16 @@
 <div class="overlay hidden" id="user-edit-modal">
     <div class="md3-modal-card">
         <div class="md3-modal-header">
-            <div class="md3-modal-title">
-                <span class="material-symbols-outlined">manage_accounts</span>
-                User編集 <span id="modal-user-id-display" style="font-size:0.6em; color:#666; font-weight:normal;"></span>
+            <div class="md3-modal-title" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined">manage_accounts</span>
+                    <span>
+                        User編集 <span id="modal-user-id-display" style="font-size:0.6em; color:#666; font-weight:normal;"></span>
+                    </span>
+                </div>
+                <div style="font-size: 0.8em; color: #666;">
+                    Delete count: <span id="modal-delete-count">0</span>
+                </div>
             </div>
             <button class="md3-modal-close" onclick="closeUserEditModal()">
                 <span class="material-symbols-outlined">close</span>
@@ -292,6 +299,7 @@
         const password_hash = btn.dataset.passwordHash;
         const styles = btn.dataset.styles;
         const colors = btn.dataset.colors;
+        const deleteCount = btn.dataset.deleteCount || '0';
 
         // 1. Populate Fields
         document.getElementById('modal-user-id-display').textContent = '#' + id;
@@ -301,6 +309,7 @@
         // 2. Populate Pickers
         if (stylesPicker) stylesPicker.setValue(styles);
         if (colorsPicker) colorsPicker.setValue(colors);
+        document.getElementById('modal-delete-count').textContent = deleteCount;
 
         // 3. Update Form Action
         const form = document.getElementById('user-edit-form');
