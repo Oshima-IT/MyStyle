@@ -476,7 +476,15 @@ def login():
             session["logged_in"] = True
             session["user_id"] = user_id
             
-            session["is_admin"] = True
+            session["is_admin"] = (user.get("email", "").lower() == "admin@example.com")
+
+            # Update last_login_at
+            try:
+                users_ref.document(user_id).update({
+                    "last_login_at": datetime.now().isoformat()
+                })
+            except Exception as e:
+                print(f"Error updating last_login_at: {e}")
 
             p_styles = user.get("preferred_styles", "")
             styles = p_styles.split(",") if p_styles else []
