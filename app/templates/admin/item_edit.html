@@ -88,10 +88,19 @@
         </section>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">保存</button>
+            <button type="submit" class="btn-black-sharp">保存</button>
             <a href="{{ url_for('admin.admin_items') }}" class="btn btn-secondary">戻る</a>
         </div>
     </form>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ddd; display: flex; justify-content: flex-end;">
+        <form action="{{ url_for('admin.admin_item_delete', item_id=item.id) }}" method="post" onsubmit="return confirm('本当にこのアイテムを削除しますか？\nこの操作は取り消せません。');">
+            <button type="submit" class="btn btn-danger" style="display: flex; align-items: center; gap: 4px;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                <span>このアイテムを削除</span>
+            </button>
+        </form>
+    </div>
 </div>
 <div class="overlay hidden" id="picker-overlay">
     <div class="modal">
@@ -106,8 +115,11 @@
 </div>
 
 {% block scripts %}
+<script id="style-options-data" type="application/json">
+    {{ available_styles | tojson | safe }}
+</script>
 <script>
-    const STYLE_OPTIONS = {{ available_styles | tojson }};
+    const STYLE_OPTIONS = JSON.parse(document.getElementById('style-options-data').textContent);
     const COLOR_OPTIONS = ["黒", "白", "グレー", "ネイビー", "青", "ベージュ", "ブラウン", "緑", "赤"];
 
     const overlay = document.getElementById("picker-overlay");

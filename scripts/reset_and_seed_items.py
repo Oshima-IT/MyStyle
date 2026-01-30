@@ -33,6 +33,90 @@ def delete_collection(coll_ref, batch_size):
     if deleted >= batch_size:
         return delete_collection(coll_ref, batch_size)
 
+import re
+
+# ... existing code ...
+
+def parse_init_db():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    sql_path = os.path.join(current_dir, "init_db.sql")
+    
+    with open(sql_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Remove SQL comments (-- ...)
+    content = re.sub(r"--.*", "", content)
+
+    # Regex to capture values inside VALUES (...), (...), ...
+    # This is a simplified regex assuming standard SQL format in init_db.sql
+    # It looks for patterns like ('name', 'category', price, 'styles', 'colors' or NULL, is_trend, 'url', 'url', ...)
+    
+    # First, find the INSERT INTO items ... VALUES part
+    match = re.search(r"INSERT INTO items\s+\([^)]+\)\s+VALUES\s+(.*);", content, re.DOTALL | re.IGNORECASE)
+    if not match:
+        print("Could not find INSERT statement in init_db.sql")
+        return []
+
+    values_str = match.group(1)
+    
+    # Split by ),\n or ), to get individual rows
+    # This might be fragile if strings contain ');' but for this valid SQL file it should work
+    # A robust parser would be better but regex is sufficient for this controlled file
+    raw_rows = re.split(r"\),\s*\(", values_str)
+    
+    items = []
+    
+    for row in raw_rows:
+        # Clean up leading/trailing parens if they exist (only for first and last items)
+        row = row.strip().lstrip('(').rstrip(')')
+        
+        # Split by comma, respecting quotes is hard with simple split. 
+        # But our data is simple. Let's use ast.literal_eval for safety if possible or simple CSV parsing
+        # The SQL string literal uses single quotes.
+        
+        # Simple manual parse state machine or using a library would be best. 
+        # Given the format: key='value', num, ... 
+        
+        # Let's try a regex to find all values
+        # This matches: 'string' OR number OR NULL
+        vals = []
+        parts = re.split(r",\s*(?=(?:[^']*'[^']*')*[^']*$)", row)
+        
+        cleaned_parts = []
+        for p in parts:
+            p = p.strip()
+            if p.upper() == "NULL":
+                cleaned_parts.append(None)
+            elif p.startswith("'") and p.endswith("'"):
+                cleaned_parts.append(p[1:-1]) # Strip quotes
+            else:
+                try:
+                    cleaned_parts.append(int(p))
+                except:
+                    try:
+                        cleaned_parts.append(float(p))
+                    except:
+                         cleaned_parts.append(p) # Fallback
+        
+        # Map to dict
+        # Columns: name, category, price, styles, colors, is_trend, image_url, shop_url, created_at
+        if len(cleaned_parts) >= 8:
+            item = {
+                'name': cleaned_parts[0],
+                'category': cleaned_parts[1],
+                'price': cleaned_parts[2],
+                'styles': cleaned_parts[3],
+                'colors': cleaned_parts[4],
+                'is_trend': cleaned_parts[5],
+                'image_url': cleaned_parts[6],
+                'shop_url': cleaned_parts[7],
+                # created_at is usually current_timestamp in SQL, we generate valid datetime here
+                'created_at': datetime.now() 
+            }
+            items.append(item)
+            
+    return items
+
 def seed_items():
     # 1. Delete existing items
     print("Deleting existing items...")
@@ -41,70 +125,27 @@ def seed_items():
     print("Existing items deleted.")
 
     # 2. Prepare new data
-    # Data extracted from init_db.sql
-    items_data = [
-        # フレンチガーリー
-        {'name': 'カーディガン', 'category': 'カーディガン', 'price': 4180, 'styles': 'フレンチガーリー', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=156706254'},
-        {'name': 'ポレロ', 'category': 'ボレロ', 'price': 5940, 'styles': 'フレンチガーリー', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=157411305'},
-        {'name': 'リボンブラウス', 'category': 'ブラウス', 'price': 5000, 'styles': 'フレンチガーリー', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=157892892'},
-        {'name': 'リボンセットアップ', 'category': 'セットアップ', 'price': 8990, 'styles': 'フレンチガーリー', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=143837770'},
-        {'name': '小花柄スカート', 'category': 'スカート', 'price': 4490, 'styles': 'フレンチガーリー', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=149563173'},
+    items_data = parse_init_db()
 
-        # 地雷系
-        {'name': '地雷セットアップ', 'category': 'セットアップ', 'price': 12100, 'styles': '地雷系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=151232569'},
-        {'name': '厚底ブーツ', 'category': 'ブーツ', 'price': 6518, 'styles': '地雷系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=158935282'},
-        {'name': 'チョーカー', 'category': 'アクセサリー', 'price': 2750, 'styles': '地雷系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=147737351'},
-        {'name': 'ブラウス', 'category': 'ブラウス', 'price': 5940, 'styles': '地雷系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=147831739'},
-        {'name': '地雷バッグ', 'category': 'バッグ', 'price': 12980, 'styles': '地雷系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=153993050'},
-
-        # サブカル系
-        {'name': 'スウェット', 'category': 'スウェット', 'price': 13970, 'styles': 'サブカル系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=160622545'},
-        {'name': 'ロンT', 'category': 'ロンT', 'price': 5900, 'styles': 'サブカル系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=150456157'},
-        {'name': 'レッグウォーマー', 'category': 'レッグウォーマー', 'price': 2900, 'styles': 'サブカル系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=150456070'},
-        {'name': 'ジャージ', 'category': 'ジャージ', 'price': 12900, 'styles': 'サブカル系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=150456199'},
-
-        # 量産型
-        {'name': '量産ワンピース', 'category': 'ワンピース', 'price': 10990, 'styles': '量産型', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=149817894'},
-        {'name': '厚底ローファー', 'category': 'ローファー', 'price': 4389, 'styles': '量産型', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=153623183'},
-        {'name': 'リボンヘアアクセ', 'category': 'ヘアアクセ', 'price': 2200, 'styles': '量産型', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=161649089'},
-        {'name': 'フレアスカート', 'category': 'スカート', 'price': 5940, 'styles': '量産型', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=147834413'},
-        {'name': 'レースタイツ', 'category': 'タイツ', 'price': 2860, 'styles': '量産型', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=141301414'},
-
-        # ストリート系
-        {'name': 'オーバーサイズパーカー', 'category': 'パーカー', 'price': 6600, 'styles': 'ストリート系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=128611533'},
-        {'name': 'スニーカー', 'category': 'スニーカー', 'price': 4500, 'styles': 'ストリート系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=157886056'},
-        {'name': 'カーゴパンツ', 'category': 'パンツ', 'price': 6219, 'styles': 'ストリート系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=131053052'},
-        {'name': 'キャップ', 'category': 'キャップ', 'price': 8800, 'styles': 'ストリート系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=153219106'},
-        {'name': 'グラフィックT', 'category': 'Tシャツ', 'price': 3450, 'styles': 'ストリート系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=133981311'},
-
-        # Y2K
-        {'name': 'クロップドトップス', 'category': 'トップス', 'price': 4950, 'styles': 'Y2K', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=143631556'},
-        {'name': 'ミニスカート', 'category': 'スカート', 'price': 5170, 'styles': 'Y2K', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=158132706'},
-        {'name': 'カラフルサングラス', 'category': 'サングラス', 'price': 1500, 'styles': 'Y2K', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=153620804'},
-        {'name': '厚底ブーツ', 'category': 'ブーツ', 'price': 6599, 'styles': 'Y2K', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=156016572'},
-        {'name': 'ショルダーバッグ', 'category': 'バッグ', 'price': 5280, 'styles': 'Y2K', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=149189923'},
-
-        # ロック系
-        {'name': 'ブルゾン', 'category': 'ブルゾン', 'price': 5990, 'styles': 'ロック系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=128555163'},
-        {'name': 'バンドTシャツ', 'category': 'Tシャツ', 'price': 7990, 'styles': 'ロック系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=148381520'},
-        {'name': 'スタッズブーツ', 'category': 'ブーツ', 'price': 36300, 'styles': 'ロック系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=154414415'},
-        {'name': '黒スキニー', 'category': 'パンツ', 'price': 7480, 'styles': 'ロック系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=130814163'},
-        {'name': 'チェーンベルト', 'category': 'ベルト', 'price': 1340, 'styles': 'ロック系', 'colors': None, 'is_trend': 0, 'image_url': '/static/images/no_image.png', 'shop_url': 'https://zozo.jp/?c=gr&did=148955756'}
-    ]
-
-    print(f"Seeding {len(items_data)} items...")
+    print(f"Seeding {len(items_data)} items from init_db.sql...")
     
     batch = db.batch()
     count = 0
     total_count = 0
     
     for item in items_data:
-        item['created_at'] = datetime.now()
         doc_ref = items_ref.document()
+        # Ensure price is int
+        if item.get("price"):
+            try:
+                item["price"] = int(item["price"])
+            except:
+                pass
+                
         batch.set(doc_ref, item)
         count += 1
         
-        # Commit every 500 items (though we have less)
+        # Commit every 400 items
         if count >= 400:
             batch.commit()
             total_count += count
@@ -119,3 +160,4 @@ def seed_items():
 
 if __name__ == "__main__":
     seed_items()
+

@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% block admin_content %}
 <div class="split">
-    <div class="card">
+    <div class="card" style="padding-bottom: 15px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 style="margin: 0;">Items</h2>
             <div class="admin-sort-controls">
@@ -51,7 +51,7 @@
                 </div>
                 <div class="admin-card-main">
                     <div class="admin-card-title">
-                        <span class="admin-card-id">#{{ item.id }}</span>
+                        <!-- <span class="admin-card-id">#{{ item.id }}</span> -->
                         <span class="admin-card-name">{{ item.name }}</span>
                         {% if item.popularity_score %}
                         <span class="tag tag-trend">Score: {{ item.popularity_score }}</span>
@@ -94,16 +94,9 @@
                     </div>
                 </div>
 
-                <div class="admin-card-actions">
-                    <a class="btn btn-secondary btn-icon" href="{{ url_for('admin.admin_item_edit', item_id=item.id) }}">
-                        <span class="material-symbols-outlined">edit</span>
-                    </a>
-                    <form action="{{ url_for('admin.admin_item_delete', item_id=item.id) }}" method="post" onsubmit="return confirm('削除しますか？');">
-                        <button class="btn btn-danger btn-icon" type="submit">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </form>
-                </div>
+                <a class="btn btn-secondary btn-icon" href="{{ url_for('admin.admin_item_edit', item_id=item.id) }}">
+                    <span class="material-symbols-outlined">edit</span>
+                </a>
             </div>
             {% else %}
             <p class="admin-empty">No items.</p>
@@ -112,17 +105,19 @@
 
         {% if total_pages > 1 %}
         <div class="pagination">
-            <a href="{{ url_for('admin.admin_items', page=page-1, sort=sort_by, order=order) }}" class="btn btn-secondary {% if page == 1 %}disabled{% endif %}">
-                &laquo; Prev
-            </a>
-            <div class="page-info">
-                Page
-                <input type="number" id="page-jump" value="{{ page }}" min="1" max="{{ total_pages }}" data-url="{{ url_for('admin.admin_items') }}" data-sort="{{ sort_by }}" data-order="{{ order }}">
-                of {{ total_pages }}
+            <div>
+                <a href="{{ url_for('admin.admin_items', page=page-1, sort=sort_by, order=order) }}" class="btn btn-secondary btn-icon {% if page == 1 %}disabled{% endif %}">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </a>
             </div>
-            <a href="{{ url_for('admin.admin_items', page=page+1, sort=sort_by, order=order) }}" class="btn btn-secondary {% if page == total_pages %}disabled{% endif %}">
-                Next &raquo;
-            </a>
+            <div class="pagination-info">
+                <span>{{ ((page - 1) * per_page + 1) }}-{{ [page * per_page, total_items]|min }} / {{ total_items }}</span>
+            </div>
+            <div>
+                <a href="{{ url_for('admin.admin_items', page=page+1, sort=sort_by, order=order) }}" class="btn btn-secondary btn-icon {% if page == total_pages %}disabled{% endif %}">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </a>
+            </div>
         </div>
         {% endif %}
     </div>
@@ -196,7 +191,7 @@
 
 
             <div class="actions">
-                <button type="submit" class="btn btn-primary w-full">追加</button>
+                <button type="submit" class="btn-black-sharp w-full">追加</button>
             </div>
         </form>
     </div>
@@ -214,15 +209,24 @@
     </div>
 </div>
 
+</div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
+<script id="style-options-data" type="application/json">
+    {{ available_styles | tojson | safe }}
+</script>
+<script id="category-options-data" type="application/json">
+    {{ available_categories | tojson | safe }}
+</script>
 <script>
     console.log("Admin Items Script initializing...");
 
-    const STYLE_OPTIONS = {{ available_styles | tojson | safe }};
+    const STYLE_OPTIONS = JSON.parse(document.getElementById('style-options-data').textContent);
     const COLOR_OPTIONS = ["黒", "白", "グレー", "ネイビー", "青", "ベージュ", "ブラウン", "緑", "赤"];
-    const CATEGORY_OPTIONS = {{ available_categories | tojson | safe }};
+    const CATEGORY_OPTIONS = JSON.parse(document.getElementById('category-options-data').textContent);
 
     const overlay = document.getElementById("picker-overlay");
     const tagGrid = document.getElementById("tag-grid");
@@ -328,19 +332,6 @@
         document.querySelectorAll("[data-open-modal]").forEach(btn => {
             btn.addEventListener("click", () => openModal(btn.dataset.openModal, btn.dataset.targetId));
         });
-        const pageJump = document.getElementById('page-jump');
-        if (pageJump) {
-            pageJump.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    const page = this.value;
-                    const baseUrl = this.getAttribute('data-url');
-                    const sort = this.getAttribute('data-sort');
-                    const order = this.getAttribute('data-order');
-                    let url = `${baseUrl}?page=${page}&sort=${sort || ""}&order=${order || ""}`;
-                    window.location.href = url;
-                }
-            });
-        }
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initScripts);

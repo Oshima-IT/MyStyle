@@ -2,47 +2,74 @@
 {% block admin_content %}
 <div class="split">
     <div class="card">
-        <h2>Users</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;">Users</h2>
+            <button type="button" class="btn-black-sharp w-auto" onclick="openUserAddModal()" style="font-size: 10px; padding: 8px 16px;">
+                <span class="material-symbols-outlined" style="font-size: 18px;">person_add</span>
+                新規追加
+            </button>
+        </div>
         <div class="admin-list">
             {% for user in users %}
-            <div class="admin-card-row">
-                <div class="admin-card-main">
-                    <div class="admin-card-title">
-                        <span class="admin-card-id">#{{ user.id }}</span>
-                        <span class="admin-card-name">{{ user.email }}</span>
+            <div class="md3-card-row">
+                <div class="md3-card-content">
+                    <!-- Primary Info: Icon + Email + Last Login -->
+                    <div class="md3-card-header">
+                        <div class="md3-avatar">
+                            <span class="material-symbols-outlined">account_circle</span>
+                        </div>
+                        <div class="md3-text-group">
+                            <div class="md3-primary-text">{{ user.email }}</div>
+                            <div class="md3-secondary-text">
+                                <span class="material-symbols-outlined icon-small">history</span>
+                                <span>
+                                    {% if user.last_login_at %}
+                                    Last Login: {{ user.last_login_at | replace('T', ' ') | truncate(16, True, '') }}
+                                    {% else %}
+                                    Never logged in
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="admin-card-tags">
+                    <!-- Meta Info: Styles & Colors (Chips) -->
+                    <div class="md3-card-meta">
                         {% if user.preferred_styles %}
-                        <span class="tag-label">Styles:</span>
-                        {% for s in user.preferred_styles.split(',') %}
-                        <span class="tag tag-style">{{ s }}</span>
-                        {% endfor %}
+                        <div class="md3-meta-row">
+                            <div class="md3-chip-group">
+                                {% for s in user.preferred_styles.split(',') %}
+                                {% if s.strip() %}
+                                <span class="md3-chip surface-variant">#{{ s.strip() }}</span>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
                         {% endif %}
 
                         {% if user.preferred_colors %}
-                        <span class="tag-label">Colors:</span>
-                        {% for c in user.preferred_colors.split(',') %}
-                        <span class="tag tag-color">
-                            <span class="color-dot" data-color="{{ c }}"></span>
-                            <span>{{ c }}</span>
-                        </span>
-                        {% endfor %}
+                        <div class="md3-meta-row">
+                            <span class="material-symbols-outlined icon-small meta-icon">palette</span>
+                            <div class="md3-chip-group">
+                                {% for c in user.preferred_colors.split(',') %}
+                                {% if c.strip() %}
+                                <span class="md3-chip surface-variant">
+                                    <span class="color-dot-small" data-color="{{ c.strip() }}"></span>
+                                    {{ c.strip() }}
+                                </span>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
 
-                <div class="admin-card-actions">
-                    <a class="btn btn-secondary btn-icon"
-                        href="{{ url_for('admin.admin_user_edit', user_id=user.id) }}">
+                <!-- Action: Edit Button (Triggers Modal) -->
+                <div class="md3-card-action">
+                    <button class="md3-icon-button" type="button" data-id="{{ user.id }}" data-email="{{ user.email }}" data-password-hash="{{ user.password_hash }}" data-styles="{{ user.preferred_styles or '' }}" data-colors="{{ user.preferred_colors or '' }}" data-delete-count="{{ user.delete_count or 0 }}" onclick="openUserEditModal(this)" title="Edit">
                         <span class="material-symbols-outlined">edit</span>
-                    </a>
-                    <form action="{{ url_for('admin.admin_user_delete', user_id=user.id) }}" method="post"
-                        onsubmit="return confirm('削除しますか？');">
-                        <button class="btn btn-danger btn-icon" type="submit">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </form>
+                    </button>
                 </div>
             </div>
             {% else %}
@@ -50,29 +77,299 @@
             {% endfor %}
         </div>
     </div>
-    <div class="card">
-        <h2>Userを追加</h2>
-        <form method="post">
-            <div>
-                <label>Email</label>
-                <input type="text" name="email" required>
+</div>
+
+<!-- ========================================== -->
+<!-- User Edit Modal Component (Hidden by default) -->
+<!-- ========================================== -->
+<div class="overlay hidden" id="user-edit-modal">
+    <div class="md3-modal-card">
+        <div class="md3-modal-header">
+            <div class="md3-modal-title" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined">manage_accounts</span>
+                    <span>
+                        User編集 <span id="modal-user-id-display" style="font-size:0.6em; color:#666; font-weight:normal;"></span>
+                    </span>
+                </div>
+                <div style="font-size: 0.8em; color: #666;">
+                    Delete count: <span id="modal-delete-count">0</span>
+                </div>
             </div>
-            <div>
-                <label>Password Hash</label>
-                <input type="text" name="password_hash" required>
-            </div>
-            <div>
-                <label>Preferred Styles (カンマ区切り)</label>
-                <input type="text" name="preferred_styles" placeholder="street,vintage">
-            </div>
-            <div>
-                <label>Preferred Colors (カンマ区切り)</label>
-                <input type="text" name="preferred_colors" placeholder="black,white">
-            </div>
-            <div class="actions">
-                <button type="submit" class="btn btn-primary">追加</button>
-            </div>
-        </form>
+            <button class="md3-modal-close" onclick="closeUserEditModal()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="md3-modal-body">
+            <form method="post" id="user-edit-form">
+                <div class="md3-grid-layout">
+                    <!-- Column 1 (Full Width now) -->
+                    <div style="grid-column: 1 / -1;">
+                        <!-- Email -->
+                        <div class="md3-input-group">
+                            <input type="email" name="email" id="edit_email" class="md3-input-field" placeholder=" " required>
+                            <label for="edit_email" class="md3-input-label">Email</label>
+                            <span class="material-symbols-outlined md3-input-icon">mail</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md3-grid-layout" style="margin-top: 24px;">
+                    <!-- Column 1 -->
+                    <div>
+                        <!-- Styles (Chip Input) -->
+                        <label class="tag-picker-label">STYLES</label>
+                        <div class="md3-input-group">
+                            <div class="chip-input-container" id="edit-styles-container">
+                                <span class="material-symbols-outlined md3-input-icon">style</span>
+                                <input type="text" id="edit-styles-input" class="chip-input-field" placeholder=" ">
+                                <label for="edit-styles-input" class="md3-input-label">Preferred Styles</label>
+                            </div>
+                            <input type="hidden" name="preferred_styles" id="edit-hidden-styles">
+                        </div>
+                    </div>
+
+                    <!-- Column 2 -->
+                    <div>
+                        <!-- Colors (Chip Input) -->
+                        <label class="tag-picker-label">COLORS</label>
+                        <div class="md3-input-group">
+                            <div class="chip-input-container" id="edit-colors-container">
+                                <span class="material-symbols-outlined md3-input-icon">palette</span>
+                                <input type="text" id="edit-colors-input" class="chip-input-field" placeholder=" ">
+                                <label for="edit-colors-input" class="md3-input-label">Preferred Colors</label>
+                            </div>
+                            <input type="hidden" name="preferred_colors" id="edit-hidden-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer within Form to submit -->
+                <div class="md3-modal-footer">
+                    <button type="button" class="btn btn-secondary w-auto" onclick="closeUserEditModal()">キャンセル</button>
+                    <button type="submit" class="btn-black-sharp w-auto">
+                        <span class="material-symbols-outlined">save</span>
+                        保存
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+
+<!-- ========================================== -->
+<!-- User Add Modal Component (Hidden by default) -->
+<!-- ========================================== -->
+<div class="overlay hidden" id="user-add-modal">
+    <div class="md3-modal-card">
+        <div class="md3-modal-header">
+            <div class="md3-modal-title">
+                <span class="material-symbols-outlined">person_add</span>
+                新規ユーザー追加
+            </div>
+            <button class="md3-modal-close" onclick="closeUserAddModal()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="md3-modal-body">
+            <form method="post" id="user-add-form">
+                <div class="md3-grid-layout">
+                    <!-- Email (Full Width) -->
+                    <div style="grid-column: 1 / -1;">
+                        <div class="md3-input-group">
+                            <input type="email" name="email" id="add_email" class="md3-input-field" placeholder=" " required>
+                            <label for="add_email" class="md3-input-label">Email</label>
+                            <span class="material-symbols-outlined md3-input-icon">mail</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md3-grid-layout" style="margin-top: 16px;">
+                    <!-- Password (Full Width) -->
+                    <div style="grid-column: 1 / -1;">
+                        <div class="md3-input-group">
+                            <input type="password" name="password" id="add_password" class="md3-input-field" placeholder=" " required>
+                            <label for="add_password" class="md3-input-label">Password</label>
+                            <span class="material-symbols-outlined md3-input-icon">key</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md3-grid-layout" style="margin-top: 24px;">
+                    <!-- Column 1 -->
+                    <div>
+                        <!-- Styles (Chip Input) -->
+                        <label class="tag-picker-label">STYLES</label>
+                        <div class="md3-input-group">
+                            <div class="chip-input-container" id="add-styles-container">
+                                <span class="material-symbols-outlined md3-input-icon">style</span>
+                                <input type="text" id="add-styles-input" class="chip-input-field" placeholder=" ">
+                                <label for="add-styles-input" class="md3-input-label">Preferred Styles</label>
+                            </div>
+                            <input type="hidden" name="preferred_styles" id="add-hidden-styles">
+                        </div>
+                    </div>
+
+                    <!-- Column 2 -->
+                    <div>
+                        <!-- Colors (Chip Input) -->
+                        <label class="tag-picker-label">COLORS</label>
+                        <div class="md3-input-group">
+                            <div class="chip-input-container" id="add-colors-container">
+                                <span class="material-symbols-outlined md3-input-icon">palette</span>
+                                <input type="text" id="add-colors-input" class="chip-input-field" placeholder=" ">
+                                <label for="add-colors-input" class="md3-input-label">Preferred Colors</label>
+                            </div>
+                            <input type="hidden" name="preferred_colors" id="add-hidden-colors">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer within Form to submit -->
+                <div class="md3-modal-footer">
+                    <button type="button" class="btn btn-secondary w-auto" onclick="closeUserAddModal()">キャンセル</button>
+                    <button type="submit" class="btn-black-sharp w-auto">
+                        <span class="material-symbols-outlined">person_add</span>
+                        追加
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- Tag Picker Modal (Shared Overlay)          -->
+<!-- ========================================== -->
+<div class="overlay hidden" id="picker-overlay">
+    <div class="md3-modal-card" style="max-width: 600px; height: auto; max-height: 80vh;">
+        <div class="md3-modal-header">
+            <div class="md3-modal-title" id="modal-title">選択</div>
+            <button class="md3-modal-close" onclick="document.getElementById('picker-overlay').classList.add('hidden')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="md3-modal-body" style="padding-top: 0;">
+            <div id="tag-grid" class="tag-grid" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 0;"></div>
+        </div>
+        <div class="md3-modal-footer">
+            <button type="button" class="btn-filled" id="modal-apply">完了</button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Styles Data for Picker -->
+<script id="available-styles-data" type="application/json">
+    {{ (available_styles or []) | tojson | safe }}
+</script>
+<script>
+    // Load from data script to avoid Linter/Syntax issues
+    try {
+        window.AVAILABLE_STYLES = JSON.parse(document.getElementById('available-styles-data').textContent);
+    } catch (e) {
+        console.error("Failed to parse available styles", e);
+        window.AVAILABLE_STYLES = [];
+    }
+</script>
+
+<script>
+    let stylesPicker = null;
+    let colorsPicker = null;
+    let addStylesPicker = null;
+    let addColorsPicker = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Initialize Tag Pickers for Edit Modal
+        stylesPicker = new TagPicker('edit-styles-container', 'edit-hidden-styles', 'styles');
+        colorsPicker = new TagPicker('edit-colors-container', 'edit-hidden-colors', 'colors');
+
+        // Initialize Tag Pickers for Add Modal
+        addStylesPicker = new TagPicker('add-styles-container', 'add-hidden-styles', 'styles');
+        addColorsPicker = new TagPicker('add-colors-container', 'add-hidden-colors', 'colors');
+    });
+
+    function openUserEditModal(btn) {
+        const id = btn.dataset.id;
+        const email = btn.dataset.email;
+        const password_hash = btn.dataset.passwordHash;
+        const styles = btn.dataset.styles;
+        const colors = btn.dataset.colors;
+        const deleteCount = btn.dataset.deleteCount || '0';
+
+        // 1. Populate Fields
+        document.getElementById('modal-user-id-display').textContent = '#' + id;
+        document.getElementById('edit_email').value = email;
+        // document.getElementById('edit_password_hash').value = password_hash; // Removed
+
+        // 2. Populate Pickers
+        if (stylesPicker) stylesPicker.setValue(styles);
+        if (colorsPicker) colorsPicker.setValue(colors);
+        document.getElementById('modal-delete-count').textContent = deleteCount;
+
+        // 3. Update Form Action
+        const form = document.getElementById('user-edit-form');
+        form.action = "/admin/users/" + id + "/edit";
+
+        // 4. Show Modal
+        document.getElementById('user-edit-modal').classList.remove('hidden');
+    }
+
+    function closeUserEditModal() {
+        document.getElementById('user-edit-modal').classList.add('hidden');
+    }
+
+    function openUserAddModal() {
+        // Clear form fields
+        document.getElementById('add_email').value = '';
+        document.getElementById('add_password').value = '';
+
+        // Clear pickers
+        if (addStylesPicker) addStylesPicker.setValue('');
+        if (addColorsPicker) addColorsPicker.setValue('');
+
+        // Show modal
+        document.getElementById('user-add-modal').classList.remove('hidden');
+    }
+
+    function closeUserAddModal() {
+        document.getElementById('user-add-modal').classList.add('hidden');
+    }
+
+    // Close on click outside - Edit Modal
+    document.getElementById('user-edit-modal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('user-edit-modal')) {
+            closeUserEditModal();
+        }
+    });
+
+    // Close on click outside - Add Modal
+    document.getElementById('user-add-modal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('user-add-modal')) {
+            closeUserAddModal();
+        }
+    });
+
+    // Close picker on click outside
+    document.getElementById('picker-overlay').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('picker-overlay')) {
+            document.getElementById('picker-overlay').classList.add('hidden');
+        }
+    });
+
+    function copyToClipboard(id) {
+        const el = document.getElementById(id);
+        el.select();
+        document.execCommand('copy');
+        // Simple feedback
+        const btn = el.parentElement.querySelector('.copy-btn .material-symbols-outlined');
+        const original = btn.textContent;
+        btn.textContent = 'check';
+        setTimeout(() => btn.textContent = original, 1500);
+    }
+</script>
 {% endblock %}

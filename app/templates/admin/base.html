@@ -9,7 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <!-- 管理画面専用CSS (Cache Busting) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin.css') }}?v=15">
+    <script src="{{ url_for('static', filename='admin.js') }}?v=4" defer></script>
     <style>
         .candidate-grid {
             display: flex;
@@ -86,27 +87,42 @@
     <!-- 1. Header -->
     <header class="admin-header">
         <h1><a href="{{ url_for('admin.index') }}">MyStyle Admin</a></h1>
-        <div class="admin-header-user">
-            <!-- 拡張用: ここにログイン中の管理者名などを出せる -->
-            <span>admin@example.com</span>
-            <a href="{{ url_for('logout') }}"><span class="material-symbols-outlined" style="vertical-align: middle;">logout</span></a>
+
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="admin-header-user">
+                <!-- 拡張用: ここにログイン中の管理者名などを出せる -->
+                <span class="user-email">admin@example.com</span>
+            </div>
+            <button class="menu-toggle" id="menu-toggle">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
         </div>
     </header>
 
     <!-- 2. Flex Container -->
     <div class="admin-container">
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
         <!-- Sidebar -->
-        <aside class="admin-sidebar">
+        <aside class="admin-sidebar" id="admin-sidebar">
             <ul class="admin-sidebar-nav">
                 <li>
                     <a href="{{ url_for('admin.admin_items') }}" class="{% if 'items' in request.path %}active{% endif %}">
+                        <span class="material-symbols-outlined">inventory_2</span>
                         アイテム管理
                     </a>
                 </li>
                 <li>
                     <a href="{{ url_for('admin.admin_users') }}" class="{% if 'users' in request.path %}active{% endif %}">
+                        <span class="material-symbols-outlined">group</span>
                         ユーザー管理
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('admin.admin_explanation') }}" class="{% if 'explanation' in request.path %}active{% endif %}">
+                        <span class="material-symbols-outlined">info</span>
+                        管理機能（説明）
                     </a>
                 </li>
             </ul>
@@ -114,7 +130,8 @@
                 <hr>
                 <li>
                     <a href="{{ url_for('home') }}" target="_blank">
-                        サイトを表示 <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">open_in_new</span>
+                        <span class="material-symbols-outlined">visibility</span>
+                        サイトを表示
                     </a>
                 </li>
             </ul>
@@ -137,6 +154,15 @@
                 <div style="margin-top: 4px; text-align: right; color: #888;">
                     残り <span id="api-quota-remaining">{{ remaining }}</span> 件
                 </div>
+            </div>
+
+            <!-- Logout Button -->
+            <div class="admin-sidebar-logout">
+                <hr>
+                <a href="{{ url_for('logout') }}">
+                    <span class="material-symbols-outlined" style="vertical-align: middle;">logout</span>
+                    ログアウト
+                </a>
             </div>
         </aside>
 

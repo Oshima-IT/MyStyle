@@ -1,0 +1,233 @@
+
+/* =========================
+   Trends Page (Minimal Luxury)
+   ========================= */
+.trends-page {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.trends-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+  align-items: flex-start;
+}
+
+.trends-hero-left {
+  min-width: 0;
+}
+
+.trends-title {
+  font-size: 20px;
+  letter-spacing: 0.01em;
+  margin: 0 0 6px;
+}
+
+.trends-desc {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(17,24,39,0.65);
+  line-height: 1.6;
+}
+
+.trends-meta {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+}
+
+.meta-chip {
+  display: inline-flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(17,24,39,0.10);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(6px);
+}
+
+.meta-chip.is-warn {
+  border-color: rgba(210,47,47,0.25);
+}
+
+.meta-label {
+  font-size: 11px;
+  color: rgba(17,24,39,0.55);
+  letter-spacing: 0.02em;
+}
+
+.meta-value {
+  font-size: 12px;
+  color: #111827;
+  font-weight: 600;
+}
+
+.meta-error {
+  font-size: 12px;
+  color: rgba(210,47,47,0.90);
+  line-height: 1.5;
+  max-width: 320px;
+  text-align: right;
+}
+
+/* Cards */
+.trend-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.trend-card {
+  border-radius: 12px;
+  border: 1px solid rgba(17,24,39,0.08);
+  background: #fff;
+  padding: 14px;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+.trend-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 32px rgba(0,0,0,0.06);
+  border-color: rgba(17,24,39,0.14);
+}
+
+.trend-card.is-top {
+  border-color: rgba(17,24,39,0.18);
+}
+
+/* Card Head layout */
+.trend-card-head {
+  display: grid;
+  grid-template-columns: 36px 1fr 130px;
+  gap: 14px;
+  align-items: center;
+}
+
+.trend-rank {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 12px;
+  color: #111827;
+  background: rgba(17,24,39,0.06);
+}
+
+.trend-name-row {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.trend-name {
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #111827;
+}
+
+.trend-article {
+  font-size: 12px;
+  color: rgba(17,24,39,0.55);
+}
+
+.trend-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgba(17,24,39,0.62);
+}
+
+.trend-pv {
+  font-weight: 700;
+  color: rgba(17,24,39,0.86);
+}
+
+/* Metric */
+.trend-metric {
+  text-align: right;
+  padding-left: 12px;
+  border-left: 1px solid rgba(17,24,39,0.08);
+}
+
+.trend-growth {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  color: #0f766e; /* 上品な強調（緑過ぎない） */
+}
+
+.trend-growth-label {
+  font-size: 12px;
+  color: rgba(17,24,39,0.55);
+}
+
+/* Footer */
+.trend-card-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.btn-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(17,24,39,0.14);
+  background: #fff;
+  color: #111827;
+  font-size: 12px;
+  text-decoration: none;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.btn-trend:hover {
+  background: rgba(17,24,39,0.04);
+  border-color: rgba(17,24,39,0.22);
+}
+
+.trend-hint {
+  font-size: 12px;
+  color: rgba(17,24,39,0.55);
+  text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+  .trends-hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .trends-meta {
+    justify-items: start;
+  }
+  .meta-error {
+    text-align: left;
+    max-width: none;
+  }
+  .trend-card-head {
+    grid-template-columns: 36px 1fr;
+  }
+  .trend-metric {
+    grid-column: 1 / -1;
+    text-align: left;
+    border-left: none;
+    padding-left: 0;
+    margin-top: 10px;
+  }
+  .trend-card-foot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .trend-hint {
+    text-align: left;
+  }
+}

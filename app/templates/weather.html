@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}MyStyle - 天気おすすめ{% endblock %}
+
+{% block content %}
+
+<!-- ▼ タブ（ホーム / トレンド / 天気おすすめ） -->
+<div class="page-tabs">
+    <a href="{{ url_for('home') }}" class="tab">ホーム</a>
+    <a href="{{ url_for('trends') }}" class="tab">トレンド</a>
+    <a href="{{ url_for('weather') }}" class="tab active">天気おすすめ</a>
+</div>
+
+{# Weather Section #}
+<section class="card" style="margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <div>
+            <h2 style="margin:0;">今日の天気 × おすすめ</h2>
+            <div style="font-size:0.9em; opacity:0.8;">
+                Data Source: {{ weather.source }} / Location: {{ weather.location.name }}
+            </div>
+        </div>
+        <div style="font-size:0.85em; opacity:0.8; text-align:right;">
+            Updated: {{ weather.updated_at }}
+            {% if weather.stale %}<div style="color:#b45309;">（前回取得データを使用中）</div>{% endif %}
+        </div>
+    </div>
+
+    {% if weather.ok %}
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px;">
+        <div class="mini-card">現在: {{ weather.current_temp }}℃</div>
+        <div class="mini-card">最高: {{ weather.today_max }}℃ / 最低: {{ weather.today_min }}℃</div>
+        <div class="mini-card">降水確率: {{ weather.precip_prob_max }}%</div>
+        <div class="mini-card">風速: {{ weather.wind_max }} m/s</div>
+    </div>
+
+    <div style="margin-top:12px;">
+        <h3 style="margin:12px 0 6px;">このおすすめになった理由</h3>
+        {% if weather_rules %}
+        <ul style="margin:0; padding-left:18px;">
+            {% for r in weather_rules %}
+            <li>{{ r }}</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div style="opacity:0.8;">（特別な条件は検出されませんでした）</div>
+        {% endif %}
+    </div>
+
+    {% if weather_recommended %}
+    <div style="margin-top:12px;">
+        <h3 style="margin:12px 0 6px;">天気に合わせたおすすめ</h3>
+        <div class="history-strip">
+            {% for h in weather_recommended %}
+            <div class="history-card">
+                <a href="/detail/{{ h.id }}">
+                    {% if h.image_url %}<img src="{{ h.image_url }}" loading="lazy" alt="{{ h.name }}">{% endif %}
+                </a>
+                <div class="history-meta">
+                    <div class="name">{{ h.name }}</div>
+                    <div class="price">{{ h.price or '-' }}<span style="font-size:0.8em">円</span></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div style="margin-top:12px; background:#fee2e2; padding:10px; border-radius:8px;">
+        天気データの取得に失敗しました: {{ weather.error }}
+    </div>
+    {% endif %}
+</section>
+
+<!-- Feature Explanation Cards -->
+<section class="feature-explanation-section">
+    <h3 style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem;">機能説明</h3>
+
+    <div class="feature-cards-grid">
+        <!-- Weather Data Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                </svg>
+            </div>
+            <h4 class="feature-title">天気データ連携</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> Open-Meteo APIから名古屋の天気情報を取得し、現在気温・最高/最低気温・降水確率・風速を表示します。</p>
+                <p><strong>ロジック:</strong> 1時間ごとに自動更新し、キャッシュに保存。API障害時は前回取得データをフォールバックとして使用します。</p>
+                <p><strong>用途:</strong> リアルタイムの天気情報に基づいて、その日に最適なファッションアイテムを提案します。</p>
+            </div>
+        </div>
+
+        <!-- Rule-based Recommendation Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+            </div>
+            <h4 class="feature-title">ルールベース推薦</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> 5つの天気条件(降水確率40%以上、最高気温12℃以下、風速8m/s以上、寒暖差8℃以上、最高気温25℃以上)を判定します。</p>
+                <p><strong>ロジック:</strong> 各条件に対応するアイテム属性(防水、アウター、防風、重ね着、通気性)にスコアを付与し、合計スコアでランク付けします。</p>
+                <p><strong>用途:</strong> 天気の特徴を自動分析し、「なぜこのアイテムがおすすめなのか」を明確に説明できます。</p>
+            </div>
+        </div>
+
+        <!-- Smart Matching Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </div>
+            <h4 class="feature-title">スマートマッチング</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> アイテムの名前・カテゴリ・系統タグから、天気条件に合致するキーワードを検索します。</p>
+                <p><strong>ロジック:</strong> 日本語と英語の両方のキーワード(例: 「防水」「waterproof」)に対応し、複数条件マッチでスコアが加算されます。スコア上位10件を表示。</p>
+                <p><strong>用途:</strong> 既存のアイテムデータベースから、天気に最適なアイテムを自動的に抽出・提案します。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
