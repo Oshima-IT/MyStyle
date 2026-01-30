@@ -94,16 +94,9 @@
                     </div>
                 </div>
 
-                <div class="admin-card-actions">
-                    <a class="btn btn-secondary btn-icon" href="{{ url_for('admin.admin_item_edit', item_id=item.id) }}">
-                        <span class="material-symbols-outlined">edit</span>
-                    </a>
-                    <form action="{{ url_for('admin.admin_item_delete', item_id=item.id) }}" method="post" onsubmit="return confirm('削除しますか？');">
-                        <button class="btn btn-danger btn-icon" type="submit">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </form>
-                </div>
+                <a class="btn btn-secondary btn-icon" href="{{ url_for('admin.admin_item_edit', item_id=item.id) }}">
+                    <span class="material-symbols-outlined">edit</span>
+                </a>
             </div>
             {% else %}
             <p class="admin-empty">No items.</p>
@@ -212,12 +205,18 @@
 {% endblock %}
 
 {% block scripts %}
+<script id="style-options-data" type="application/json">
+    {{ available_styles | tojson | safe }}
+</script>
+<script id="category-options-data" type="application/json">
+    {{ available_categories | tojson | safe }}
+</script>
 <script>
     console.log("Admin Items Script initializing...");
 
-    const STYLE_OPTIONS = {{ available_styles | tojson | safe }};
+    const STYLE_OPTIONS = JSON.parse(document.getElementById('style-options-data').textContent);
     const COLOR_OPTIONS = ["黒", "白", "グレー", "ネイビー", "青", "ベージュ", "ブラウン", "緑", "赤"];
-    const CATEGORY_OPTIONS = {{ available_categories | tojson | safe }};
+    const CATEGORY_OPTIONS = JSON.parse(document.getElementById('category-options-data').textContent);
 
     const overlay = document.getElementById("picker-overlay");
     const tagGrid = document.getElementById("tag-grid");
