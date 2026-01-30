@@ -414,3 +414,7 @@ def admin_user_delete(user_id):
     db.collection('users').document(str(user_id)).delete()
     flash("user を削除しました", "success")
     return redirect(url_for("admin.admin_users"))
+
+@admin_bp.route("/explanation")
+def admin_explanation():
+    return render_template("admin/explanation.html")

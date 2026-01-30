@@ -106,6 +106,59 @@
 </section>
 {% endif %}
 
+<!-- Feature Explanation Cards -->
+<section class="feature-explanation-section">
+    <h3 style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem;">機能説明</h3>
+
+    <div class="feature-cards-grid">
+        <!-- Recommended Items Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+            </div>
+            <h4 class="feature-title">おすすめアイテム</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> あなたが設定した「系統」(スタイル)に合致するアイテムを優先的に表示します。</p>
+                <p><strong>ロジック:</strong> アイテムの系統タグとユーザーの好みを照合し、人気度スコア(閲覧数・クリック数・保存数)でランク付けします。</p>
+                <p><strong>用途:</strong> 自分の好みに合った新しいアイテムを効率的に発見できます。系統を編集することで、表示内容をカスタマイズ可能です。</p>
+            </div>
+        </div>
+
+        <!-- Recently Viewed Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9"></path>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+            </div>
+            <h4 class="feature-title">最近見たアイテム</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> 直近で閲覧したアイテムを最大10件まで時系列順に表示します。</p>
+                <p><strong>ロジック:</strong> ログインユーザーはFirestoreに、ゲストユーザーはブラウザCookieに閲覧履歴を保存。ログイン時に履歴が自動的に統合されます。</p>
+                <p><strong>用途:</strong> 気になったアイテムを後から簡単に見返すことができます。比較検討や再訪問に便利です。</p>
+            </div>
+        </div>
+
+        <!-- Favorites Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </div>
+            <h4 class="feature-title">お気に入り</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> 保存したアイテムを一覧表示。保存日時の新しい順に最大10件まで表示されます。</p>
+                <p><strong>ロジック:</strong> 詳細ページのハートアイコンをクリックすることで保存/解除が可能。ログインユーザーはFirestore、ゲストはCookieで管理されます。</p>
+                <p><strong>用途:</strong> 購入候補やコーディネートの参考にしたいアイテムを保存しておくことで、いつでもアクセスできます。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Home modal trigger -->
 <!-- 固定ボタンは削除（カード内のボタンを使用） -->
 

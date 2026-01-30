@@ -73,4 +73,57 @@
     {% endif %}
 </section>
 
+<!-- Feature Explanation Cards -->
+<section class="feature-explanation-section">
+    <h3 style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem;">機能説明</h3>
+
+    <div class="feature-cards-grid">
+        <!-- Weather Data Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                </svg>
+            </div>
+            <h4 class="feature-title">天気データ連携</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> Open-Meteo APIから名古屋の天気情報を取得し、現在気温・最高/最低気温・降水確率・風速を表示します。</p>
+                <p><strong>ロジック:</strong> 1時間ごとに自動更新し、キャッシュに保存。API障害時は前回取得データをフォールバックとして使用します。</p>
+                <p><strong>用途:</strong> リアルタイムの天気情報に基づいて、その日に最適なファッションアイテムを提案します。</p>
+            </div>
+        </div>
+
+        <!-- Rule-based Recommendation Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+            </div>
+            <h4 class="feature-title">ルールベース推薦</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> 5つの天気条件(降水確率40%以上、最高気温12℃以下、風速8m/s以上、寒暖差8℃以上、最高気温25℃以上)を判定します。</p>
+                <p><strong>ロジック:</strong> 各条件に対応するアイテム属性(防水、アウター、防風、重ね着、通気性)にスコアを付与し、合計スコアでランク付けします。</p>
+                <p><strong>用途:</strong> 天気の特徴を自動分析し、「なぜこのアイテムがおすすめなのか」を明確に説明できます。</p>
+            </div>
+        </div>
+
+        <!-- Smart Matching Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+            </div>
+            <h4 class="feature-title">スマートマッチング</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> アイテムの名前・カテゴリ・系統タグから、天気条件に合致するキーワードを検索します。</p>
+                <p><strong>ロジック:</strong> 日本語と英語の両方のキーワード(例: 「防水」「waterproof」)に対応し、複数条件マッチでスコアが加算されます。スコア上位10件を表示。</p>
+                <p><strong>用途:</strong> 既存のアイテムデータベースから、天気に最適なアイテムを自動的に抽出・提案します。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 {% endblock %}

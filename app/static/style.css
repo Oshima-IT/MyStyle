@@ -1206,18 +1206,35 @@ hr {
     text-align: right;
     padding-left: 12px;
     border-left: 1px solid rgba(17, 24, 39, .08);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
 }
 
-#trends .trend-growth {
-    font-size: 20px;
+#trends .trend-score {
+    font-size: 22px;
     font-weight: 900;
     letter-spacing: .01em;
-    color: #0f766e;
+    color: #111827;
 }
 
-#trends .trend-growth-label {
+#trends .trend-score.is-top-score {
+    color: #16a34a;
+}
+
+#trends .trend-growth-small {
     font-size: 12px;
-    color: rgba(17, 24, 39, .55);
+    color: #9E9E9E;
+}
+
+#trends .trend-badge {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 2px 8px;
 }
 
 #trends .trend-card-foot {
@@ -1263,6 +1280,7 @@ hr {
         border-left: none;
         padding-left: 0;
         margin-top: 10px;
+        align-items: flex-start;
     }
 }
 
@@ -1323,16 +1341,9 @@ hr {
 }
 
 /* 伸び率の色：増加=ティール、減少=赤系（品位維持） */
-#trends .trend-card.is-up .trend-growth {
-    color: #0f766e;
-}
-
-#trends .trend-card.is-down .trend-growth {
-    color: rgba(210, 47, 47, 0.90);
-}
-
-#trends .trend-card.is-down .trend-growth-label {
-    color: rgba(210, 47, 47, 0.70);
+#trends .trend-card.is-up .trend-score:not(.is-top-score),
+#trends .trend-card.is-down .trend-score:not(.is-top-score) {
+    color: #111827;
 }
 
 /* クリック可能な“押せる感”を少しだけ強化 */
@@ -1498,4 +1509,96 @@ details.trend-card[open] .trend-chevron {
     font-size: 12px;
     color: #111827;
     text-decoration: none;
+}
+
+/* --- Feature Explanation Cards --- */
+.feature-explanation-section {
+    margin: 60px 0 40px;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.feature-explanation-section h3 {
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.feature-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.feature-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-weak) 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: white;
+}
+
+.feature-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.feature-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0 0 12px 0;
+    letter-spacing: 0.02em;
+}
+
+.feature-description {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+.feature-description p {
+    margin: 0 0 12px 0;
+}
+
+.feature-description p:last-child {
+    margin-bottom: 0;
+}
+
+.feature-description strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .feature-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-explanation-section {
+        padding: 30px 16px;
+        margin: 40px 0 30px;
+    }
 }

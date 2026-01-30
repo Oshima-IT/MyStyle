@@ -119,6 +119,12 @@
                         ユーザー管理
                     </a>
                 </li>
+                <li>
+                    <a href="{{ url_for('admin.admin_explanation') }}" class="{% if 'explanation' in request.path %}active{% endif %}">
+                        <span class="material-symbols-outlined">info</span>
+                        管理機能（説明）
+                    </a>
+                </li>
             </ul>
             <ul class="admin-sidebar-nav">
                 <hr>

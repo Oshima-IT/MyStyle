@@ -1,3 +1,17 @@
+:root {
+    --bg: #f8f8fb;
+    --card: #ffffff;
+    --accent: #111827;
+    --accent-weak: #303644;
+    --text: #161922;
+    --muted: #606575;
+    --danger: #d22f2f;
+    --border: #e4e6ed;
+    --pill: #f0f1f5;
+    --primary: #007bff;
+    --primary-hover: #0056b3;
+}
+
 /* Reset & Base */
 body {
     margin: 0;
@@ -1692,4 +1706,96 @@ td {
     gap: 12px;
     background-color: #fff;
     border-radius: 0 0 12px 12px;
+}
+
+/* --- Feature Explanation Cards --- */
+.feature-explanation-section {
+    margin: 20px 0 40px;
+    padding: 40px 24px;
+    background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.feature-explanation-section h3 {
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+
+.feature-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.feature-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-weak) 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: white;
+}
+
+.feature-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.feature-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0 0 12px 0;
+    letter-spacing: 0.02em;
+}
+
+.feature-description {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+.feature-description p {
+    margin: 0 0 12px 0;
+}
+
+.feature-description p:last-child {
+    margin-bottom: 0;
+}
+
+.feature-description strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .feature-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-explanation-section {
+        padding: 30px 16px;
+        margin: 20px 0;
+    }
 }

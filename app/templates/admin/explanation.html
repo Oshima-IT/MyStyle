@@ -1,0 +1,116 @@
+{% extends "admin/base.html" %}
+
+{% block admin_content %}
+<section class="feature-explanation-section">
+    <h2 style="text-align: center; margin-bottom: 3rem; font-weight: 700;">管理機能の仕様・ロジック説明</h2>
+
+    <!-- Items Management Group -->
+    <h3 style="border-left: 4px solid var(--accent); padding-left: 12px; margin-bottom: 1.5rem; font-size: 1.3rem;">アイテム管理システム</h3>
+    <div class="feature-cards-grid" style="margin-bottom: 4rem;">
+        <!-- CRUD Operations Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+            </div>
+            <h4 class="feature-title">アイテムCRUD操作</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> アイテムの作成(Create)・読取(Read)・更新(Update)・削除(Delete)をFirestoreで管理します。</p>
+                <p><strong>ロジック:</strong> 画像URLはGoogle Custom Search APIで自動検索。系統・カラー・カテゴリはタグピッカーで複数選択可能。人気度スコア(V/C/S)を自動計算して表示。</p>
+                <p><strong>用途:</strong> 商品データベースの効率的な管理と、ユーザー向けレコメンデーションの精度向上を実現します。</p>
+            </div>
+        </div>
+
+        <!-- Pagination Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6"></line>
+                    <line x1="8" y1="12" x2="21" y2="12"></line>
+                    <line x1="8" y1="18" x2="21" y2="18"></line>
+                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+            </div>
+            <h4 class="feature-title">ページネーション&ソート</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> 1ページ5件表示（管理用）。スコア順(人気度)と追加日順の2つのソート方式を切り替え可能。</p>
+                <p><strong>ロジック:</strong> Firestoreクエリで効率的にデータ取得。URLパラメータ(page/sort/order)で状態管理。前後ページへのナビゲーションボタンを提供。</p>
+                <p><strong>用途:</strong> 大量のアイテムデータを快適に閲覧・管理できます。人気アイテムの把握や新着確認に便利。</p>
+            </div>
+        </div>
+
+        <!-- Tag Management Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                </svg>
+            </div>
+            <h4 class="feature-title">タグベース管理</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> 系統(Styles)・カラー(Colors)・カテゴリ(Category)をタグで管理。プリセット選択とカスタム入力に対応。</p>
+                <p><strong>ロジック:</strong> モーダルUIで複数タグを選択。カンマ区切りで保存し、ユーザー画面のフィルタリングやレコメンデーションに活用。</p>
+                <p><strong>用途:</strong> 柔軟な分類システムにより、ユーザーの好みに合わせた精密なアイテム推薦が可能になります。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Management Group -->
+    <h3 style="border-left: 4px solid var(--accent); padding-left: 12px; margin-bottom: 1.5rem; font-size: 1.3rem;">ユーザー管理システム</h3>
+    <div class="feature-cards-grid">
+        <!-- User Management Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <polyline points="17 11 19 13 23 9"></polyline>
+                </svg>
+            </div>
+            <h4 class="feature-title">ユーザーアカウント管理</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> ユーザーの作成・編集をモーダルUIで実行。メールアドレスとパスワードで認証を管理します。</p>
+                <p><strong>ロジック:</strong> パスワードはwerkzeugでハッシュ化して保存。最終ログイン日時を自動記録。Firestoreのusersコレクションで一元管理。</p>
+                <p><strong>用途:</strong> セキュアなユーザー管理と、ログイン履歴の追跡により、システムの安全性と利用状況を把握できます。</p>
+            </div>
+        </div>
+
+        <!-- Preference Management Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2 5.2l-4.2-4.2m0-6l4.2-4.2"></path>
+                </svg>
+            </div>
+            <h4 class="feature-title">好み設定管理</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> ユーザーごとに好みの系統(Styles)とカラー(Colors)を設定。チップ入力UIで直感的に編集可能。</p>
+                <p><strong>ロジック:</strong> TagPickerコンポーネントで複数選択を実現。プリセットとカスタム入力の両方に対応。カンマ区切りで保存し、セッションに格納。</p>
+                <p><strong>用途:</strong> ユーザーの好みを正確に把握し、パーソナライズされたアイテム推薦の精度を向上させます。</p>
+            </div>
+        </div>
+
+        <!-- Security Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+            </div>
+            <h4 class="feature-title">セキュリティ&権限管理</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> 管理画面へのアクセスは管理者権限(admin@example.com)のみに制限。セッションベースの認証を採用。</p>
+                <p><strong>ロジック:</strong> ログイン時にis_adminフラグをセッションに保存。各管理ページで権限チェックを実施。未認証ユーザーは自動的にログインページへリダイレクト。</p>
+                <p><strong>用途:</strong> 不正アクセスを防ぎ、システムの整合性とユーザーデータの安全性を確保します。</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

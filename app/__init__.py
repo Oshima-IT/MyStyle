@@ -215,6 +215,7 @@ def update_weather_cache(force=False):
 # --- Wiki Trends Cache & Logic ---
 WIKI_CACHE_FILE = os.path.join(INSTANCE_DIR, "wiki_trend_cache.json")
 WIKI_TTL_SEC = 6 * 60 * 60  # 6 hours
+WIKI_STARTUP_MAX_AGE_SEC = 24 * 60 * 60  # 1 day
 
 # 表示ラベル → Wikipedia記事（英語）
 # WIKI_STYLE_MAPPING removed in favor of DB style_wiki_map
@@ -341,6 +342,15 @@ def update_wiki_cache(force=False):
         else:
             save_wiki_cache({"ok": False, "error": str(e), "source": "Wikimedia Pageviews"})
 
+def is_cache_stale(path, max_age_sec):
+    if not os.path.exists(path):
+        return True
+    try:
+        age = time.time() - os.path.getmtime(path)
+        return age >= max_age_sec
+    except Exception:
+        return True
+
 # Initialize Scheduler
 scheduler = BackgroundScheduler()
 scheduler.start()
@@ -358,12 +368,13 @@ if not os.path.exists(WEATHER_CACHE_FILE):
         pass
 
 # Run wiki initially if needed
-if not os.path.exists(WIKI_CACHE_FILE):
+if is_cache_stale(WIKI_CACHE_FILE, WIKI_STARTUP_MAX_AGE_SEC):
     # Run in background via thread or just sync for simple start?
     # Sync for demo so data appears immediately
     try:
         print("Initial Wiki Trends update...")
-        update_wiki_cache(force=True)
+        with app.app_context():
+            update_wiki_cache(force=True)
     except Exception as e:
         print(f"Initial Wiki Update failed: {e}")
 

@@ -56,44 +56,47 @@
                         </div>
                     </div>
 
-                    <div class="trend-metric">
-                        <div class="trend-growth">{{ (t.growth*100)|round(1) }}%</div>
-                        <div class="trend-growth-label">{% if t.growth < 0 %}減少{% else %}増加{% endif %}</div>
-                        </div>
-                    </div>
-
-                    <div class="trend-chevron">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </div>
-            </summary>
-
-            <div class="trend-items-expander">
-                {% if t.trend_items %}
-                <div class="trend-item-grid">
-                    {% for item in t.trend_items %}
-                    <a href="/detail/{{ item.id }}" class="trend-item-thumb">
-                        <div class="ti-img-box">
-                            {% if item.image_url %}
-                            <img src="{{ item.image_url }}" alt="{{ item.name }}" loading="lazy">
-                            {% else %}
-                            <div class="no-img">No Img</div>
+                    {% set score = 100 + (t.growth * 50) %}
+                    {% if score < 0 %}{% set score=0 %}{% endif %} <div class="trend-metric">
+                        <div class="trend-score{% if loop.index <= 3 %} is-top-score{% endif %}">{{ score|round(1) }}</div>
+                        <div class="trend-growth-small">前週比 {{ (t.growth*100)|round(1) }}%</div>
+                        {% if t.growth < 0 %} <span class="trend-badge">キープ</span>
                             {% endif %}
-                        </div>
-                        <div class="ti-info">
-                            <div class="ti-brand">{{ item.brand|default('BRAND') }}</div>
-                            <div class="ti-price">¥{{ "{:,}".format(item.price|default(0)|int) }}</div>
-                        </div>
-                    </a>
-                    {% endfor %}
+                </div>
+    </div>
+
+    <div class="trend-chevron">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+    </div>
+    </summary>
+
+    <div class="trend-items-expander">
+        {% if t.trend_items %}
+        <div class="trend-item-grid">
+            {% for item in t.trend_items %}
+            <a href="/detail/{{ item.id }}" class="trend-item-thumb">
+                <div class="ti-img-box">
+                    {% if item.image_url %}
+                    <img src="{{ item.image_url }}" alt="{{ item.name }}" loading="lazy">
                     {% else %}
-                    <div class="trend-no-items">
-                        <p>関連アイテムが見つかりませんでした。</p>
-                        <a href="/home?search={{ t.label|urlencode }}" class="btn-trend-sm">検索してみる</a>
-                    </div>
+                    <div class="no-img">No Img</div>
                     {% endif %}
                 </div>
+                <div class="ti-info">
+                    <div class="ti-brand">{{ item.brand|default('BRAND') }}</div>
+                    <div class="ti-price">¥{{ "{:,}".format(item.price|default(0)|int) }}</div>
+                </div>
+            </a>
+            {% endfor %}
+            {% else %}
+            <div class="trend-no-items">
+                <p>関連アイテムが見つかりませんでした。</p>
+                <a href="/home?search={{ t.label|urlencode }}" class="btn-trend-sm">検索してみる</a>
+            </div>
+            {% endif %}
+        </div>
         </details>
         {% endfor %}
     </div>
@@ -114,5 +117,62 @@
 </div>
 {% endfor %}
 {% endif %}
+
+<!-- Feature Explanation Cards -->
+<section class="feature-explanation-section">
+    <h3 style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem;">機能説明</h3>
+
+    <div class="feature-cards-grid">
+        <!-- Wikipedia API Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 11a9 9 0 0 1 9 9"></path>
+                    <path d="M4 4a16 16 0 0 1 16 16"></path>
+                    <circle cx="5" cy="19" r="1"></circle>
+                </svg>
+            </div>
+            <h4 class="feature-title">Wikipedia 連携</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> Wikimedia Pageviews APIを利用し、特定のファッションスタイルに関する記事の閲覧数を取得します。</p>
+                <p><strong>ロジック:</strong> 直近7日間と前週のデータを比較し、閲覧数の伸び率（成長率）を計算。急上昇しているトピックをランク付けします。</p>
+                <p><strong>用途:</strong> 単なる固定データではなく、世の中の「今」の関心事をリアルタイムに反映したトレンド情報を提供します。</p>
+            </div>
+        </div>
+
+        <!-- Data Analysis Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+            </div>
+            <h4 class="feature-title">人気タグ分析</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> アイテムデータベース内の大量のタグ情報をスキャンし、頻出するスタイルを動的に特定します。</p>
+                <p><strong>ロジック:</strong> Firestore上の全アイテムからタグを集計し、外部トレンドデータと照合。システム内で完結せず外部データとクロス分析を行います。</p>
+                <p><strong>用途:</strong> アプリ内の人気傾向と世界の流行を組み合わせることで、精度の高い「次に流行るスタイル」の予測を可能にします。</p>
+            </div>
+        </div>
+
+        <!-- Discovery Journey Card -->
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <h4 class="feature-title">知る → 探す 導線</h4>
+            <div class="feature-description">
+                <p><strong>仕様:</strong> トレンドワードをクリックすると、そのキーワードでホーム画面の全アイテムを自動検索します。</p>
+                <p><strong>ロジック:</strong> URLパラメータによる動的な検索クエリ発行機能を活用。詳細ページがある場合は直接表示し、ない場合は広域検索へ繋げます。</p>
+                <p><strong>用途:</strong> ユーザーが流行を知った直後に、具体的なアイテム探しへ移れる「迷わせないUX」を提供します。</p>
+            </div>
+        </div>
+    </div>
+</section>
 
 {% endblock %}
