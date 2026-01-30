@@ -5,44 +5,66 @@
         <h2>Users</h2>
         <div class="admin-list">
             {% for user in users %}
-            <div class="admin-card-row">
-                <div class="admin-card-main">
-                    <div class="admin-card-title">
-                        <span class="admin-card-id">#{{ user.id }}</span>
-                        <span class="admin-card-name">{{ user.email }}</span>
+            <div class="md3-card-row">
+                <div class="md3-card-content">
+                    <!-- Primary Info: Icon + Email + Last Login -->
+                    <div class="md3-card-header">
+                        <div class="md3-avatar">
+                            <span class="material-symbols-outlined">account_circle</span>
+                        </div>
+                        <div class="md3-text-group">
+                            <div class="md3-primary-text">{{ user.email }}</div>
+                            <div class="md3-secondary-text">
+                                <span class="material-symbols-outlined icon-small">history</span>
+                                <span>
+                                    {% if user.last_login_at %}
+                                    Last Login: {{ user.last_login_at | replace('T', ' ') | truncate(16, True, '') }}
+                                    {% else %}
+                                    Never logged in
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="admin-card-tags">
+                    <!-- Meta Info: Styles & Colors (Chips) -->
+                    <div class="md3-card-meta">
                         {% if user.preferred_styles %}
-                        <span class="tag-label">Styles:</span>
-                        {% for s in user.preferred_styles.split(',') %}
-                        <span class="tag tag-style">{{ s }}</span>
-                        {% endfor %}
+                        <div class="md3-meta-row">
+                            <span class="material-symbols-outlined icon-small meta-icon">sell</span>
+                            <div class="md3-chip-group">
+                                {% for s in user.preferred_styles.split(',') %}
+                                {% if s.strip() %}
+                                <span class="md3-chip surface-variant">#{{ s.strip() }}</span>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
                         {% endif %}
 
                         {% if user.preferred_colors %}
-                        <span class="tag-label">Colors:</span>
-                        {% for c in user.preferred_colors.split(',') %}
-                        <span class="tag tag-color">
-                            <span class="color-dot" data-color="{{ c }}"></span>
-                            <span>{{ c }}</span>
-                        </span>
-                        {% endfor %}
+                        <div class="md3-meta-row">
+                            <span class="material-symbols-outlined icon-small meta-icon">palette</span>
+                            <div class="md3-chip-group">
+                                {% for c in user.preferred_colors.split(',') %}
+                                {% if c.strip() %}
+                                <span class="md3-chip surface-variant">
+                                    <span class="color-dot-small" data-color="{{ c.strip() }}"></span>
+                                    {{ c.strip() }}
+                                </span>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
 
-                <div class="admin-card-actions">
-                    <a class="btn btn-secondary btn-icon"
-                        href="{{ url_for('admin.admin_user_edit', user_id=user.id) }}">
+                <!-- Action: Edit Button -->
+                <div class="md3-card-action">
+                    <a class="md3-icon-button" href="{{ url_for('admin.admin_user_edit', user_id=user.id) }}" title="Edit">
                         <span class="material-symbols-outlined">edit</span>
                     </a>
-                    <form action="{{ url_for('admin.admin_user_delete', user_id=user.id) }}" method="post"
-                        onsubmit="return confirm('削除しますか？');">
-                        <button class="btn btn-danger btn-icon" type="submit">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </form>
                 </div>
             </div>
             {% else %}
