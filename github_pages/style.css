@@ -1,0 +1,1911 @@
+:root {
+    --bg: #f8f8fb;
+    --card: #ffffff;
+    --accent: #111827;
+    /* 黒ベースでシックさを意識 */
+    --accent-weak: #303644;
+    --text: #161922;
+    --muted: #606575;
+    --danger: #d22f2f;
+    --border: #e4e6ed;
+    --pill: #f0f1f5;
+    --primary: #007bff;
+    /* ボタンやリンクの標準色 */
+    --primary-hover: #0056b3;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* --- 基本設定とタイポ --- */
+body {
+    margin: 0;
+    font-family: "Noto Sans JP", "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(135deg, #f2f2f7 0%, #fbfbfd 60%);
+    color: var(--text);
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+h1,
+h2,
+h3 {
+    margin: 0 0 16px;
+    letter-spacing: 0.01em;
+    color: var(--accent);
+    /* 見出し色をシックな黒に変更 */
+}
+
+/* --- レイアウト --- */
+main {
+    max-width: 1100px;
+    margin: 28px auto 48px;
+    padding: 0 16px;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: 0 18px 32px rgba(0, 0, 0, 0.06);
+    margin-bottom: 20px;
+}
+
+.mini-card {
+    background: var(--pill);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    border: 1px solid var(--border);
+}
+
+.split {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 720px) {
+    .split {
+        grid-template-columns: 1fr;
+    }
+
+    /* ヘッダーの調整は後述の .header-content で行います */
+}
+
+/* --- ヘッダー --- */
+header {
+    /* header-contentをラップするため、ベースはシンプルに */
+    background: var(--accent);
+    padding: 16px 0;
+}
+
+.header-content {
+    max-width: 1100px;
+    /* mainの幅に合わせる */
+    margin: 0 auto;
+    padding: 0 16px;
+    /* mainのpaddingに合わせる */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.header-content h2 {
+    color: white;
+    /* 継承されないため再指定 */
+    margin: 0;
+}
+
+.header-content a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+    padding: 8px 16px;
+    border-radius: 8px;
+    /* 丸みを持たせる */
+}
+
+.header-content a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    opacity: 1;
+    text-decoration: none;
+    color: white;
+}
+
+.gear-button {
+    font-size: 24px;
+}
+
+.header-nav {
+    display: flex;
+    gap: 16px;
+    /* gapを少し調整（パディング分を考慮） */
+    align-items: center;
+}
+
+.header-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.header-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    /* 白と黒の中間色演出 */
+    opacity: 1;
+    color: white;
+    /* 色の変化をなしに */
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.header-nav .material-symbols-outlined {
+    font-size: 32px;
+    /* アイコンを大きく */
+}
+
+
+/* --- フォームとボタン --- */
+form {
+    display: grid;
+    gap: 10px;
+}
+
+label {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin: 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fafbff;
+    font-size: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* --- ボタン --- */
+.actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+button[type="submit"],
+.btn,
+.save-button {
+    padding: 10px 16px;
+    /* サイズ調整 */
+    border: none;
+    border-radius: 8px;
+    background: var(--primary);
+    /* プライマリカラーを使用 */
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.3s ease;
+}
+
+.actions button[type="submit"]:hover,
+.btn:hover,
+.save-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    background-color: var(--primary-hover);
+}
+
+/* 検索フォーム内のリセットボタン/リンク用に新しいスタイルを追加 */
+.btn-reset {
+    background: transparent;
+    border: 1px solid var(--muted);
+    color: var(--muted);
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.btn-reset:hover {
+    background: var(--pill);
+    color: var(--text);
+    text-decoration: none;
+}
+
+.btn-secondary {
+    background: var(--muted);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #4d5160;
+}
+
+.btn-danger {
+    background: var(--danger);
+}
+
+/* --- リンク --- */
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.muted {
+    color: var(--muted);
+}
+
+/* --- 区切り線 --- */
+hr {
+    border: 0;
+    height: 1px;
+    background-color: var(--border);
+    margin: 20px 0;
+}
+
+/* --- ホーム画面固有スタイル --- */
+.preferred-style {
+    padding: 15px;
+    background-color: var(--pill);
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border-left: 5px solid var(--accent-weak);
+    /* アクセントライン */
+}
+
+.style-tag {
+    background-color: var(--accent-weak);
+    /* シックな色 */
+    color: white;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.photo-scroll {
+    display: flex;
+    overflow-x: auto;
+    padding: 20px 0 10px;
+    margin-bottom: 30px;
+    gap: 32px;
+}
+
+/* Hide scrollbar for cleaner look if desired, but let's keep it default or thin */
+.photo-scroll::-webkit-scrollbar {
+    height: 6px;
+}
+
+.photo-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.photo-scroll::-webkit-scrollbar-thumb {
+    background: #e4e6ed;
+    border-radius: 3px;
+}
+
+.item-card {
+    flex-shrink: 0;
+    width: 280px;
+    /* Wider card */
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    /* Rounded corners */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    /* Drop shadow */
+    overflow: hidden;
+    text-align: left;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px;
+    margin-bottom: 10px;
+    /* Spacing */
+    padding: 0 0 20px 0;
+    /* Reset internal padding */
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.item-card:hover {
+    box-shadow: 0 16px 35px rgba(0, 0, 0, 0.14);
+    transform: translateY(-2px);
+}
+
+/* Image */
+.item-card .img-wrapper {
+    margin: 12px 12px 0 12px;
+    /* Inner padding like reference */
+    width: calc(100% - 24px);
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    position: relative;
+    background: #f0f0f0;
+    border-radius: 8px;
+    /* Slightly rounded image */
+}
+
+.item-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+    border-radius: 0;
+}
+
+.item-card:hover img {
+    transform: scale(1.05);
+    /* Slight zoom on hover */
+}
+
+.item-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+}
+
+.badge-style {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #000;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 2px;
+    z-index: 10;
+    letter-spacing: 0.05em;
+    max-width: 90%;
+    /* Prevent overflow if many styles */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+}
+
+/* Info Section */
+.item-card .info {
+    padding: 16px 20px 0 20px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.item-card .name-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.item-card .name {
+    font-family: sans-serif;
+    font-weight: 700;
+    /* Bold */
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin: 0 0 8px 0;
+    color: #000;
+    line-height: 1.3;
+}
+
+/* Metadata */
+.item-card .meta-section {
+    margin-bottom: 16px;
+}
+
+.item-card .category-text,
+.item-card .styles-text {
+    font-size: 0.75rem;
+    color: #555;
+    margin: 2px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* Footer: Price + Button */
+.card-footer {
+    margin-top: auto;
+    /* Push to bottom if needed, though structure is simple */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.item-card .price {
+    font-weight: 700;
+    color: #000;
+    margin: 0;
+    font-size: 1.8rem;
+    /* Huge Price */
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.item-card .price .currency {
+    font-size: 0.8rem;
+    font-weight: 400;
+    margin-left: 2px;
+    vertical-align: baseline;
+}
+
+.view-details-btn {
+    background-color: #000;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 10px 14px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 4px;
+    transition: background 0.3s;
+}
+
+.view-details-btn:hover {
+    background-color: #333;
+    text-decoration: none;
+    color: #fff;
+}
+
+/* Clear old Chips styles if needed */
+.style-chips {
+    display: none;
+}
+
+.chip {
+    display: none;
+}
+
+/* --- 設定画面固有スタイル --- */
+.style-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    /* タグの重なり解消のため、20pxに設定 */
+    padding: 10px 0;
+    margin-bottom: 20px;
+}
+
+.tag-item label {
+    cursor: pointer;
+    padding: 10px 20px;
+    border: 2px solid var(--border);
+    border-radius: 25px;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.tag-item input[type="checkbox"] {
+    display: none;
+    /* チェックボックスを非表示 */
+}
+
+.tag-item input[type="checkbox"]:checked+label {
+    background-color: var(--accent);
+    /* メインカラーのシックな黒 */
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 4px 10px rgba(17, 24, 39, 0.3);
+    transform: scale(1.02);
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--pill);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.search-form input[type="text"] {
+    flex-grow: 1;
+    margin: 0;
+}
+
+/* --- 詳細画面固有スタイル --- */
+.item-info-area {
+    display: flex;
+    gap: 24px;
+    padding: 20px;
+    align-items: flex-start;
+}
+
+.item-photo {
+    width: 200px;
+    height: 200px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    object-fit: cover;
+}
+
+.item-text-details h1 {
+    font-size: 2em;
+    margin-bottom: 8px;
+}
+
+.item-text-details p {
+    margin: 0;
+}
+
+.item-price {
+    font-size: 1.4em;
+    color: var(--danger);
+    font-weight: 700;
+    margin-top: 5px;
+}
+
+.item-sites a {
+    display: block;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    background-color: #f0f8ff;
+    text-align: center;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.item-sites a:hover {
+    background-color: #e6f2ff;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+    .item-info-area {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+/* --- 履歴ストリップ --- */
+/* --- 履歴ストリップ Minimal Gallery --- */
+.history-strip {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 10px 0 20px 0;
+    /* padding for aesthetic, bottom for touch */
+    align-items: stretch;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+/* Hide scrollbar for Chrome/Safari */
+.history-strip::-webkit-scrollbar {
+    display: none;
+}
+
+.history-card {
+    flex: 0 0 130px;
+    /* Compact fixed width */
+    background: transparent;
+    /* Minimal: no card background or nice transparent */
+    border-radius: 4px;
+    box-shadow: none;
+    /* Removed heavy shadow */
+    overflow: hidden;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    /* Square */
+    object-fit: cover;
+    display: block;
+    border-radius: 4px;
+    /* Uniform radius */
+    background: #f4f4f4;
+    height: auto;
+    margin-bottom: 6px;
+    transition: transform 0.25s ease;
+}
+
+.history-card:hover img {
+    transform: scale(1.04);
+}
+
+.history-card .placeholder {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: block;
+    background: #e0e0e0;
+    /* Grey block */
+    border-radius: 4px;
+    height: auto;
+    margin-bottom: 6px;
+}
+
+.history-meta {
+    padding: 0 2px;
+    /* minimal padding */
+}
+
+.history-meta .name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+    line-height: 1.2;
+}
+
+.history-meta .price {
+    font-size: 0.8rem;
+    color: #555;
+    /* Muted price for history */
+    font-weight: 500;
+    margin: 0;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.history-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+}
+
+/* --- Admin-like overlay & tag picker (for home modal) --- */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay.hidden {
+    display: none;
+}
+
+.overlay .modal {
+    background: var(--card);
+    border-radius: 0;
+    /* Sharp */
+    width: min(560px, 90%);
+    max-width: 560px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    height: fit-content;
+    max-height: calc(100vh - 40px);
+    padding: 1rem;
+    overflow: auto;
+    margin: 0 8px;
+    box-sizing: border-box;
+    align-self: center;
+    justify-self: center;
+    border: 1px solid #111;
+}
+
+.modal-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.tag-grid {
+    padding: 12px 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.tag-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 0;
+    /* Sharp */
+    cursor: pointer;
+    transition: all 0.1s;
+    margin: 0;
+    font-size: 0.9em;
+    line-height: 1;
+    color: #000;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.tag-btn:hover {
+    border-color: #555;
+}
+
+.tag-btn.active {
+    background: #000;
+    color: #fff;
+    border-color: #000;
+}
+
+.modal-actions {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    /* Right align actions */
+    align-items: center;
+}
+
+.modal-actions .btn {
+    margin: 0;
+    border-radius: 0;
+    /* Sharp */
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+}
+
+/* Override btn-secondary / save button specific if needed */
+#cancel-style {
+    background: #fff;
+    color: #000;
+    border: 1px solid #ddd;
+}
+
+#cancel-style:hover {
+    background: #f4f4f4;
+}
+
+#save-style {
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+}
+
+#save-style:hover {
+    background: #333;
+}
+
+/* --- Item detail overlay --- */
+.detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 2500;
+}
+
+.detail-overlay.hidden {
+    display: none;
+}
+
+.detail-panel {
+    background: #fff;
+    color: var(--text);
+    border-radius: 18px;
+    box-shadow: 0 35px 60px rgba(0, 0, 0, 0.35);
+    width: min(960px, 96%);
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+    position: relative;
+    padding-top: 16px;
+}
+
+.detail-panel-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+    padding: 32px;
+}
+
+.detail-panel-image img {
+    width: 100%;
+    border-radius: 14px;
+    display: block;
+    object-fit: cover;
+    min-height: 320px;
+    background: #f5f5f5;
+}
+
+.detail-panel-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.detail-panel-info--duplicate {
+    grid-column: 1 / -1;
+    padding-top: 24px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.detail-panel-info--duplicate .detail-button-row {
+    margin-top: 12px;
+}
+
+.detail-panel-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--accent);
+}
+
+.detail-panel-name {
+    font-size: 2rem;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.detail-panel-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.detail-meta-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.meta-label {
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.meta-value {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.detail-panel-description {
+    margin: 0;
+    line-height: 1.7;
+    color: var(--muted);
+}
+
+.detail-panel-meta {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.view-detail-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+
+.view-detail-link.disabled {
+    background: #d1d5db;
+    color: #6b7280;
+    pointer-events: none;
+}
+
+.detail-button-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.btn-black-sharp {
+    flex: 1;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 14px 18px;
+    border-radius: 0;
+    border: 1px solid #000;
+    background: #000;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn-black-sharp:hover {
+    background: #161616;
+    text-decoration: none;
+}
+
+.btn-black-sharp.is-disabled {
+    background: #cfcfcf;
+    color: #6b7280;
+    border-color: #cfcfcf;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn-save {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 1px solid #000;
+    background: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-save .icon-bookmark {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.btn-save.active {
+    background: #000;
+    color: #fff;
+}
+
+.btn-save.active .icon-bookmark {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.detail-close {
+    position: absolute;
+    top: 6px;
+    right: 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    border-radius: 999px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.detail-close:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 720px) {
+    .detail-panel-body {
+        padding: 24px;
+    }
+
+    .detail-panel-name {
+        font-size: 1.6rem;
+    }
+}
+
+/* ▼ ヘッダー下のタブ UI */
+.page-tabs {
+    display: flex;
+    gap: 20px;
+    padding: 14px 0 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 30px;
+    /* Increased margin */
+}
+
+.page-tabs .tab {
+    padding: 6px 2px;
+    font-weight: 600;
+    color: var(--muted);
+    border: none;
+    border-bottom: 3px solid transparent;
+    text-decoration: none;
+    transition: 0.2s;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    position: relative;
+    outline: none;
+}
+
+.page-tabs .tab:focus,
+.page-tabs .tab:active {
+    background: transparent;
+}
+
+.page-tabs .tab:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.page-tabs .tab.active {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 1.1em;
+    border-bottom-color: var(--accent);
+}
+
+.page-tabs .tab:focus-visible {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    box-shadow: inset 0 -6px 0 rgba(17, 24, 39, 0.12);
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
+}
+
+html[data-active-tab="home"] .tab-panel[data-panel="home"],
+html[data-active-tab="trend"] .tab-panel[data-panel="trend"],
+html[data-active-tab="weather"] .tab-panel[data-panel="weather"] {
+    display: block;
+}
+
+html[data-active-tab="home"] .page-tabs .tab[data-tab="home"],
+html[data-active-tab="trend"] .page-tabs .tab[data-tab="trend"],
+html[data-active-tab="weather"] .page-tabs .tab[data-tab="weather"] {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 1.1em;
+    border-bottom-color: var(--accent);
+}
+
+
+/* --- User Style Section Minimal Redesign --- */
+.style-section-minimal {
+    margin-bottom: 40px;
+    padding: 0 0 20px 0;
+    /* border-bottom: 1px solid #eee; Optional separator */
+}
+
+.style-section-minimal h3 {
+    font-size: 1.17em;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+}
+
+.tag-sharp {
+    display: inline-block;
+    background: #000;
+    color: #fff;
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    margin-right: 8px;
+    border-radius: 0;
+    /* Sharp corners */
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.btn-text-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: #000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    margin-top: 14px;
+    display: inline-block;
+    transition: opacity 0.2s;
+}
+
+
+/* --- Auth Pages Refinement (Zara-like Minimal) --- */
+.auth-container {
+    max-width: 360px;
+    margin: 0 auto;
+    padding-top: 40px;
+    /* No background/border/shadow - pure minimal */
+}
+
+.auth-container h2 {
+    font-size: 24px;
+    font-weight: 300;
+    margin-bottom: 40px;
+    text-align: center;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+}
+
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.auth-container label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.auth-container input[type="text"],
+.auth-container input[type="email"],
+.auth-container input[type="password"] {
+    width: 100%;
+    height: 48px;
+    padding: 0 12px;
+    border: 1px solid #d1d1d1;
+    border-radius: 0;
+    font-size: 14px;
+    background: #fff;
+    transition: border-color 0.2s;
+    margin: 0;
+    /* Reset */
+}
+
+.auth-container input:focus {
+    border-color: #000;
+    outline: none;
+}
+
+.auth-container .actions {
+    margin-top: 8px;
+}
+
+.auth-container button[type="submit"] {
+    width: 100%;
+    height: 50px;
+    background: #000;
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.auth-container button[type="submit"]:hover {
+    background: #333;
+    transform: none;
+    /* Remove subtle bounce from default */
+    box-shadow: none;
+}
+
+.auth-links {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+}
+
+.auth-links a {
+    color: #333;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    /* Slight separation */
+    text-decoration-thickness: 1px;
+}
+
+.auth-links a:hover {
+    color: #000;
+    font-weight: 500;
+}
+
+/* Header refined typography */
+.header-content h2 a {
+    font-weight: 300;
+    /* Thinner */
+    font-size: 1.6rem;
+    /* Smaller */
+    letter-spacing: 0.1em;
+}
+
+/* --- Product Detail Redesign (High-End Fashion) --- */
+.detail-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+}
+
+.detail-image-area {
+    width: 100%;
+}
+
+.detail-image {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    background-color: #f4f4f4;
+    display: block;
+}
+
+.detail-info-area {
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.detail-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+    letter-spacing: 0.05em;
+    line-height: 1.4;
+}
+
+.detail-price {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 40px;
+    letter-spacing: 0.02em;
+}
+
+.detail-meta {
+    margin-bottom: 40px;
+}
+
+.meta-label {
+    font-size: 11px;
+    color: #999;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.meta-value {
+    font-size: 14px;
+    font-weight: 400;
+    color: #333;
+}
+
+.btn-black-sharp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 56px;
+    background: #000;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    border: none;
+    border-radius: 0;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: auto;
+    /* Push to bottom if flex container has height */
+}
+
+.btn-black-sharp:hover {
+    background: #333;
+    color: #fff;
+}
+
+/* Responsive for Mobile */
+@media (max-width: 768px) {
+    .detail-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        margin-top: 20px;
+    }
+
+    .detail-title {
+        font-size: 1.3rem;
+        margin-bottom: 16px;
+    }
+
+    .detail-price {
+        font-size: 1.8rem;
+        margin-bottom: 30px;
+    }
+}
+
+/* ===== Trends (scoped) ===== */
+#trends.trends-page {
+    /* Uses main's 1100px max-width */
+}
+
+#trends .trends-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+
+#trends .trends-title {
+    font-size: 20px;
+    letter-spacing: .01em;
+    margin: 0 0 6px;
+}
+
+#trends .trends-desc {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(17, 24, 39, .65);
+}
+
+#trends .trends-meta {
+    display: grid;
+    gap: 8px;
+    justify-items: end;
+}
+
+#trends .meta-chip {
+    display: inline-flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(17, 24, 39, .10);
+    background: rgba(255, 255, 255, .92);
+    backdrop-filter: blur(6px);
+}
+
+#trends .meta-chip.is-warn {
+    border-color: rgba(210, 47, 47, .25);
+}
+
+#trends .meta-label {
+    font-size: 11px;
+    color: rgba(17, 24, 39, .55);
+    letter-spacing: .02em;
+}
+
+#trends .meta-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #111827;
+}
+
+#trends .trends-note {
+    font-size: 12px;
+    color: rgba(17, 24, 39, .55);
+    margin: 8px 0 12px;
+}
+
+#trends .trend-grid {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#trends .trend-card {
+    border-radius: 12px;
+    border: 1px solid rgba(17, 24, 39, .08);
+    background: #fff;
+    padding: 14px;
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+#trends .trend-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 32px rgba(0, 0, 0, .06);
+    border-color: rgba(17, 24, 39, .14);
+}
+
+#trends .trend-card.is-top {
+    border-color: rgba(17, 24, 39, .18);
+}
+
+#trends .trend-card-head {
+    display: grid;
+    grid-template-columns: 36px 1fr 130px;
+    gap: 14px;
+    align-items: center;
+}
+
+#trends .trend-rank {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 12px;
+    color: #111827;
+    background: rgba(17, 24, 39, .06);
+}
+
+#trends .trend-name-row {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+#trends .trend-name {
+    font-weight: 800;
+    letter-spacing: .01em;
+    color: #111827;
+}
+
+#trends .trend-article {
+    font-size: 12px;
+    color: rgba(17, 24, 39, .55);
+}
+
+#trends .trend-sub {
+    margin-top: 6px;
+    font-size: 12px;
+    color: rgba(17, 24, 39, .62);
+}
+
+#trends .trend-pv {
+    font-weight: 700;
+    color: rgba(17, 24, 39, .86);
+}
+
+#trends .trend-metric {
+    text-align: right;
+    padding-left: 12px;
+    border-left: 1px solid rgba(17, 24, 39, .08);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+#trends .trend-score {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: .01em;
+    color: #111827;
+}
+
+#trends .trend-score.is-top-score {
+    color: #16a34a;
+}
+
+#trends .trend-growth-small {
+    font-size: 12px;
+    color: #9E9E9E;
+}
+
+#trends .trend-badge {
+    font-size: 12px;
+    color: #6b7280;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 2px 8px;
+}
+
+#trends .trend-card-foot {
+    margin-top: 12px;
+}
+
+#trends .btn-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(17, 24, 39, .14);
+    background: #fff;
+    color: #111827;
+    font-size: 12px;
+    text-decoration: none;
+    transition: background .15s ease, border-color .15s ease;
+}
+
+#trends .btn-trend:hover {
+    background: rgba(17, 24, 39, .04);
+    border-color: rgba(17, 24, 39, .22);
+}
+
+@media (max-width:720px) {
+    #trends .trends-hero {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #trends .trends-meta {
+        justify-items: start;
+    }
+
+    #trends .trend-card-head {
+        grid-template-columns: 36px 1fr;
+    }
+
+    #trends .trend-metric {
+        grid-column: 1 / -1;
+        text-align: left;
+        border-left: none;
+        padding-left: 0;
+        margin-top: 10px;
+        align-items: flex-start;
+    }
+}
+
+/* ===== Trends Plan A Updates ===== */
+/* カード全体クリック */
+#trends .trend-card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+/* フッターのCTAは右寄せにして“ボタン感”は残す */
+#trends .trend-card-foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+#trends .trend-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(17, 24, 39, 0.14);
+    background: #fff;
+    font-size: 12px;
+    color: #111827;
+}
+
+#trends .trend-card-link:hover .trend-cta {
+    background: rgba(17, 24, 39, 0.04);
+    border-color: rgba(17, 24, 39, 0.22);
+}
+
+/* 改行位置の改善：ラベルと(article)を“同じ行に保ちやすく” */
+#trends .trend-name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: nowrap;
+    /* ←折り返しを基本させない */
+    min-width: 0;
+    /* ←ellipsisのために必要 */
+}
+
+#trends .trend-name {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* 長いラベルは…にする */
+}
+
+#trends .trend-article {
+    white-space: nowrap;
+    /* articleは基本折らない */
+    opacity: .65;
+}
+
+/* 伸び率の色：増加=ティール、減少=赤系（品位維持） */
+#trends .trend-card.is-up .trend-score:not(.is-top-score),
+#trends .trend-card.is-down .trend-score:not(.is-top-score) {
+    color: #111827;
+}
+
+/* クリック可能な“押せる感”を少しだけ強化 */
+#trends .trend-card:has(.trend-card-link:hover) {
+    border-color: rgba(17, 24, 39, 0.18);
+}
+
+/* ===== Trends Accordion (Plan B) ===== */
+
+/* details/summary styling */
+details.trend-card>summary {
+    list-style: none;
+    cursor: pointer;
+    outline: none;
+    position: relative;
+}
+
+details.trend-card>summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Chevron positioning */
+.trend-summary {
+    display: flex;
+    align-items: center;
+    /* Vertical center */
+    padding-right: 40px;
+    /* Space for chevron */
+}
+
+/* Ensure the head takes full width */
+.trend-card-head {
+    flex: 1;
+}
+
+.trend-chevron {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    transition: transform 0.2s ease;
+}
+
+details.trend-card[open] .trend-chevron {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Expander Area */
+.trend-items-expander {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+/* Items Grid -> Horizontal Scroll Strip (Modified) */
+.trend-item-grid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 10px 0 10px 0;
+    /* Add bottom padding for touch scroll comfort */
+    align-items: stretch;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+}
+
+.trend-item-grid::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari */
+}
+
+/* trend-item-thumb as fixed width card */
+.trend-item-thumb {
+    flex: 0 0 130px;
+    /* Fixed width like history card */
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fdfdfd;
+    border: 1px solid #f0f0f0;
+    transition: box-shadow 0.2s;
+    height: auto;
+}
+
+.trend-item-thumb:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.ti-img-box {
+    aspect-ratio: 3/4;
+    background: #eee;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 11px;
+}
+
+.ti-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.ti-img-box .no-img {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+.ti-info {
+    padding: 8px;
+}
+
+.ti-brand {
+    font-size: 10px;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ti-price {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* More Link & Empty State */
+.trend-more-link {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.trend-more-link a {
+    font-size: 13px;
+    color: #6366f1;
+    /* Brand indigo */
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.trend-more-link a:hover {
+    text-decoration: underline;
+}
+
+.trend-no-items {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.btn-trend-sm {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #111827;
+    text-decoration: none;
+}
+
+/* --- Feature Explanation Cards --- */
+.feature-explanation-section {
+    margin: 60px 0 40px;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.feature-explanation-section h3 {
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.feature-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.feature-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.feature-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-weak) 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: white;
+}
+
+.feature-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.feature-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0 0 12px 0;
+    letter-spacing: 0.02em;
+}
+
+.feature-description {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+.feature-description p {
+    margin: 0 0 12px 0;
+}
+
+.feature-description p:last-child {
+    margin-bottom: 0;
+}
+
+.feature-description strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .feature-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-explanation-section {
+        padding: 30px 16px;
+        margin: 40px 0 30px;
+    }
+}

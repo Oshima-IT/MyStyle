@@ -1,0 +1,78 @@
+[
+  {
+    "id": "Z5NUZr3BMyYIRYFuYAzi",
+    "name": "メッシュ厚底スニーカー",
+    "price": 4500,
+    "image_url": "https://c.imgz.jp/244/98746244/98746244b_29_d_500.jpg",
+    "detail_url": "https://zozo.jp/?c=gr&did=157886056",
+    "styles": [
+      "ストリート系"
+    ],
+    "weather_tags": [
+      "breathable"
+    ],
+    "popularity": 8
+  },
+  {
+    "id": "M2758sv0M0XBpuRO0NIu",
+    "name": "フリルリボンカーディガン",
+    "price": 4180,
+    "image_url": "https://c.imgz.jp/549/97641549/97641549b_38_d_500.jpg",
+    "detail_url": "https://zozo.jp/?c=gr&did=156706254",
+    "styles": [
+      "フレンチガーリー"
+    ],
+    "weather_tags": [
+      "layering"
+    ],
+    "popularity": 8
+  },
+  {
+    "id": "TKRXb8w6BVbvDBphN0Se",
+    "name": "超厚底×美脚レッグカバーSETブーツ",
+    "price": 6518,
+    "image_url": "https://c.imgz.jp/414/97496414/97496414b_1_d_500.jpg",
+    "detail_url": "https://zozo.jp/?c=gr&did=158935282",
+    "styles": [
+      "地雷系"
+    ],
+    "weather_tags": [],
+    "popularity": 0
+  },
+  {
+    "id": "X27073UjllZhtMuqznoe",
+    "name": "最強もこもこレッグウォーマー",
+    "price": 2900,
+    "image_url": "https://c.imgz.jp/392/93999392/93999392b_38_d_500.jpg",
+    "detail_url": "https://zozo.jp/?c=gr&did=150456070",
+    "styles": [
+      "サブカル系"
+    ],
+    "weather_tags": [],
+    "popularity": 0
+  },
+  {
+    "id": "6MHdcXJimAUX5QUKOiEI",
+    "name": "新！ネ申おジャージ参上！",
+    "price": 12900,
+    "image_url": "https://c.imgz.jp/479/93999479/93999479b_8_d_500.jpg",
+    "detail_url": "https://zozo.jp/?c=gr&did=150456199",
+    "styles": [
+      "サブカル系"
+    ],
+    "weather_tags": [],
+    "popularity": 0
+  },
+  {
+    "id": "vR5lcMip7w8Or0mQRpUf",
+    "name": "悪魔ちゃんBIGロンTEE",
+    "price": 5900,
+    "image_url": "https://c.imgz.jp/449/93999449/93999449b_8_d_500.jpg",
+    "detail_url": "https://zozo.jp/?c=gr&did=150456157",
+    "styles": [
+      "サブカル系"
+    ],
+    "weather_tags": [],
+    "popularity": 0
+  }
+]

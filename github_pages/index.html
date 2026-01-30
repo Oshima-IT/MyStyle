@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyStyle Lite (GitHub Pages)</title>
+    <meta name="description" content="MyStyle の UI を GitHub Pages だけで再現した静的ビルド。既存データを事前に JSON 化して読み込みます。">
+    <script>
+        (function () {
+            var hash = (window.location.hash || "").replace("#", "");
+            var valid = ["home", "trend", "weather"];
+            if (valid.indexOf(hash) === -1) hash = "home";
+            document.documentElement.setAttribute("data-active-tab", hash);
+        })();
+    </script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <h2><a href="#" data-tab-target="home">MyStyle</a></h2>
+            <nav class="header-nav">
+                <a href="#" title="トレンド" data-tab-target="trend">
+                    <span class="material-symbols-outlined">insights</span>
+                </a>
+                <a href="#" title="天気おすすめ" data-tab-target="weather">
+                    <span class="material-symbols-outlined">sunny_snowing</span>
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-tabs">
+            <button type="button" class="tab active" data-tab="home">ホーム</button>
+            <button type="button" class="tab" data-tab="trend">トレンド</button>
+            <button type="button" class="tab" data-tab="weather">天気おすすめ</button>
+        </div>
+
+        <div class="tab-panel active" data-panel="home">
+            <section class="style-section-minimal" id="home">
+                <h3>あなたの系統</h3>
+                <div id="currentStyles" class="current-styles">
+                    <p style="font-size:0.9em; color:#888;">読み込み中...</p>
+                </div>
+                <div style="text-align:left;">
+                    <button class="btn-text-link open-style-modal" type="button">EDIT STYLES</button>
+                </div>
+            </section>
+
+            <section class="photo-display-area">
+                <h3>おすすめアイテム</h3>
+                <div class="photo-scroll" id="itemsContainer"></div>
+                <p class="muted" id="itemsEmpty" style="display:none;">条件に合うアイテムが見つかりませんでした。</p>
+            </section>
+
+            <section class="card" id="historyBlock" style="display:none;">
+                <h3>最近見たアイテム</h3>
+                <div class="history-strip" id="historyContainer"></div>
+            </section>
+
+            <section class="card" id="savedBlock" style="display:none;">
+                <h3>お気に入り</h3>
+                <div class="history-strip" id="savedContainer"></div>
+            </section>
+
+            <section class="feature-explanation-section">
+                <h3 style="text-align:center; margin-bottom:2rem; font-size:1.5rem;">機能説明</h3>
+                <div class="feature-cards-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <span class="material-symbols-outlined">magic_button</span>
+                        </div>
+                        <h4 class="feature-title">おすすめアイテム</h4>
+                        <div class="feature-description">
+                            <p><strong>仕様:</strong> Firestore の `items` コレクションを JSON にエクスポートし、選択中の系統タグと照合します。</p>
+                            <p><strong>ロジック:</strong> タグ一致 + 人気スコアで並び替え。静的ビルドでは JSON 内の `popularity` 値を利用します。</p>
+                            <p><strong>用途:</strong> GitHub Pages 上でも本番 UI と同じ推薦体験を再現します。</p>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <span class="material-symbols-outlined">cookie</span>
+                        </div>
+                        <h4 class="feature-title">スタイル保存</h4>
+                        <div class="feature-description">
+                            <p><strong>仕様:</strong> 選択した系統は localStorage に保存し、次回アクセス時に復元します。</p>
+                            <p><strong>ロジック:</strong> Flask 版のセッション更新 API の代わりに、静的環境ではクライアントのみで完結させています。</p>
+                            <p><strong>用途:</strong> ログインなしでも自分の好みを保持できるため、手軽にプレビューできます。</p>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <span class="material-symbols-outlined">sync_saved_locally</span>
+                        </div>
+                        <h4 class="feature-title">キャッシュ連携</h4>
+                        <div class="feature-description">
+                            <p><strong>仕様:</strong> `instance/weather_cache.json` や `wiki_trend_cache.json` を `github_pages/data/` にコピーして参照します。</p>
+                            <p><strong>ロジック:</strong> ビルド時に既存キャッシュを転写するだけで、静的ページから同じデータを確認できます。</p>
+                            <p><strong>用途:</strong> 本番の定期バッチをそのまま利用し、運用コストを増やさず GitHub Pages を公開環境に追加できます。</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="tab-panel" data-panel="trend">
+            <section id="trends" class="trends-page">
+                <div class="trends-hero">
+                    <div class="trends-hero-left">
+                        <h2 class="trends-title">今週のスタイルトレンド</h2>
+                        <p class="trends-desc">
+                            Wikipediaの閲覧数（<span id="trendSource">-</span>）から直近7日で伸びているスタイルをランキング表示します。
+                        </p>
+                    </div>
+                    <div class="trends-meta">
+                        <div class="meta-chip">
+                            <span class="meta-label">UPDATED</span>
+                            <span class="meta-value" id="trendUpdated">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="trends-note">“知る → 探す” の導線で、関連アイテムをホーム側で検索します。</div>
+                <div class="trend-grid" id="trendList">
+                    <p class="muted">読み込み中...</p>
+                </div>
+            </section>
+        </div>
+
+        <div class="tab-panel" data-panel="weather">
+            <section class="card" id="weather-anchor">
+                <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                    <div>
+                        <h2 style="margin:0;">今日の天気 × おすすめ</h2>
+                        <div id="weatherSource" style="font-size:0.9em; opacity:0.8;">Data Source: -</div>
+                    </div>
+                    <div style="font-size:0.85em; opacity:0.8; text-align:right;">
+                        <span id="weatherUpdated">Updated: --</span>
+                        <div id="weatherStale" style="color:#b45309; display:none;">（キャッシュを表示中）</div>
+                    </div>
+                </div>
+                <div id="weatherStats" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:12px;"></div>
+                <div style="margin-top:12px;" id="weatherRulesBlock" hidden>
+                    <h3 style="margin:12px 0 6px;">このおすすめになった理由</h3>
+                    <ul id="weatherRules" style="margin:0; padding-left:18px;"></ul>
+                </div>
+                <div style="margin-top:12px;" id="weatherRecommendBlock" hidden>
+                    <h3 style="margin:12px 0 6px;">天気に合わせたおすすめ</h3>
+                    <div class="history-strip" id="weatherItems"></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div class="detail-overlay hidden" id="itemDetailOverlay" aria-hidden="true">
+        <div class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detailName">
+            <button class="detail-close" id="itemDetailClose" type="button" aria-label="閉じる">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="detail-panel-body">
+                <div class="detail-panel-image">
+                    <img id="detailImage" alt="" loading="lazy">
+                </div>
+                <div class="detail-panel-info detail-panel-info--primary">
+                    <h3 class="detail-panel-name" id="detailName">アイテム名</h3>
+                    <p class="detail-panel-price" id="detailPrice">¥0</p>
+                    <div class="detail-meta-row">
+                        <span class="meta-label">Category</span>
+                        <span class="meta-value" id="detailCategory">-</span>
+                    </div>
+                    <div class="detail-panel-tags" id="detailStyles"></div>
+                    <p class="detail-panel-description" id="detailDescription"></p>
+                    <p class="detail-panel-meta" id="detailMeta"></p>
+                    <div class="detail-button-row">
+                        <a class="btn-black-sharp" id="detailShopButton" href="#" target="_blank" rel="noopener noreferrer">販売ページへ</a>
+                        <button class="btn-save" id="detailBookmarkButton" type="button" aria-pressed="false" aria-label="お気に入りに保存">
+                            <span class="material-symbols-outlined icon-bookmark">bookmark</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="detail-panel-info detail-panel-info--duplicate">
+                    <h3 class="detail-panel-name" id="detailNameBottom">アイテム名</h3>
+                    <p class="detail-panel-price" id="detailPriceBottom">¥0</p>
+                    <div class="detail-meta-row">
+                        <span class="meta-label">Category</span>
+                        <span class="meta-value" id="detailCategoryBottom">-</span>
+                    </div>
+                    <div class="detail-panel-tags" id="detailStylesBottom"></div>
+                    <p class="detail-panel-description" id="detailDescriptionBottom"></p>
+                    <p class="detail-panel-meta" id="detailMetaBottom"></p>
+                    <div class="detail-button-row">
+                        <a class="btn-black-sharp" id="detailShopButtonBottom" href="#" target="_blank" rel="noopener noreferrer">販売ページへ</a>
+                        <button class="btn-save" id="detailBookmarkButtonBottom" type="button" aria-pressed="false" aria-label="お気に入りに保存">
+                            <span class="material-symbols-outlined icon-bookmark">bookmark</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="styleOverlay">
+        <div class="modal" role="dialog" aria-hidden="true">
+            <div class="modal-header">系統を選択</div>
+            <div class="tag-grid" id="styleOptions"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancel-style" type="button">キャンセル</button>
+                <button class="btn" id="save-style" type="button">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js" type="module"></script>
+</body>
+
+</html>
