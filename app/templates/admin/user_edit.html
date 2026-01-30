@@ -1,28 +1,86 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="card">
-    <h2>User編集 #{{ user.id }}</h2>
-    <form method="post">
-        <div>
-            <label>Email</label>
-            <input type="text" name="email" required value="{{ user.email }}">
+{% extends "admin/base.html" %}
+{% block admin_content %}
+<div class="md3-form-container">
+    <div class="card">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+            <span class="material-symbols-outlined" style="font-size: 28px; color: #1a1c1e;">manage_accounts</span>
+            <h2 style="margin: 0; font-size: 24px; color: #1a1c1e;">User編集 #{{ user.id }}</h2>
         </div>
-        <div>
-            <label>Password Hash</label>
-            <input type="text" name="password_hash" required value="{{ user.password_hash }}">
-        </div>
-        <div>
-            <label>Preferred Styles (カンマ区切り)</label>
-            <input type="text" name="preferred_styles" value="{{ user.preferred_styles or '' }}">
-        </div>
-        <div>
-            <label>Preferred Colors (カンマ区切り)</label>
-            <input type="text" name="preferred_colors" value="{{ user.preferred_colors or '' }}">
-        </div>
-        <div class="actions">
-            <button type="submit">保存</button>
-            <a class="btn btn-secondary" href="{{ url_for('admin.admin_users') }}">戻る</a>
-        </div>
-    </form>
+
+        <form method="post" id="user-form">
+            <!-- Email -->
+            <div class="md3-input-group">
+                <input type="email" name="email" id="email" class="md3-input-field" placeholder=" " required value="{{ user.email }}">
+                <label for="email" class="md3-input-label">Email</label>
+                <span class="material-symbols-outlined md3-input-icon">mail</span>
+            </div>
+
+            <!-- Password Hash (Read-Only) -->
+            <div class="md3-input-group">
+                <input type="text" name="password_hash" id="password_hash" class="md3-input-field" placeholder=" " required value="{{ user.password_hash }}" readonly>
+                <label for="password_hash" class="md3-input-label">Password Hash</label>
+                <span class="material-symbols-outlined md3-input-icon">key</span>
+                <button type="button" class="copy-btn" onclick="copyToClipboard('password_hash')" title="Copy Hash">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">content_copy</span>
+                </button>
+            </div>
+
+            <!-- Styles (Chip Input) -->
+            <div class="md3-input-group">
+                <div class="chip-input-container" id="styles-container">
+                    <span class="material-symbols-outlined md3-input-icon">style</span>
+                    <!-- Chips inserted here -->
+                    <input type="text" id="styles-input" class="chip-input-field" placeholder=" ">
+                    <label for="styles-input" class="md3-input-label">Preferred Styles</label>
+                </div>
+                <input type="hidden" name="preferred_styles" id="hidden-styles" value="{{ user.preferred_styles or '' }}">
+                <div style="font-size: 11px; color: #666; margin-top: 4px; padding-left: 4px;">Enterで追加 / Backspaceで削除</div>
+            </div>
+
+            <!-- Colors (Chip Input) -->
+            <div class="md3-input-group">
+                <div class="chip-input-container" id="colors-container">
+                    <span class="material-symbols-outlined md3-input-icon">palette</span>
+                    <!-- Chips inserted here -->
+                    <input type="text" id="colors-input" class="chip-input-field" placeholder=" ">
+                    <label for="colors-input" class="md3-input-label">Preferred Colors</label>
+                </div>
+                <input type="hidden" name="preferred_colors" id="hidden-colors" value="{{ user.preferred_colors or '' }}">
+                <div style="font-size: 11px; color: #666; margin-top: 4px; padding-left: 4px;">Enterで追加 / Backspaceで削除</div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('admin.admin_users') }}" class="btn-text">キャンセル</a>
+                <button type="submit" class="btn-filled">
+                    <span class="material-symbols-outlined">save</span>
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Inline JS for specific page logic or move to admin.js
+    // Moving shared logic to admin.js is better, but for speed and page-specifics, inline here is fine initially.
+    // However, I will implement generic ChipInput in admin.js as planned.
+
+    document.addEventListener('DOMContentLoaded', () => {
+        new ChipInput('styles-container', 'styles-input', 'hidden-styles');
+        new ChipInput('colors-container', 'colors-input', 'hidden-colors');
+    });
+
+    function copyToClipboard(id) {
+        const el = document.getElementById(id);
+        el.select();
+        document.execCommand('copy');
+        // Simple feedback
+        const btn = el.parentElement.querySelector('.copy-btn .material-symbols-outlined');
+        const original = btn.textContent;
+        btn.textContent = 'check';
+        setTimeout(() => btn.textContent = original, 1500);
+    }
+</script>
 {% endblock %}
